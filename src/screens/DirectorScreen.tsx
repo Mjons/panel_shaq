@@ -24,10 +24,149 @@ interface DirectorProps {
   panels: PanelPrompt[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   characters: Character[];
+  story: string;
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
   onContinue: () => void;
 }
+
+/* ── Insert Panel Button ── */
+const InsertPanelButton = ({
+  onClick,
+  label,
+  isLoading,
+}: {
+  onClick: () => void;
+  label?: string;
+  isLoading?: boolean;
+}) => (
+  <div className="col-span-full flex items-center gap-4 py-3">
+    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+    <button
+      onClick={onClick}
+      disabled={isLoading}
+      className="group/insert flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-dashed border-primary/40 text-primary/70 bg-primary/5 hover:border-primary hover:text-primary hover:bg-primary/15 transition-all disabled:opacity-50 disabled:cursor-wait shadow-[0_0_15px_rgba(255,145,0,0.08)]"
+    >
+      {isLoading ? (
+        <Loader2 size={16} className="animate-spin" />
+      ) : (
+        <Plus
+          size={16}
+          className="group-hover/insert:rotate-90 transition-transform"
+        />
+      )}
+      <span className="text-xs font-bold uppercase tracking-widest">
+        {isLoading ? "Generating..." : label || "Insert Panel"}
+      </span>
+    </button>
+    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+  </div>
+);
+
+/* ── Draft Panel Card (editable preview before confirming insertion) ── */
+const PanelDraftCard = ({
+  draft,
+  onConfirm,
+  onCancel,
+  onChange,
+}: {
+  draft: PanelPrompt;
+  onConfirm: () => void;
+  onCancel: () => void;
+  onChange: (updated: PanelPrompt) => void;
+}) => (
+  <div className="col-span-full my-2">
+    <div className="bg-surface rounded-lg overflow-hidden shadow-[0_0_30px_rgba(255,145,0,0.15)] border-2 border-primary/50">
+      <div className="bg-primary/10 px-4 py-2 flex items-center justify-between border-b border-primary/20">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-primary" />
+          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
+            New Panel Draft
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onCancel}
+            className="px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-accent hover:bg-background/50 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-1 rounded bg-primary text-background text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1"
+          >
+            <Check size={12} />
+            Confirm
+          </button>
+        </div>
+      </div>
+      <div className="p-6 space-y-4">
+        <div className="space-y-2">
+          <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+            Panel Description
+          </label>
+          <textarea
+            className="text-accent text-sm bg-background/50 p-3 rounded-lg border border-outline/10 focus:ring-1 focus:ring-primary w-full italic resize-none min-h-[80px] outline-none transition-all"
+            value={draft.description}
+            onChange={(e) =>
+              onChange({ ...draft, description: e.target.value })
+            }
+            placeholder="Describe the action in this panel..."
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+              Character Focus
+            </label>
+            <input
+              type="text"
+              className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary"
+              value={draft.characterFocus || ""}
+              onChange={(e) =>
+                onChange({ ...draft, characterFocus: e.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+              Camera Angle
+            </label>
+            <select
+              value={draft.cameraAngle || "Cinematic 35mm"}
+              onChange={(e) =>
+                onChange({ ...draft, cameraAngle: e.target.value })
+              }
+              className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+            >
+              <option>Ultra Wide 14mm</option>
+              <option>Cinematic 35mm</option>
+              <option>Portrait 85mm</option>
+              <option>Low Angle</option>
+              <option>Bird's Eye</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+              Mood
+            </label>
+            <select
+              value={draft.mood || "Cyberpunk Neon"}
+              onChange={(e) => onChange({ ...draft, mood: e.target.value })}
+              className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+            >
+              <option>Cyberpunk Neon</option>
+              <option>High Contrast Noir</option>
+              <option>Amber Glow</option>
+              <option>Sun-Kissed Tech</option>
+              <option>Cold Industrial</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const PanelCard = ({
   panel,
@@ -38,6 +177,7 @@ const PanelCard = ({
   setStyleReferenceImage,
   isQueued,
   isQueueGenerating,
+  onQueueGenerate,
 }: {
   panel: PanelPrompt;
   characters: Character[];
@@ -47,9 +187,9 @@ const PanelCard = ({
   setStyleReferenceImage: (img: string | null) => void;
   isQueued?: boolean;
   isQueueGenerating?: boolean;
+  onQueueGenerate: (panelId: string) => void;
   key?: string | number;
 }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState(panel.description);
   const [cameraAngle, setCameraAngle] = useState(
     panel.cameraAngle || "Cinematic 35mm",
@@ -88,56 +228,20 @@ const PanelCard = ({
     }
   }, [styleReferenceImage, finalCharRefs.length]);
 
-  const handleGenerate = async () => {
-    if (isGenerating) return;
-    setIsGenerating(true);
-
-    // Construct the enhanced prompt with character descriptions
-    const selectedChars = characters.filter((c) =>
-      selectedCharIds.includes(c.id),
-    );
-    const characterContext = selectedChars
-      .map((c) => `${c.name}: ${c.description || ""}`)
-      .join(". ");
-
-    // Build the style string
-    const style = `${cameraAngle}, ${mood}, Heavy Inks, High Contrast`;
-
-    // Build the final prompt that includes character descriptions, camera angle and mood as modifiers
-    const finalPrompt = `
-      Subject: ${prompt}. 
-      Characters present: ${characterContext}.
-      Camera Angle: ${cameraAngle}.
-      Mood: ${mood}.
-    `.trim();
-
-    // If useStyleRef is true, prioritize explicit styleReferenceImage,
-    // then fallback to the first character reference if available
-    const effectiveStyleRef = useStyleRef
-      ? styleReferenceImage || finalCharRefs[0] || undefined
-      : undefined;
-
-    const imageUrl = await generatePanelImage(
-      finalPrompt,
-      style,
-      finalCharRefs,
-      effectiveStyleRef,
+  const handleGenerate = () => {
+    // Save current settings to the panel before queueing
+    onUpdatePanel({
+      ...panel,
+      description: prompt,
+      cameraAngle,
+      mood,
       aspectRatio,
-    );
-    if (imageUrl) {
-      onUpdatePanel({
-        ...panel,
-        image: imageUrl,
-        description: prompt,
-        cameraAngle,
-        mood,
-        aspectRatio,
-        selectedCharacterIds: selectedCharIds,
-        customReferenceImages: customCharRefs,
-        useStyleRef,
-      });
-    }
-    setIsGenerating(false);
+      selectedCharacterIds: selectedCharIds,
+      customReferenceImages: customCharRefs,
+      useStyleRef,
+    });
+    // Add to the shared generation queue
+    onQueueGenerate(panel.id);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,7 +329,7 @@ const PanelCard = ({
           ) : (
             <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
               <ImageIcon size={48} className="text-outline opacity-20" />
-              {!isGenerating && (
+              {!isQueueGenerating && !isQueued && (
                 <button
                   onClick={handleGenerate}
                   className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
@@ -267,15 +371,15 @@ const PanelCard = ({
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             <button
               onClick={handleGenerate}
-              disabled={isGenerating || isQueued || isQueueGenerating}
+              disabled={isQueued || isQueueGenerating}
               className="bg-primary panel-shaq-gradient text-background px-6 py-3 rounded-lg font-headline font-bold flex items-center gap-2 disabled:opacity-50 pointer-events-auto shadow-xl"
             >
-              {isGenerating || isQueueGenerating ? (
+              {isQueueGenerating ? (
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <Sparkles size={20} />
               )}
-              {isGenerating || isQueueGenerating
+              {isQueueGenerating
                 ? "GENERATING..."
                 : image
                   ? "REGENERATE"
@@ -524,6 +628,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   panels,
   setPanels,
   characters,
+  story,
   styleReferenceImage,
   setStyleReferenceImage,
   onContinue,
@@ -532,11 +637,57 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   const [currentlyGenerating, setCurrentlyGenerating] = useState<string | null>(
     null,
   );
+  const [insertingAt, setInsertingAt] = useState<number | null>(null);
+  const [draftPanel, setDraftPanel] = useState<{
+    panel: PanelPrompt;
+    insertIndex: number;
+  } | null>(null);
+
+  const handleInsertPanel = async (insertIndex: number) => {
+    setInsertingAt(insertIndex);
+    const context: InsertionContext = {
+      story,
+      previousPanel: insertIndex > 0 ? panels[insertIndex - 1] : null,
+      nextPanel: insertIndex < panels.length ? panels[insertIndex] : null,
+      allCharacters: characters.map((c) => ({
+        name: c.name,
+        description: c.description,
+      })),
+      insertIndex,
+    };
+
+    const result = await generateInsertedPanelPrompt(context);
+    setInsertingAt(null);
+
+    if (result) {
+      setDraftPanel({ panel: result, insertIndex });
+    }
+  };
+
+  const handleConfirmInsert = () => {
+    if (!draftPanel) return;
+    const newPanels = [...panels];
+    newPanels.splice(draftPanel.insertIndex, 0, draftPanel.panel);
+    setPanels(newPanels);
+    setDraftPanel(null);
+  };
+
+  const handleCancelInsert = () => {
+    setDraftPanel(null);
+  };
 
   const handleUpdatePanel = (index: number, updated: PanelPrompt) => {
     const newPanels = [...panels];
     newPanels[index] = updated;
     setPanels(newPanels);
+  };
+
+  const handleQueueGenerate = (panelId: string) => {
+    // Add to queue if not already queued or currently generating
+    if (panelId === currentlyGenerating) return;
+    setGenerationQueue((prev) =>
+      prev.includes(panelId) ? prev : [...prev, panelId],
+    );
   };
 
   const handleGenerateAll = () => {
@@ -682,18 +833,59 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-start pb-12">
-          {panels.map((panel, index) => (
-            <PanelCard
-              key={panel.id}
-              panel={panel}
-              characters={characters}
-              index={index}
-              onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
-              styleReferenceImage={styleReferenceImage}
-              setStyleReferenceImage={setStyleReferenceImage}
-              isQueued={generationQueue.includes(panel.id)}
-              isQueueGenerating={currentlyGenerating === panel.id}
+          {/* Insert before first panel */}
+          {draftPanel && draftPanel.insertIndex === 0 ? (
+            <PanelDraftCard
+              draft={draftPanel.panel}
+              onConfirm={handleConfirmInsert}
+              onCancel={handleCancelInsert}
+              onChange={(updated) =>
+                setDraftPanel({ ...draftPanel, panel: updated })
+              }
             />
+          ) : (
+            <InsertPanelButton
+              onClick={() => handleInsertPanel(0)}
+              label="Add Prelude"
+              isLoading={insertingAt === 0}
+            />
+          )}
+
+          {panels.map((panel, index) => (
+            <React.Fragment key={panel.id}>
+              <PanelCard
+                panel={panel}
+                characters={characters}
+                index={index}
+                onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
+                styleReferenceImage={styleReferenceImage}
+                setStyleReferenceImage={setStyleReferenceImage}
+                isQueued={generationQueue.includes(panel.id)}
+                isQueueGenerating={currentlyGenerating === panel.id}
+                onQueueGenerate={handleQueueGenerate}
+              />
+              {/* Insert button / draft card after this panel */}
+              {draftPanel && draftPanel.insertIndex === index + 1 ? (
+                <PanelDraftCard
+                  draft={draftPanel.panel}
+                  onConfirm={handleConfirmInsert}
+                  onCancel={handleCancelInsert}
+                  onChange={(updated) =>
+                    setDraftPanel({ ...draftPanel, panel: updated })
+                  }
+                />
+              ) : (
+                <InsertPanelButton
+                  onClick={() => handleInsertPanel(index + 1)}
+                  label={
+                    index === panels.length - 1
+                      ? "Continue Story"
+                      : "Insert Panel"
+                  }
+                  isLoading={insertingAt === index + 1}
+                />
+              )}
+            </React.Fragment>
           ))}
         </div>
       )}
