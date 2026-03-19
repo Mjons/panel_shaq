@@ -738,11 +738,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
           )}
 
           <div
-            className={`bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full ${isExporting ? "overflow-hidden" : "overflow-visible"}`}
+            className="bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full overflow-hidden"
             ref={comicRef}
           >
             <div
-              className={`w-full h-full bg-background relative ${isExporting ? "overflow-hidden pointer-events-none" : "overflow-visible"}`}
+              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""}`}
             >
               {currentPage ? (
                 <div
@@ -780,12 +780,10 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all ${selectedPanelId === pid ? "border-primary overflow-visible z-50" : "border-transparent overflow-hidden"}`}
+                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid ? "border-primary" : "border-transparent"}`}
                       >
                         {panel.image ? (
-                          <div
-                            className={`w-full h-full relative ${selectedPanelId === pid ? "overflow-visible z-50" : "overflow-hidden"}`}
-                          >
+                          <div className="w-full h-full relative overflow-hidden">
                             <img
                               alt={`Panel ${idx + 1}`}
                               className={`w-full h-full object-contain transition-opacity ${selectedPanelId === pid ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
