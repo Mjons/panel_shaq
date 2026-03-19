@@ -369,6 +369,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   className="w-full accent-primary"
                 />
               </div>
+              <button
+                onClick={() =>
+                  updatePanel(selectedPanelId, {
+                    imageTransform: { x: 0, y: 0, scale: 1 },
+                  })
+                }
+                className="w-full py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors"
+              >
+                Reset Transform
+              </button>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
@@ -728,11 +738,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
           )}
 
           <div
-            className="bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full overflow-hidden"
+            className={`bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full ${isExporting ? "overflow-hidden" : "overflow-visible"}`}
             ref={comicRef}
           >
             <div
-              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""}`}
+              className={`w-full h-full bg-background relative ${isExporting ? "overflow-hidden pointer-events-none" : "overflow-visible"}`}
             >
               {currentPage ? (
                 <div
