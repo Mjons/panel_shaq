@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /l/Projects_claudecode/panel_shaq -name *.test.* -o -name *.spec.* -o -name __tests__)",
+      "Bash(npm install:*)",
+      "Bash(node -e \":*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm run:*)",
+      "Bash(node -e \"const r = require\\(''react/package.json''\\); console.log\\(r.version, r.types || ''no types field''\\)\")",
+      "Bash(ls l:/Projects_claudecode/panel_shaq/node_modules/react/*.d.ts)",
+      "Bash(ls l:/Projects_claudecode/panel_shaq/node_modules/@types/react/*.d.ts)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

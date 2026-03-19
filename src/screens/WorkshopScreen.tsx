@@ -1,0 +1,427 @@
+import React, { useState, useRef } from "react";
+import {
+  Edit3,
+  History,
+  PlusCircle,
+  UserPlus,
+  Palette,
+  ArrowRight,
+  Sparkles,
+  Loader2,
+  X,
+  Upload,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import {
+  polishStory,
+  generatePanelPrompts,
+  PanelPrompt,
+} from "../services/geminiService";
+import { Character } from "../App";
+
+interface WorkshopProps {
+  story: string;
+  setStory: (story: string) => void;
+  characters: Character[];
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+  setPanels: (panels: PanelPrompt[]) => void;
+  styleReferenceImage: string | null;
+  setStyleReferenceImage: (img: string | null) => void;
+  onGenerateSuccess: () => void;
+}
+
+export const WorkshopScreen: React.FC<WorkshopProps> = ({
+  story,
+  setStory,
+  characters,
+  setCharacters,
+  setPanels,
+  styleReferenceImage,
+  setStyleReferenceImage,
+  onGenerateSuccess,
+}) => {
+  const [isPolishing, setIsPolishing] = useState(false);
+  const [isGeneratingPanels, setIsGeneratingPanels] = useState(false);
+  const [editingCharacter, setEditingCharacter] = useState<Character | null>(
+    null,
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const styleInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePolish = async () => {
+    if (!story.trim() || isPolishing) return;
+    setIsPolishing(true);
+    const polished = await polishStory(story);
+    setStory(polished);
+    setIsPolishing(false);
+  };
+
+  const handleGeneratePanels = async () => {
+    if (!story.trim() || isGeneratingPanels) return;
+    setIsGeneratingPanels(true);
+    try {
+      const generatedPanels = await generatePanelPrompts(story, characters);
+      if (generatedPanels.length > 0) {
+        setPanels(generatedPanels);
+        onGenerateSuccess();
+      }
+    } catch (error) {
+      console.error("Error generating panels:", error);
+    } finally {
+      setIsGeneratingPanels(false);
+    }
+  };
+
+  const handleAddCharacter = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newChar: Character = {
+          id: Date.now().toString(),
+          name: `New Character ${characters.length + 1}`,
+          image: reader.result as string,
+          description: "A new character in your story.",
+        };
+        setCharacters([...characters, newChar]);
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input
+    if (e.target) e.target.value = "";
+  };
+
+  const handleAddStyleRef = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setStyleReferenceImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+    if (e.target) e.target.value = "";
+  };
+
+  const removeCharacter = (id: string) => {
+    setCharacters(characters.filter((c) => c.id !== id));
+  };
+
+  return (
+    <div className="pt-28 px-6 max-w-5xl mx-auto pb-32">
+      <section className="mb-12">
+        <h2 className="font-headline text-5xl md:text-7xl font-bold text-accent tracking-tighter mb-3">
+          Story <span className="text-primary italic">Workshop</span>
+        </h2>
+        <p className="text-accent/60 font-body text-lg max-w-2xl leading-relaxed">
+          Craft the narrative spark that will ignite your visual journey.
+        </p>
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Writing Area */}
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="bg-surface-container rounded-lg p-0.5 shadow-xl border border-outline/20">
+            <div className="bg-background rounded-lg p-6 min-h-[450px] flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <label className="font-headline text-xs uppercase tracking-[0.2em] text-secondary flex items-center gap-2 font-bold">
+                  <Edit3 size={18} className="text-secondary" />
+                  Writing Studio
+                </label>
+                <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
+                  {story.length} / 2000 Words
+                </span>
+              </div>
+              <textarea
+                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-lg leading-relaxed resize-none placeholder:text-accent/20 outline-none"
+                placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
+                value={story}
+                onChange={(e) => setStory(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3 px-2">
+            <button
+              onClick={handlePolish}
+              disabled={isPolishing || !story.trim()}
+              className="bg-surface px-5 py-2.5 rounded-lg border border-primary/20 flex items-center gap-3 hover:bg-primary/10 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPolishing ? (
+                <Loader2 size={18} className="text-primary animate-spin" />
+              ) : (
+                <Sparkles size={18} className="text-primary" />
+              )}
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">
+                AI Polish
+              </span>
+            </button>
+            <button className="bg-surface px-5 py-2.5 rounded-lg border border-secondary/20 flex items-center gap-3 hover:bg-secondary/10 transition-all active:scale-95">
+              <History size={18} className="text-secondary" />
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">
+                Drafts
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column: Sidebar */}
+        <aside className="lg:col-span-4 flex flex-col gap-6">
+          <div className="bg-surface-container p-6 rounded-lg border-t-2 border-primary shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
+                Characters
+              </h3>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-primary hover:rotate-90 transition-transform duration-300"
+              >
+                <PlusCircle size={24} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <AnimatePresence>
+                {characters.map((char) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    key={char.id}
+                    className="group cursor-pointer relative"
+                    onClick={() => setEditingCharacter(char)}
+                  >
+                    <div className="aspect-square rounded-lg overflow-hidden bg-surface border border-outline/30 group-hover:border-primary transition-all">
+                      <img
+                        className={`w-full h-full object-cover transition-all duration-500 ${styleReferenceImage === char.image ? "grayscale-0 opacity-100" : "grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100"}`}
+                        src={char.image}
+                        alt={char.name}
+                      />
+                      {styleReferenceImage === char.image && (
+                        <div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none">
+                          <div className="absolute top-2 left-2 bg-primary text-background p-1 rounded-md">
+                            <Palette size={12} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStyleReferenceImage(
+                            styleReferenceImage === char.image
+                              ? null
+                              : char.image,
+                          );
+                        }}
+                        className={`p-1.5 rounded-full border border-outline/20 transition-colors ${styleReferenceImage === char.image ? "bg-primary text-background" : "bg-background text-accent hover:text-primary"}`}
+                        title="Set as Style Reference"
+                      >
+                        <Palette size={12} />
+                      </button>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeCharacter(char.id);
+                      }}
+                      className="absolute -top-1 -right-1 bg-background text-accent p-1 rounded-full border border-outline/20 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary"
+                    >
+                      <X size={10} />
+                    </button>
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 group-hover:text-primary text-center truncate px-1">
+                      {char.name}
+                    </p>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-square rounded-lg border-2 border-dashed border-outline/30 flex items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group"
+              >
+                <UserPlus
+                  size={24}
+                  className="text-outline group-hover:text-primary transition-colors"
+                />
+              </div>
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAddCharacter}
+              className="hidden"
+              accept="image/*"
+            />
+          </div>
+
+          <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
+            <div className="flex items-center justify-between mb-4">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40">
+                Art Style Anchor
+              </label>
+              <button
+                onClick={() => styleInputRef.current?.click()}
+                className="text-[10px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
+              >
+                <Upload size={10} />
+                Upload
+              </button>
+            </div>
+            <div className="flex items-center gap-4 bg-background p-4 rounded-lg border border-secondary/10 relative group">
+              <div className="w-12 h-12 rounded bg-secondary/10 flex items-center justify-center overflow-hidden">
+                {styleReferenceImage ? (
+                  <img
+                    src={styleReferenceImage}
+                    className="w-full h-full object-cover"
+                    alt="Style Reference"
+                  />
+                ) : (
+                  <Palette size={24} className="text-secondary" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-accent">
+                  {styleReferenceImage
+                    ? "Custom Style Reference"
+                    : "Cyberpunk Noir"}
+                </p>
+                <p className="text-[10px] text-accent/40 uppercase font-medium tracking-wider">
+                  {styleReferenceImage
+                    ? "Using Uploaded Image"
+                    : "Heavy Inks • Warm Neon"}
+                </p>
+              </div>
+              {styleReferenceImage && (
+                <button
+                  onClick={() => setStyleReferenceImage(null)}
+                  className="absolute top-1 right-1 p-1 bg-background/80 text-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
+                >
+                  <X size={10} />
+                </button>
+              )}
+            </div>
+            <input
+              type="file"
+              ref={styleInputRef}
+              onChange={handleAddStyleRef}
+              className="hidden"
+              accept="image/*"
+            />
+          </div>
+
+          <div className="mt-2">
+            <button
+              onClick={handleGeneratePanels}
+              disabled={isGeneratingPanels || !story.trim()}
+              className="panel-shaq-gradient w-full py-5 rounded-lg flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,145,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,145,0,0.4)] transition-all active:scale-95 disabled:opacity-50"
+            >
+              <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
+                {isGeneratingPanels ? "Generating..." : "Generate Panels"}
+              </span>
+              {isGeneratingPanels ? (
+                <Loader2 size={24} className="text-background animate-spin" />
+              ) : (
+                <ArrowRight
+                  size={24}
+                  className="text-background group-hover:translate-x-2 transition-transform"
+                />
+              )}
+            </button>
+            <p className="text-center mt-4 text-[10px] text-accent/40 font-bold uppercase tracking-[0.25em]">
+              Estimated: {Math.ceil(story.split(" ").length / 50) || 4} Story
+              Panels
+            </p>
+          </div>
+        </aside>
+      </div>
+      <AnimatePresence>
+        {editingCharacter && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-background/80 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-surface-container border border-outline/20 rounded-2xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-headline text-2xl font-bold text-accent">
+                  Edit <span className="text-primary italic">Character</span>
+                </h3>
+                <button
+                  onClick={() => setEditingCharacter(null)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-accent/40" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex justify-center">
+                  <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg">
+                    <img
+                      src={editingCharacter.image}
+                      className="w-full h-full object-cover"
+                      alt={editingCharacter.name}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editingCharacter.name}
+                    onChange={(e) =>
+                      setEditingCharacter({
+                        ...editingCharacter,
+                        name: e.target.value,
+                      })
+                    }
+                    className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-accent focus:border-primary outline-none transition-colors"
+                    placeholder="Character Name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+                    Appearance & Role
+                  </label>
+                  <textarea
+                    value={editingCharacter.description}
+                    onChange={(e) =>
+                      setEditingCharacter({
+                        ...editingCharacter,
+                        description: e.target.value,
+                      })
+                    }
+                    className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-accent focus:border-primary outline-none transition-colors h-32 resize-none text-sm leading-relaxed"
+                    placeholder="Describe their look, outfit, and key features..."
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setCharacters((prev) =>
+                      prev.map((c) =>
+                        c.id === editingCharacter.id ? editingCharacter : c,
+                      ),
+                    );
+                    setEditingCharacter(null);
+                  }}
+                  className="w-full bg-primary text-background font-bold uppercase tracking-widest py-4 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};

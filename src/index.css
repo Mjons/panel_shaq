@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #ff9100;
+  --color-secondary: #ffd600;
+  --color-accent: #f5f5dc;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-container: #131b2e;
+  --color-surface-container-high: #1e293b;
+  --color-surface-container-highest: #334155;
+  --color-outline: #475569;
+
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-accent font-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-headline;
+  }
+}
+
+.neon-glow {
+  box-shadow: 0 0 15px rgba(255, 145, 0, 0.3);
+}
+
+.panel-shaq-gradient {
+  background: linear-gradient(135deg, #ff9100 0%, #ffd600 100%);
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-container-highest rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary;
+}
