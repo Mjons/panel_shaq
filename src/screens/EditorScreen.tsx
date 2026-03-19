@@ -780,7 +780,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`${colSpan} bg-surface relative cursor-pointer border-2 transition-all ${selectedPanelId === pid ? "border-primary overflow-visible z-50" : "border-transparent overflow-hidden"}`}
+                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all ${selectedPanelId === pid ? "border-primary overflow-visible z-50" : "border-transparent overflow-hidden"}`}
                       >
                         {panel.image ? (
                           <div
@@ -788,7 +788,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           >
                             <img
                               alt={`Panel ${idx + 1}`}
-                              className={`w-full h-full object-cover transition-opacity ${selectedPanelId === pid ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
+                              className={`w-full h-full object-contain transition-opacity ${selectedPanelId === pid ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
                               src={panel.image}
                               style={{
                                 transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,

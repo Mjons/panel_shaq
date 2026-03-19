@@ -322,7 +322,7 @@ const PanelCard = ({
         >
           {image ? (
             <img
-              className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+              className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity"
               src={image}
               alt={`Panel ${index + 1}`}
             />
