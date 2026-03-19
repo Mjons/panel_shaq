@@ -22,6 +22,7 @@ export interface PanelPrompt {
   characterFocus?: string;
   cameraAngle?: string;
   mood?: string;
+  aspectRatio?: string;
   image?: string;
   selectedCharacterIds?: string[];
   customReferenceImages?: string[];
@@ -118,6 +119,7 @@ export const generatePanelImage = async (
   style: string,
   referenceImages?: string[],
   styleReferenceImage?: string,
+  aspectRatio: string = "16:9",
 ): Promise<string | null> => {
   if (!prompt.trim()) return null;
 
@@ -170,7 +172,7 @@ export const generatePanelImage = async (
       },
       config: {
         imageConfig: {
-          aspectRatio: "16:9",
+          aspectRatio,
           imageSize: "1K",
         },
       },
@@ -184,6 +186,107 @@ export const generatePanelImage = async (
     return null;
   } catch (error) {
     console.error("Gemini Image Gen Error:", error);
+    return null;
+  }
+};
+
+export interface InsertionContext {
+  story: string;
+  previousPanel: PanelPrompt | null;
+  nextPanel: PanelPrompt | null;
+  allCharacters: { name: string; description?: string }[];
+  insertIndex: number;
+}
+
+export const generateInsertedPanelPrompt = async (
+  context: InsertionContext,
+): Promise<PanelPrompt | null> => {
+  const ai = getAI();
+
+  const charContext = context.allCharacters
+    .map((c) => `${c.name}: ${c.description || "A character in the story"}`)
+    .join("\n");
+
+  let neighborSection = "";
+
+  if (context.previousPanel) {
+    neighborSection += `
+PREVIOUS PANEL (Panel ${context.insertIndex}):
+- Description: ${context.previousPanel.description}
+- Character Focus: ${context.previousPanel.characterFocus || "None"}
+- Camera Angle: ${context.previousPanel.cameraAngle || "Cinematic 35mm"}
+- Mood: ${context.previousPanel.mood || "Cyberpunk Neon"}
+`;
+  } else {
+    neighborSection += `
+This panel will OPEN the comic. Set the scene and draw the reader in before the action of the next panel begins.
+`;
+  }
+
+  if (context.nextPanel) {
+    neighborSection += `
+NEXT PANEL (Panel ${context.insertIndex + 1}):
+- Description: ${context.nextPanel.description}
+- Character Focus: ${context.nextPanel.characterFocus || "None"}
+- Camera Angle: ${context.nextPanel.cameraAngle || "Cinematic 35mm"}
+- Mood: ${context.nextPanel.mood || "Cyberpunk Neon"}
+`;
+  } else {
+    neighborSection += `
+The story continues beyond the last panel. Create the next narrative beat that advances the plot.
+`;
+  }
+
+  try {
+    const response: GenerateContentResponse = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: `You are a comic book director. Given a story and the surrounding panels, create a single new panel that fits naturally between them.
+
+STORY:
+${context.story}
+
+${neighborSection}
+
+AVAILABLE CHARACTERS:
+${charContext}
+
+Create a panel that bridges the narrative gap. Vary the camera angle from the neighbors for visual rhythm. Return JSON with: description, characterFocus, cameraAngle, mood.`,
+      config: {
+        systemInstruction:
+          "You are an expert comic book storyboard artist. You create compelling single panels that bridge narrative gaps seamlessly.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            description: {
+              type: Type.STRING,
+              description: "Detailed visual description of the panel",
+            },
+            characterFocus: {
+              type: Type.STRING,
+              description: "Name of the character in focus",
+            },
+            cameraAngle: { type: Type.STRING },
+            mood: { type: Type.STRING },
+          },
+          required: ["description"],
+        },
+      },
+    });
+
+    const text = response.text || "{}";
+    const raw = JSON.parse(text);
+    return {
+      id: crypto.randomUUID(),
+      description: raw.description || "",
+      characterFocus: raw.characterFocus,
+      cameraAngle: raw.cameraAngle,
+      mood: raw.mood,
+      bubbles: [],
+      imageTransform: { x: 0, y: 0, scale: 1 },
+    };
+  } catch (error) {
+    console.error("Gemini Insert Panel Error:", error);
     return null;
   }
 };

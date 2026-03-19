@@ -8,8 +8,16 @@ import {
   Upload,
   X,
   Palette,
+  Plus,
+  Check,
+  ChevronDown,
 } from "lucide-react";
-import { generatePanelImage, PanelPrompt } from "../services/geminiService";
+import {
+  generatePanelImage,
+  generateInsertedPanelPrompt,
+  PanelPrompt,
+  InsertionContext,
+} from "../services/geminiService";
 import { Character } from "../App";
 
 interface DirectorProps {
@@ -28,6 +36,8 @@ const PanelCard = ({
   onUpdatePanel,
   styleReferenceImage,
   setStyleReferenceImage,
+  isQueued,
+  isQueueGenerating,
 }: {
   panel: PanelPrompt;
   characters: Character[];
@@ -35,6 +45,8 @@ const PanelCard = ({
   onUpdatePanel: (updated: PanelPrompt) => void;
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
+  isQueued?: boolean;
+  isQueueGenerating?: boolean;
   key?: string | number;
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -43,6 +55,7 @@ const PanelCard = ({
     panel.cameraAngle || "Cinematic 35mm",
   );
   const [mood, setMood] = useState(panel.mood || "Cyberpunk Neon");
+  const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds || [],
   );
@@ -109,14 +122,16 @@ const PanelCard = ({
       style,
       finalCharRefs,
       effectiveStyleRef,
+      aspectRatio,
     );
     if (imageUrl) {
       onUpdatePanel({
         ...panel,
         image: imageUrl,
-        description: prompt, // Keep the user's original description for the UI
+        description: prompt,
         cameraAngle,
         mood,
+        aspectRatio,
         selectedCharacterIds: selectedCharIds,
         customReferenceImages: customCharRefs,
         useStyleRef,
@@ -183,13 +198,23 @@ const PanelCard = ({
     setCustomCharRefs((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const isWide = index % 3 === 0;
+  const isWideRatio = ["16:9", "21:9"].includes(aspectRatio);
+  const aspectClass =
+    {
+      "1:1": "aspect-square",
+      "16:9": "aspect-video",
+      "9:16": "aspect-[9/16]",
+      "4:3": "aspect-[4/3]",
+      "3:4": "aspect-[3/4]",
+    }[aspectRatio] || "aspect-video";
 
   return (
-    <div className={isWide ? "lg:col-span-8 group" : "lg:col-span-4 group"}>
+    <div
+      className={isWideRatio ? "lg:col-span-8 group" : "lg:col-span-4 group"}
+    >
       <div className="bg-surface rounded-lg overflow-hidden shadow-2xl transition-all duration-300 hover:translate-y-[-4px] border border-outline/10">
         <div
-          className={`bg-surface-container relative overflow-hidden ${isWide ? "aspect-[21/9]" : "aspect-square"}`}
+          className={`bg-surface-container relative overflow-hidden ${aspectClass}`}
         >
           {image ? (
             <img
@@ -227,18 +252,30 @@ const PanelCard = ({
             )}
           </div>
 
+          {/* Queue status badges */}
+          {isQueued && !isQueueGenerating && (
+            <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
+              Queued
+            </div>
+          )}
+          {isQueueGenerating && (
+            <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
+              <Loader2 size={10} className="animate-spin" /> Generating...
+            </div>
+          )}
+
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             <button
               onClick={handleGenerate}
-              disabled={isGenerating}
+              disabled={isGenerating || isQueued || isQueueGenerating}
               className="bg-primary panel-shaq-gradient text-background px-6 py-3 rounded-lg font-headline font-bold flex items-center gap-2 disabled:opacity-50 pointer-events-auto shadow-xl"
             >
-              {isGenerating ? (
+              {isGenerating || isQueueGenerating ? (
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <Sparkles size={20} />
               )}
-              {isGenerating
+              {isGenerating || isQueueGenerating
                 ? "GENERATING..."
                 : image
                   ? "REGENERATE"
@@ -292,7 +329,7 @@ const PanelCard = ({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-1">
               <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
                 Camera Angle
@@ -323,6 +360,22 @@ const PanelCard = ({
                 <option>Amber Glow</option>
                 <option>Sun-Kissed Tech</option>
                 <option>Cold Industrial</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                Aspect Ratio
+              </label>
+              <select
+                value={aspectRatio}
+                onChange={(e) => setAspectRatio(e.target.value)}
+                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+              >
+                <option value="1:1">1:1 Square</option>
+                <option value="16:9">16:9 Wide</option>
+                <option value="9:16">9:16 Portrait</option>
+                <option value="4:3">4:3 Standard</option>
+                <option value="3:4">3:4 Tall</option>
               </select>
             </div>
           </div>
@@ -475,11 +528,95 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   setStyleReferenceImage,
   onContinue,
 }) => {
+  const [generationQueue, setGenerationQueue] = useState<string[]>([]);
+  const [currentlyGenerating, setCurrentlyGenerating] = useState<string | null>(
+    null,
+  );
+
   const handleUpdatePanel = (index: number, updated: PanelPrompt) => {
     const newPanels = [...panels];
     newPanels[index] = updated;
     setPanels(newPanels);
   };
+
+  const handleGenerateAll = () => {
+    const panelIds = panels.filter((p) => !p.image).map((p) => p.id);
+    if (panelIds.length === 0) {
+      // All have images — regenerate all
+      setGenerationQueue(panels.map((p) => p.id));
+    } else {
+      setGenerationQueue(panelIds);
+    }
+  };
+
+  // Process the queue one panel at a time
+  useEffect(() => {
+    if (generationQueue.length === 0 || currentlyGenerating) return;
+
+    const nextId = generationQueue[0];
+    const panelIndex = panels.findIndex((p) => p.id === nextId);
+    const panel = panels[panelIndex];
+
+    if (!panel) {
+      setGenerationQueue((prev) => prev.slice(1));
+      return;
+    }
+
+    setCurrentlyGenerating(nextId);
+
+    const generate = async () => {
+      try {
+        const selectedChars = characters.filter((c) =>
+          (panel.selectedCharacterIds || []).includes(c.id),
+        );
+        const charRefs = [
+          ...(panel.customReferenceImages || []),
+          ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
+        ];
+        const characterContext = selectedChars
+          .map((c) => `${c.name}: ${c.description || ""}`)
+          .join(". ");
+
+        const finalPrompt = `
+          Subject: ${panel.description}.
+          Characters present: ${characterContext}.
+          Camera Angle: ${panel.cameraAngle || "Cinematic 35mm"}.
+          Mood: ${panel.mood || "Cyberpunk Neon"}.
+        `.trim();
+
+        const style = `${panel.cameraAngle || "Cinematic 35mm"}, ${panel.mood || "Cyberpunk Neon"}, Heavy Inks, High Contrast`;
+        const effectiveStyleRef =
+          panel.useStyleRef !== false
+            ? styleReferenceImage || charRefs[0] || undefined
+            : undefined;
+
+        const imageUrl = await generatePanelImage(
+          finalPrompt,
+          style,
+          charRefs,
+          effectiveStyleRef,
+          panel.aspectRatio || "16:9",
+        );
+
+        if (imageUrl) {
+          handleUpdatePanel(panelIndex, { ...panel, image: imageUrl });
+        }
+      } catch (err) {
+        console.error(`Failed to generate panel ${nextId}:`, err);
+      } finally {
+        setGenerationQueue((prev) => prev.slice(1));
+        setCurrentlyGenerating(null);
+      }
+    };
+
+    generate();
+  }, [generationQueue, currentlyGenerating]);
+
+  const queueActive =
+    generationQueue.length > 0 || currentlyGenerating !== null;
+  const queueProgress = queueActive
+    ? panels.length - generationQueue.length
+    : 0;
 
   return (
     <div className="pt-24 px-6 max-w-7xl mx-auto pb-32">
@@ -492,13 +629,44 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             Panel Director
           </h2>
         </div>
-        <button
-          onClick={onContinue}
-          className="flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
-        >
-          CONTINUE TO DIALOGUE
-          <ArrowRight size={20} />
-        </button>
+        <div className="flex items-center gap-3">
+          {panels.length > 0 && (
+            <>
+              <button
+                onClick={handleGenerateAll}
+                disabled={queueActive}
+                className="flex items-center justify-center gap-2 bg-primary text-background px-6 py-4 rounded-lg font-headline font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {queueActive ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Sparkles size={18} />
+                )}
+                {queueActive
+                  ? `GENERATING ${queueProgress}/${panels.length}...`
+                  : "GENERATE ALL"}
+              </button>
+              {queueActive && (
+                <button
+                  onClick={() => {
+                    setGenerationQueue([]);
+                    setCurrentlyGenerating(null);
+                  }}
+                  className="px-4 py-4 rounded-lg border border-red-500/30 text-red-500 font-headline font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                >
+                  Cancel
+                </button>
+              )}
+            </>
+          )}
+          <button
+            onClick={onContinue}
+            className="flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
+          >
+            CONTINUE TO DIALOGUE
+            <ArrowRight size={20} />
+          </button>
+        </div>
       </div>
 
       {panels.length === 0 ? (
@@ -523,6 +691,8 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
               styleReferenceImage={styleReferenceImage}
               setStyleReferenceImage={setStyleReferenceImage}
+              isQueued={generationQueue.includes(panel.id)}
+              isQueueGenerating={currentlyGenerating === panel.id}
             />
           ))}
         </div>

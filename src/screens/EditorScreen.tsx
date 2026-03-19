@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Plus,
   Trash2,
-  Move,
   Type as TypeIcon,
   Bold,
   Italic,
@@ -45,7 +44,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
-  const [isFraming, setIsFraming] = useState(false);
+  // isFraming removed — selected panels automatically show overflow for transform
   const [exportProgress, setExportProgress] = useState(0);
   const comicRef = useRef<HTMLDivElement>(null);
   const [exportHistory, setExportHistory] = useState<
@@ -175,7 +174,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setShouldCancelExport(false);
     setExportProgress(0);
     setSelectedBubbleId(null);
-    setIsFraming(false);
 
     try {
       const pdf = new jsPDF("p", "mm", "a4");
@@ -269,7 +267,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setShouldCancelExport(false);
     setExportProgress(0);
     setSelectedBubbleId(null);
-    setIsFraming(false);
 
     try {
       const pagesToExport = allPages ? pages : [pages[selectedPageIdx]];
@@ -334,12 +331,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
               PANEL TRANSFORM
             </h3>
             {selectedPanelId && (
-              <button
-                onClick={() => setIsFraming(!isFraming)}
-                className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest transition-colors ${isFraming ? "bg-primary text-background" : "bg-primary/10 text-primary"}`}
-              >
-                Framing Mode
-              </button>
+              <span className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary">
+                Active
+              </span>
             )}
           </div>
           {selectedPanelId ? (
@@ -734,11 +728,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
           )}
 
           <div
-            className={`bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full ${isFraming ? "overflow-visible" : "overflow-hidden"}`}
+            className="bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full overflow-hidden"
             ref={comicRef}
           >
             <div
-              className={`w-full h-full bg-background relative ${isFraming ? "overflow-visible" : "overflow-hidden"} ${isExporting ? "pointer-events-none" : ""}`}
+              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""}`}
             >
               {currentPage ? (
                 <div
@@ -776,11 +770,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`${colSpan} bg-surface relative cursor-pointer border-2 transition-all ${selectedPanelId === pid ? "border-primary" : "border-transparent"} ${isFraming && selectedPanelId === pid ? "overflow-visible z-50" : "overflow-hidden"}`}
+                        className={`${colSpan} bg-surface relative cursor-pointer border-2 transition-all ${selectedPanelId === pid ? "border-primary overflow-visible z-50" : "border-transparent overflow-hidden"}`}
                       >
                         {panel.image ? (
                           <div
-                            className={`w-full h-full relative ${isFraming && selectedPanelId === pid ? "overflow-visible z-50" : "overflow-hidden"}`}
+                            className={`w-full h-full relative ${selectedPanelId === pid ? "overflow-visible z-50" : "overflow-hidden"}`}
                           >
                             <img
                               alt={`Panel ${idx + 1}`}
@@ -792,15 +786,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               }}
                             />
                             {/* Framing Overlay for overflow */}
-                            {isFraming && selectedPanelId === pid && (
-                              <>
-                                <div className="absolute inset-0 pointer-events-none border-4 border-primary z-30 shadow-[0_0_0_2000px_rgba(0,0,0,0.6)]"></div>
-                                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-40">
-                                  <div className="text-[10px] font-headline font-bold text-primary bg-background/80 px-2 py-1 rounded uppercase tracking-widest shadow-lg">
-                                    Adjusting Frame
-                                  </div>
-                                </div>
-                              </>
+                            {selectedPanelId === pid && (
+                              <div className="absolute inset-0 pointer-events-none border-2 border-primary z-30"></div>
                             )}
                           </div>
                         ) : (
@@ -853,6 +840,13 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             )}
                           </div>
                         ))}
+
+                        {/* Dim non-selected panels when one is selected */}
+                        {selectedPanelId &&
+                          selectedPanelId !== pid &&
+                          !isExporting && (
+                            <div className="absolute inset-0 bg-black/30 z-10 pointer-events-none" />
+                          )}
                       </div>
                     );
                   })}
