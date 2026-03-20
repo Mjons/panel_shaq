@@ -135,7 +135,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ];
 
-    const models = ["gemini-3.1-pro-preview"];
+    const models = ["gemini-3-pro-image-preview"];
 
     let lastError = "";
     for (const model of models) {

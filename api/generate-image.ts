@@ -143,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Try gemini-2.0-flash-preview-image-generation first, fall back to other models
-    const models = ["gemini-3.1-pro-preview"];
+    const models = ["gemini-3-pro-image-preview"];
 
     let lastError = "";
     for (const model of models) {
