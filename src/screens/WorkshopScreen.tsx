@@ -46,6 +46,56 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const styleInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Check which characters are mentioned in the story
+  const getCharacterMentions = () => {
+    const lower = story.toLowerCase();
+    return characters.map((c) => ({
+      ...c,
+      mentioned: lower.includes(c.name.toLowerCase()),
+    }));
+  };
+
+  const insertCharacterName = (name: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setStory(story ? `${story} ${name}` : name);
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = story.substring(0, start);
+    const after = story.substring(end);
+    const needsSpace =
+      before.length > 0 && !before.endsWith(" ") && !before.endsWith("\n");
+    const newText = `${before}${needsSpace ? " " : ""}${name}${after}`;
+    setStory(newText);
+    // Restore cursor after the inserted name
+    requestAnimationFrame(() => {
+      const pos = start + (needsSpace ? 1 : 0) + name.length;
+      textarea.setSelectionRange(pos, pos);
+      textarea.focus();
+    });
+  };
+
+  // Build story with character anchors for Gemini
+  const buildAnchoredStory = () => {
+    let anchored = story;
+    characters.forEach((c) => {
+      const regex = new RegExp(
+        `\\b${c.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+        "gi",
+      );
+      if (regex.test(anchored)) {
+        anchored = anchored.replace(
+          regex,
+          `[CHARACTER: ${c.name} — ${c.description || "A character"}]`,
+        );
+      }
+    });
+    return anchored;
+  };
 
   const handlePolish = async () => {
     if (!story.trim() || isPolishing) return;
@@ -59,7 +109,11 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     if (!story.trim() || isGeneratingPanels) return;
     setIsGeneratingPanels(true);
     try {
-      const generatedPanels = await generatePanelPrompts(story, characters);
+      const anchoredStory = buildAnchoredStory();
+      const generatedPanels = await generatePanelPrompts(
+        anchoredStory,
+        characters,
+      );
       if (generatedPanels.length > 0) {
         setPanels(generatedPanels);
         onGenerateSuccess();
@@ -143,7 +197,55 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   {story.length} / 2000 Characters
                 </span>
               </div>
+              {/* Character Tag Bar */}
+              {characters.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/30 mr-1">
+                    Cast:
+                  </span>
+                  {getCharacterMentions().map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() =>
+                        !c.mentioned && insertCharacterName(c.name)
+                      }
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
+                        c.mentioned
+                          ? "bg-primary/20 text-primary border border-primary/30"
+                          : "bg-surface-container text-accent/40 border border-outline/10 hover:border-primary/30 hover:text-accent/70 active:scale-95 cursor-pointer"
+                      }`}
+                      title={
+                        c.mentioned
+                          ? `"${c.name}" found in story`
+                          : `Tap to insert "${c.name}"`
+                      }
+                    >
+                      {c.image &&
+                        ![
+                          "Cartoon",
+                          "Manga",
+                          "Comic Book",
+                          "Realistic",
+                          "Watercolor",
+                          "Pixel Art",
+                        ].includes(c.image) && (
+                          <img
+                            src={c.image}
+                            alt=""
+                            className="w-4 h-4 rounded-full object-cover"
+                          />
+                        )}
+                      {c.name}
+                      {c.mentioned && (
+                        <span className="text-[8px] opacity-60">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <textarea
+                ref={textareaRef}
                 className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-lg leading-relaxed resize-none placeholder:text-accent/20 outline-none"
                 placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
                 value={story}

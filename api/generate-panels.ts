@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
+import { resolveApiKey, createAI } from "./_utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "4mb" } },
@@ -9,8 +10,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "API key not configured" });
+  const apiKey = resolveApiKey(req, res);
+  if (!apiKey) return;
 
   const { story, characters } = req.body;
   if (!story?.trim())
@@ -22,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     )
     .join("\n");
 
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = createAI(apiKey);
 
   try {
     const response = await ai.models.generateContent({
