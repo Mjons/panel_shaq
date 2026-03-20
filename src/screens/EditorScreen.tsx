@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useGesture } from "@use-gesture/react";
 import {
   MessageSquare,
   Zap,
@@ -23,7 +24,7 @@ import {
   finalNaturalRender,
   Bubble,
 } from "../services/geminiService";
-import { Page } from "./LayoutScreen";
+import { Page, getTemplate } from "./LayoutScreen";
 import { toPng, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
@@ -179,11 +180,42 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   };
 
+  // Wait for React to paint after state change
+  const waitForPaint = () =>
+    new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+
+  const captureRef = async (
+    ref: React.RefObject<HTMLDivElement | null>,
+    format: "jpeg" | "png",
+  ) => {
+    if (!ref.current) throw new Error("Ref not available");
+    // Double rAF ensures layout is settled before capture
+    await waitForPaint();
+    if (format === "jpeg") {
+      return toJpeg(ref.current, {
+        quality: 0.9,
+        backgroundColor: "#000000",
+        pixelRatio: 1.5,
+        skipFonts: true,
+        cacheBust: true,
+      });
+    }
+    return toPng(ref.current, {
+      backgroundColor: "#000000",
+      pixelRatio: 1.5,
+      skipFonts: true,
+      cacheBust: true,
+    });
+  };
+
   const handleExportPDF = async (allPages: boolean) => {
     if (!comicRef.current || isExporting) return;
     setIsExporting(true);
     setShouldCancelExport(false);
     setExportProgress(0);
+    setSelectedPanelId(null);
     setSelectedBubbleId(null);
 
     try {
@@ -199,26 +231,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
         if (allPages) {
           setSelectedPageIdx(i);
-          // Wait for state update
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await waitForPaint();
         }
 
-        // Buffer for layout stabilization
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
         try {
-          const imgData = await toJpeg(comicRef.current, {
-            quality: 0.9,
-            backgroundColor: "#000000",
-            pixelRatio: 1.5,
-            skipFonts: true, // Skipping fonts to avoid hanging, using standard system fonts for speed
-            cacheBust: true,
-          });
+          const imgData = await captureRef(comicRef, "jpeg");
 
           if (i > 0) pdf.addPage();
 
           const canvasRatio =
-            comicRef.current.offsetWidth / comicRef.current.offsetHeight;
+            comicRef.current!.offsetWidth / comicRef.current!.offsetHeight;
           const pdfRatio = pdfWidth / pdfHeight;
 
           let finalWidth = pdfWidth;
@@ -258,8 +280,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
         const pdfData = pdf.output("datauristring");
         addToHistory(fileName, pdfData, "pdf");
 
-        // Small delay to ensure UI is ready for download trigger
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await waitForPaint();
         pdf.save(fileName);
       }
     } catch (error) {
@@ -277,6 +298,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setIsExporting(true);
     setShouldCancelExport(false);
     setExportProgress(0);
+    setSelectedPanelId(null);
     setSelectedBubbleId(null);
 
     try {
@@ -288,18 +310,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
         if (allPages) {
           setSelectedPageIdx(i);
-          await new Promise((resolve) => setTimeout(resolve, 500));
+          await waitForPaint();
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
         try {
-          const imgData = await toPng(comicRef.current, {
-            backgroundColor: "#000000",
-            pixelRatio: 1.5,
-            skipFonts: true,
-            cacheBust: true,
-          });
+          const imgData = await captureRef(comicRef, "png");
 
           const fileName = `Comic_Page_${allPages ? i + 1 : originalPageIdx + 1}_${new Date().getTime()}.png`;
 
@@ -316,7 +331,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
         }
 
         setExportProgress(Math.round(((i + 1) / pagesToExport.length) * 100));
-        if (allPages) await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
       if (allPages) setSelectedPageIdx(originalPageIdx);
@@ -329,6 +343,76 @@ export const EditorScreen: React.FC<EditorProps> = ({
       setShouldCancelExport(false);
     }
   };
+
+  // Gesture-enabled panel image for pinch-to-zoom and drag-to-pan
+  const PanelImage = useCallback(
+    ({
+      panel,
+      idx,
+      isSelected,
+    }: {
+      panel: PanelPrompt;
+      idx: number;
+      isSelected: boolean;
+    }) => {
+      const transform = panel.imageTransform || { x: 0, y: 0, scale: 1 };
+      const gestureRef = useRef<HTMLDivElement>(null);
+
+      const bind = useGesture(
+        {
+          onDrag: ({ delta: [dx, dy], event }) => {
+            if (!isSelected || isExporting) return;
+            event.preventDefault();
+            updatePanel(panel.id, {
+              imageTransform: {
+                ...transform,
+                x: transform.x + dx / transform.scale,
+                y: transform.y + dy / transform.scale,
+              },
+            });
+          },
+          onPinch: ({ offset: [scale], event }) => {
+            if (!isSelected || isExporting) return;
+            event?.preventDefault();
+            const clamped = Math.min(4.2, Math.max(0.5, scale));
+            updatePanel(panel.id, {
+              imageTransform: { ...transform, scale: clamped },
+            });
+          },
+        },
+        {
+          drag: { filterTaps: true, pointer: { touch: true } },
+          pinch: {
+            scaleBounds: { min: 0.5, max: 4.2 },
+            from: () => [transform.scale, 0],
+          },
+        },
+      );
+
+      return (
+        <div
+          ref={gestureRef}
+          {...(isSelected && !isExporting ? bind() : {})}
+          className="w-full h-full relative overflow-hidden touch-none"
+        >
+          <img
+            alt={`Panel ${idx + 1}`}
+            className={`w-full h-full object-contain transition-opacity select-none ${isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
+            src={panel.image}
+            draggable={false}
+            style={{
+              transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,
+              transformOrigin: "center",
+            }}
+          />
+          {isSelected && !isExporting && (
+            <div className="absolute inset-0 pointer-events-none border-2 border-primary z-30" />
+          )}
+        </div>
+      );
+    },
+    [isExporting, updatePanel],
+  );
 
   return (
     <main className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -362,7 +446,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 <input
                   type="range"
                   min="0.5"
-                  max="3"
+                  max="4.2"
                   step="0.1"
                   value={selectedPanel?.imageTransform?.scale || 1}
                   onChange={(e) =>
@@ -757,29 +841,28 @@ export const EditorScreen: React.FC<EditorProps> = ({
             >
               {currentPage ? (
                 <div
-                  className={`grid gap-2 h-full p-2 ${
-                    currentPage.layout === "grid"
-                      ? "grid-cols-2"
-                      : currentPage.layout === "vertical"
-                        ? "grid-cols-1"
-                        : "grid-cols-3"
-                  }`}
+                  className="gap-2 h-full p-2"
+                  style={(() => {
+                    const tmpl = getTemplate(currentPage.layoutId);
+                    if (tmpl) {
+                      return {
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${tmpl.cols}, 1fr)`,
+                        gridTemplateRows: `repeat(${tmpl.rows}, 1fr)`,
+                      };
+                    }
+                    return {
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                    };
+                  })()}
                 >
                   {currentPage.panelIds.map((pid, idx) => {
                     const panel = panels.find((p) => p.id === pid);
                     if (!panel) return null;
 
-                    let colSpan = "col-span-1";
-                    if (currentPage.layout === "dynamic") {
-                      if (idx === 0) colSpan = "col-span-2 row-span-2";
-                      else colSpan = "col-span-1 row-span-1";
-                    } else if (
-                      currentPage.layout === "grid" &&
-                      currentPage.panelIds.length % 2 !== 0 &&
-                      idx === currentPage.panelIds.length - 1
-                    ) {
-                      colSpan = "col-span-2";
-                    }
+                    const tmpl = getTemplate(currentPage.layoutId);
+                    const slot = tmpl?.slots[idx];
 
                     const transform = panel.imageTransform || {
                       x: 0,
@@ -791,24 +874,22 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid && !isExporting ? "border-primary" : "border-transparent"}`}
+                        className={`bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid && !isExporting ? "border-primary" : "border-transparent"}`}
+                        style={
+                          slot
+                            ? {
+                                gridColumn: `${slot.colStart} / ${slot.colEnd}`,
+                                gridRow: `${slot.rowStart} / ${slot.rowEnd}`,
+                              }
+                            : undefined
+                        }
                       >
                         {panel.image ? (
-                          <div className="w-full h-full relative overflow-hidden">
-                            <img
-                              alt={`Panel ${idx + 1}`}
-                              className={`w-full h-full object-contain transition-opacity ${selectedPanelId === pid ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
-                              src={panel.image}
-                              style={{
-                                transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,
-                                transformOrigin: "center",
-                              }}
-                            />
-                            {/* Framing Overlay for overflow */}
-                            {selectedPanelId === pid && !isExporting && (
-                              <div className="absolute inset-0 pointer-events-none border-2 border-primary z-30"></div>
-                            )}
-                          </div>
+                          <PanelImage
+                            panel={panel}
+                            idx={idx}
+                            isSelected={selectedPanelId === pid}
+                          />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-surface-container">
                             <ImageIcon
