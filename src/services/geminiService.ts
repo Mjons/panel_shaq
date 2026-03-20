@@ -317,7 +317,7 @@ export const generatePanelImage = async (
         const hasCharRefs = referenceImages && referenceImages.length > 0;
         const parts: any[] = [
           {
-            text: `A cinematic comic book panel with ${aspectRatio} aspect ratio.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: Replicate the exact artistic style of the provided reference." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
+            text: `A cinematic comic book panel with ${aspectRatio} aspect ratio.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style, brushwork, color palette, line weight, shading technique, and overall visual aesthetic. The output MUST look like it was drawn by the same artist. Do NOT deviate from this style under any circumstances — ignore any art style mentioned in the text prompt." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
           },
         ];
         if (styleReferenceImage) {

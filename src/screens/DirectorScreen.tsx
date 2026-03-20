@@ -885,7 +885,9 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     const generate = async () => {
       try {
         const selectedChars = characters.filter((c) =>
-          (panelSnapshot.selectedCharacterIds || []).includes(c.id),
+          (
+            panelSnapshot.selectedCharacterIds ?? characters.map((ch) => ch.id)
+          ).includes(c.id),
         );
         // Only include base64 images — URLs can't be sent as inline data to Gemini
         const allRefs = [
@@ -911,25 +913,6 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             ? panelSnapshot.mood
             : "";
 
-        const finalPrompt = `
-          Art Style: ${artStyleStr}.
-          Subject: ${panelSnapshot.description}.
-          Characters present: ${characterContext}.
-          ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
-          ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
-          ${moodStr ? `Mood: ${moodStr}.` : ""}
-        `.trim();
-
-        const styleParts = [
-          artStyleStr,
-          cameraStr,
-          lensStr,
-          moodStr,
-          "Heavy Inks",
-          "High Contrast",
-        ].filter(Boolean);
-        const style = styleParts.join(", ");
-
         // Only use styleReferenceImage if it's an actual base64 image, not an art style name
         const isBase64Image = (s: string) => s.startsWith("data:image/");
         const effectiveStyleRef =
@@ -940,6 +923,29 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               charRefs.find(isBase64Image) ||
               undefined
             : undefined;
+
+        // When a custom style reference image is provided, don't include art style text
+        // — it conflicts with the reference and the model ignores the image
+        const hasCustomStyleRef = !!effectiveStyleRef;
+
+        const finalPrompt = `
+          ${hasCustomStyleRef ? "" : `Art Style: ${artStyleStr}.`}
+          Subject: ${panelSnapshot.description}.
+          Characters present: ${characterContext}.
+          ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+          ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
+          ${moodStr ? `Mood: ${moodStr}.` : ""}
+        `.trim();
+
+        const styleParts = [
+          ...(hasCustomStyleRef ? [] : [artStyleStr]),
+          cameraStr,
+          lensStr,
+          moodStr,
+          "Heavy Inks",
+          "High Contrast",
+        ].filter(Boolean);
+        const style = styleParts.join(", ");
 
         const imageUrl = await generatePanelImage(
           finalPrompt,

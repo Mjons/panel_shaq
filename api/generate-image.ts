@@ -66,10 +66,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const parts: any[] = [
       {
         text: `A cinematic comic book panel.
-        ${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: You MUST strictly replicate the exact artistic style, brushwork, color palette, and line weight of the provided style reference image. The output should look like it was drawn by the same artist as the reference." : `Style: ${style}.`}
+        ${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style, brushwork, color palette, line weight, shading technique, and overall visual aesthetic. The output MUST look like it was drawn by the same artist. Do NOT deviate from this style under any circumstances — ignore any art style mentioned in the text prompt." : `Style: ${style}.`}
         ${prompt.includes("Subject:") ? prompt : `Subject: ${prompt}.`}
         CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image. The image should be pure artwork.
-        ${referenceImages && referenceImages.length > 0 ? "Ensure the characters in the panel match the provided character reference images." : ""}`,
+        ${referenceImages && referenceImages.length > 0 ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}`,
       },
     ];
 
