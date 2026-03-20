@@ -79,15 +79,17 @@ async function checkUsage(
   }
 
   if (existing) {
-    await supabase
+    const { error } = await supabase
       .from("usage")
       .update({ [col]: count + 1 })
       .eq("user_id", userId)
       .eq("date", today);
+    if (error) console.error("Usage update error:", error);
   } else {
-    await supabase
+    const { error } = await supabase
       .from("usage")
       .insert({ user_id: userId, date: today, [col]: 1 });
+    if (error) console.error("Usage insert error:", error);
   }
   return null;
 }
