@@ -4,10 +4,12 @@ import {
   X,
   Home,
   BookOpen,
-  Layers,
   Settings,
   HelpCircle,
   Layout,
+  PenTool,
+  Share2,
+  Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
@@ -25,7 +27,9 @@ export const TopNav = ({
     { id: "workshop", icon: Home, label: "Workshop" },
     { id: "director", icon: BookOpen, label: "Director" },
     { id: "layout", icon: Layout, label: "Layout" },
-    { id: "vault", icon: BookOpen, label: "Vault" },
+    { id: "editor", icon: PenTool, label: "Editor" },
+    { id: "vault", icon: Globe, label: "World Vault" },
+    { id: "share", icon: Share2, label: "Share" },
   ];
 
   return (

@@ -10,6 +10,7 @@ import {
   Info,
 } from "lucide-react";
 import { usePersistedState } from "../hooks/usePersistedState";
+import { getUsageToday } from "../services/supabase";
 
 export interface AppSettings {
   geminiApiKey: string;
@@ -38,6 +39,15 @@ export const SettingsScreen = () => {
   const [testStatus, setTestStatus] = useState<
     "idle" | "testing" | "success" | "error"
   >("idle");
+  const [usage, setUsage] = useState<{ text: number; image: number } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    getUsageToday().then((u) => {
+      if (u) setUsage(u);
+    });
+  }, []);
 
   const updateSetting = <K extends keyof AppSettings>(
     key: K,
@@ -326,6 +336,52 @@ export const SettingsScreen = () => {
             </button>
           </div>
         </section>
+
+        {/* Usage */}
+        {usage && (
+          <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+            <h3 className="font-headline text-lg font-bold text-accent">
+              Today's Usage
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-accent/60">Text Generations</span>
+                  <span className="font-bold text-accent">
+                    {usage.text} / 50
+                  </span>
+                </div>
+                <div className="h-2 bg-background rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${usage.text >= 45 ? "bg-red-500" : "bg-primary"}`}
+                    style={{
+                      width: `${Math.min(100, (usage.text / 50) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-accent/60">Image Generations</span>
+                  <span className="font-bold text-accent">
+                    {usage.image} / 20
+                  </span>
+                </div>
+                <div className="h-2 bg-background rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${usage.image >= 18 ? "bg-red-500" : "bg-primary"}`}
+                    style={{
+                      width: `${Math.min(100, (usage.image / 20) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-accent/30">
+                Resets at midnight UTC
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* About */}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-3">

@@ -132,6 +132,11 @@ async function apiPost<T>(
   const userKey = getUserApiKey();
   if (userKey) headers["x-api-key"] = userKey;
 
+  // Send user ID for usage tracking
+  const { getUserId } = await import("./supabase");
+  const userId = await getUserId();
+  if (userId) headers["x-user-id"] = userId;
+
   try {
     const res = await fetch(`/api/${endpoint}`, {
       method: "POST",
@@ -452,5 +457,43 @@ export const finalNaturalRender = async (
     }
     notifyError("Final render failed", error);
     return null;
+  }
+};
+
+export const analyzeCharacterImage = async (
+  imageBase64: string,
+): Promise<string> => {
+  const prompt =
+    "Describe this character's visual appearance for use as a reference in AI image generation. Focus ONLY on physical appearance: face shape, skin tone, hair, eye color, body type, clothing, accessories, tattoos, scars, and distinguishing features. Do NOT describe what they are doing, their pose, emotions, or the background. Be concise but specific. Write in a single paragraph, no bullet points.";
+
+  try {
+    const { text } = await apiPost<{ text: string }>("analyze-character", {
+      image: imageBase64,
+      prompt,
+    });
+    return text;
+  } catch (error: any) {
+    if (error?.message === "proxy-unavailable") {
+      try {
+        const ai = await getDirectAI();
+        const match = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (!match) throw new Error("Invalid image data");
+        const response = await ai.models.generateContent({
+          model: "gemini-2.0-flash",
+          contents: {
+            parts: [
+              { inlineData: { mimeType: match[1], data: match[2] } },
+              { text: prompt },
+            ],
+          },
+        });
+        return response.text || "";
+      } catch (directError) {
+        notifyError("Character analysis failed", directError);
+        return "";
+      }
+    }
+    notifyError("Character analysis failed", error);
+    return "";
   }
 };

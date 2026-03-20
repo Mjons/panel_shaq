@@ -598,6 +598,19 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
           );
         })}
       </div>
+
+      {/* Bottom continue button */}
+      {pages.length > 0 && (
+        <div className="flex justify-center pt-8">
+          <button
+            onClick={onContinue}
+            className="flex items-center justify-center gap-3 bg-secondary text-background px-10 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
+          >
+            CONTINUE TO EDITOR
+            <ArrowRight size={20} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

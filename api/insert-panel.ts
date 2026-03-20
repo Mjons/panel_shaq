@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { createClient } from "@supabase/supabase-js";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "1mb" } },
@@ -45,12 +46,59 @@ async function geminiText(
   return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
+const LIMITS = { text: 50, image: 20 };
+
+async function checkUsage(
+  req: any,
+  type: "text" | "image",
+): Promise<string | null> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null;
+
+  const userId = (req.headers["x-user-id"] as string) || "";
+  if (!userId) return null;
+
+  const supabase = createClient(url, key);
+  const today = new Date().toISOString().split("T")[0];
+  const col = type === "image" ? "image_generations" : "text_generations";
+  const limit = type === "image" ? LIMITS.image : LIMITS.text;
+
+  const { data: existing } = await supabase
+    .from("usage")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("date", today)
+    .maybeSingle();
+
+  const count = existing?.[col] || 0;
+  if (count >= limit) {
+    return `Daily ${type} limit reached (${count}/${limit}). Resets at midnight UTC.`;
+  }
+
+  if (existing) {
+    await supabase
+      .from("usage")
+      .update({ [col]: count + 1 })
+      .eq("user_id", userId)
+      .eq("date", today);
+  } else {
+    await supabase
+      .from("usage")
+      .insert({ user_id: userId, date: today, [col]: 1 });
+  }
+  return null;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
   const apiKey = getApiKey(req);
   if (!apiKey) return res.status(401).json({ error: "No API key configured." });
+
+  const usageError = await checkUsage(req, "text");
+  if (usageError) return res.status(429).json({ error: usageError });
 
   const { story, previousPanel, nextPanel, allCharacters, insertIndex } =
     req.body;

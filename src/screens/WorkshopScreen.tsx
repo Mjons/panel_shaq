@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   polishStory,
   generatePanelPrompts,
+  analyzeCharacterImage,
   PanelPrompt,
 } from "../services/geminiService";
 import { useConfirm } from "../components/ConfirmDialog";
@@ -53,6 +54,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   const { confirm } = useConfirm();
   const [isPolishing, setIsPolishing] = useState(false);
   const [isGeneratingPanels, setIsGeneratingPanels] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(
     null,
   );
@@ -587,9 +589,38 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
-                    Appearance & Role
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+                      Appearance & Role
+                    </label>
+                    {editingCharacter.image &&
+                      editingCharacter.image.startsWith("data:image/") && (
+                        <button
+                          onClick={async () => {
+                            setIsAnalyzing(true);
+                            const description = await analyzeCharacterImage(
+                              editingCharacter.image,
+                            );
+                            if (description) {
+                              setEditingCharacter({
+                                ...editingCharacter,
+                                description,
+                              });
+                            }
+                            setIsAnalyzing(false);
+                          }}
+                          disabled={isAnalyzing}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/20 hover:bg-primary/10 transition-all text-[10px] font-bold uppercase tracking-widest text-primary disabled:opacity-50"
+                        >
+                          {isAnalyzing ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <Sparkles size={12} />
+                          )}
+                          {isAnalyzing ? "Analyzing..." : "Auto-Describe"}
+                        </button>
+                      )}
+                  </div>
                   <textarea
                     value={editingCharacter.description}
                     onChange={(e) =>
