@@ -59,7 +59,9 @@ async function checkUsage(
   const userId = (req.headers["x-user-id"] as string) || "";
   if (!userId) return null;
 
-  const supabase = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+  const supabase = createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   const today = new Date().toISOString().split("T")[0];
   const col = type === "image" ? "image_generations" : "text_generations";
   const limit = type === "image" ? LIMITS.image : LIMITS.text;
@@ -140,17 +142,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const image = await geminiImage(
-      apiKey,
-      "gemini-3.1-flash-image-preview",
-      parts,
-      { aspectRatio, imageSize: "1K" },
-    );
+    // Try gemini-2.0-flash-preview-image-generation first, fall back to other models
+    const models = [
+      "gemini-2.0-flash-preview-image-generation",
+      "gemini-2.0-flash",
+    ];
 
-    if (!image) {
-      return res.status(500).json({ error: "No image generated" });
+    let lastError = "";
+    for (const model of models) {
+      try {
+        const image = await geminiImage(apiKey, model, parts, { aspectRatio });
+        if (image) return res.status(200).json({ image });
+        lastError = `${model}: no image in response`;
+      } catch (e: any) {
+        lastError = `${model}: ${e.message}`;
+        continue;
+      }
     }
-    return res.status(200).json({ image });
+
+    return res
+      .status(500)
+      .json({ error: `Image generation failed. ${lastError}` });
   } catch (error: any) {
     console.error("Generate image error:", error);
     return res.status(500).json({ error: error.message || "Failed" });
