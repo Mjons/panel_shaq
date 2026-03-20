@@ -19,10 +19,13 @@ import {
 import { Character } from "../App";
 
 interface WorkshopProps {
+  projectName: string;
+  setProjectName: (name: string) => void;
   story: string;
   setStory: (story: string) => void;
   characters: Character[];
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+  panels: PanelPrompt[];
   setPanels: (panels: PanelPrompt[]) => void;
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
@@ -30,10 +33,13 @@ interface WorkshopProps {
 }
 
 export const WorkshopScreen: React.FC<WorkshopProps> = ({
+  projectName,
+  setProjectName,
   story,
   setStory,
   characters,
   setCharacters,
+  panels,
   setPanels,
   styleReferenceImage,
   setStyleReferenceImage,
@@ -107,6 +113,18 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
   const handleGeneratePanels = async () => {
     if (!story.trim() || isGeneratingPanels) return;
+
+    // Warn if panels with images already exist
+    const panelsWithImages = panels.filter((p) => p.image).length;
+    if (panelsWithImages > 0) {
+      if (
+        !window.confirm(
+          `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Generating new panels will replace them all.\n\nContinue?`,
+        )
+      )
+        return;
+    }
+
     setIsGeneratingPanels(true);
     try {
       const anchoredStory = buildAnchoredStory();
@@ -175,9 +193,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   return (
     <div className="pt-28 px-6 max-w-5xl mx-auto pb-32">
       <section className="mb-12">
-        <h2 className="font-headline text-5xl md:text-7xl font-bold text-accent tracking-tighter mb-3">
-          Story <span className="text-primary italic">Workshop</span>
-        </h2>
+        <input
+          type="text"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          className="bg-transparent border-none outline-none font-headline text-5xl md:text-7xl font-bold text-accent tracking-tighter mb-3 w-full placeholder:text-accent/20"
+          placeholder="Untitled Project"
+        />
         <p className="text-accent/60 font-body text-lg max-w-2xl leading-relaxed">
           Craft the narrative spark that will ignite your visual journey.
         </p>

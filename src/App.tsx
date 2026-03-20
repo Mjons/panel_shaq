@@ -269,6 +269,14 @@ function AppInner() {
   }, [saveCurrentProject]);
 
   const handleLoadProject = (project: SavedProject) => {
+    if (
+      panels.some((p) => p.image) &&
+      !window.confirm(
+        "Load this project? Your current work will be saved first.",
+      )
+    )
+      return;
+    saveCurrentProject();
     setCurrentProjectId(project.id);
     setProjectName(project.name);
     setStory(project.story);
@@ -280,6 +288,13 @@ function AppInner() {
   };
 
   const handleCreateNew = () => {
+    if (
+      panels.some((p) => p.image) &&
+      !window.confirm(
+        "Start a new project? Your current work will be saved and you can reload it from the project manager.",
+      )
+    )
+      return;
     saveCurrentProject();
     setCurrentProjectId(null);
     setProjectName("Untitled Project");
@@ -296,10 +311,13 @@ function AppInner() {
       case "workshop":
         return (
           <WorkshopScreen
+            projectName={projectName}
+            setProjectName={setProjectName}
             story={story}
             setStory={setStory}
             characters={characters}
             setCharacters={setCharacters}
+            panels={panels}
             setPanels={setPanels}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
@@ -340,10 +358,13 @@ function AppInner() {
       default:
         return (
           <WorkshopScreen
+            projectName={projectName}
+            setProjectName={setProjectName}
             story={story}
             setStory={setStory}
             characters={characters}
             setCharacters={setCharacters}
+            panels={panels}
             setPanels={setPanels}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}

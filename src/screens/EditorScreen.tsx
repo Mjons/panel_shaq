@@ -476,16 +476,31 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   className="w-full accent-primary"
                 />
               </div>
-              <button
-                onClick={() =>
-                  updatePanel(selectedPanelId, {
-                    imageTransform: { x: 0, y: 0, scale: 1 },
-                  })
-                }
-                className="w-full py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors"
-              >
-                Reset Transform
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() =>
+                    updatePanel(selectedPanelId, {
+                      imageTransform: { x: 0, y: 0, scale: 1 },
+                    })
+                  }
+                  className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors"
+                >
+                  Reset Transform
+                </button>
+                {selectedPanel?.image && (
+                  <button
+                    onClick={() => {
+                      const link = document.createElement("a");
+                      link.download = `panel-${panels.findIndex((p) => p.id === selectedPanelId) + 1}.png`;
+                      link.href = selectedPanel.image!;
+                      link.click();
+                    }}
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <Download size={12} />
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">

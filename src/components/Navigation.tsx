@@ -193,9 +193,9 @@ export const BottomNav = ({
   const tabs = [
     { id: "workshop", icon: "home" },
     { id: "director", icon: "auto_stories" },
-    { id: "vault", icon: "auto_awesome_motion" },
+    { id: "layout", icon: "auto_awesome_motion" },
     { id: "editor", icon: "view_quilt" },
-    { id: "share", icon: "ios_share" },
+    { id: "vault", icon: "public" },
   ];
 
   // Using Material Symbols for icons as seen in the screenshots

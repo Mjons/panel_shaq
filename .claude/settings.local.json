@@ -9,7 +9,30 @@
       "Bash(node -e \"const r = require\\(''react/package.json''\\); console.log\\(r.version, r.types || ''no types field''\\)\")",
       "Bash(ls l:/Projects_claudecode/panel_shaq/node_modules/react/*.d.ts)",
       "Bash(ls l:/Projects_claudecode/panel_shaq/node_modules/@types/react/*.d.ts)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(cmd.exe /c \"gh --version\")",
+      "Bash(cmd.exe /c \"where gh\")",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "Bash(grep -l \"GoogleGenAI\\\\|google.ai.generativelanguage\\\\|@google/genai\" l:/Projects_claudecode/panel_shaq/dist/assets/*.js)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(sed -i 's/gemini-3.1-pro-preview/gemini-3.1-flash-lite-preview/g' api/polish-story.ts api/generate-panels.ts api/insert-panel.ts)",
+      "Bash(sed -i 's/gemini-2.0-flash/gemini-3.1-flash-lite-preview/g' api/health.ts)",
+      "Bash(npx vercel:*)",
+      "Bash(curl -s -w \"\\\\nHTTP_CODE:%{http_code}\" -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\" -H \"x-api-key: test\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/_utils\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\" -H \"x-api-key: test-key\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\")",
+      "Bash(curl -sv -X POST \"https://panel-shaq.vercel.app/api/health\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\" -H \"x-api-key: fake\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\" -H \"x-api-key: test\")",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/health\" -H \"Content-Type: application/json\" -H \"x-api-key: fake-key\")",
+      "Bash(curl -s \"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=test\" -H \"Content-Type: application/json\" -d '{\"\"\"\"contents\"\"\"\":[{\"\"\"\"parts\"\"\"\":[{\"\"\"\"text\"\"\"\":\"\"\"\"hi\"\"\"\"}]}]}')",
+      "Bash(curl -s \"https://generativelanguage.googleapis.com/v1alpha/models/gemini-3.1-flash-lite-preview:generateContent?key=test\" -H \"Content-Type: application/json\" -d '{\"\"\"\"contents\"\"\"\":[{\"\"\"\"parts\"\"\"\":[{\"\"\"\"text\"\"\"\":\"\"\"\"hi\"\"\"\"}]}]}')",
+      "Bash(curl -s -X POST \"https://panel-shaq.vercel.app/api/polish-story\" -H \"Content-Type: application/json\" -H \"x-api-key: fake\" -d '{\"\"text\"\":\"\"hello world\"\"}')",
+      "Bash(git add:*)"
     ]
   }
 }

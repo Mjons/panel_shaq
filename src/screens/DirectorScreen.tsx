@@ -200,7 +200,7 @@ const PanelCard = ({
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
   const [artStyle, setArtStyle] = useState(panel.artStyle || "Cartoon");
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
-    panel.selectedCharacterIds || [],
+    panel.selectedCharacterIds ?? characters.map((c) => c.id),
   );
   const [useStyleRef, setUseStyleRef] = useState(
     panel.useStyleRef !== undefined ? panel.useStyleRef : !!styleReferenceImage,
