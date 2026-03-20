@@ -13,6 +13,7 @@ export interface SavedProject {
   panels: PanelPrompt[];
   pages: Page[];
   styleReferenceImage: string | null;
+  styleNotes?: string;
 }
 
 export interface ProjectMeta {

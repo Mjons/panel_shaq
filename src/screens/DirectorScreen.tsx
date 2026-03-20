@@ -29,6 +29,7 @@ interface DirectorProps {
   story: string;
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
+  styleNotes?: string;
   onContinue: () => void;
 }
 
@@ -785,6 +786,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   story,
   styleReferenceImage,
   setStyleReferenceImage,
+  styleNotes,
   onContinue,
 }) => {
   const { confirm } = useConfirm();
@@ -961,12 +963,12 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               undefined
             : undefined;
 
-        // When a style reference image is active, don't include art style text
-        // — it conflicts with the reference and the model ignores the image
         const hasCustomStyleRef = !!effectiveStyleRef;
+        const notesStr = styleNotes?.trim() || "";
 
         const finalPrompt = `
-          ${hasCustomStyleRef ? "" : `Art Style: ${artStyleStr}.`}
+          ${hasCustomStyleRef ? `The art style should be ${artStyleStr} — use this as guidance alongside the style reference image.` : `Art Style: ${artStyleStr}.`}
+          ${notesStr ? `Style notes: ${notesStr}.` : ""}
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
           ${wantsCharStyle ? "CRITICAL: Match the exact artistic style, line work, coloring technique, and visual aesthetic of the character reference images. The output must look like it belongs in the same comic/animation as the reference." : ""}
@@ -976,12 +978,11 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         `.trim();
 
         const styleParts = [
-          ...(hasCustomStyleRef ? [] : [artStyleStr]),
+          artStyleStr,
           cameraStr,
           lensStr,
           moodStr,
-          "Heavy Inks",
-          "High Contrast",
+          notesStr,
         ].filter(Boolean);
         const style = styleParts.join(", ");
 
@@ -991,6 +992,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           charRefs,
           effectiveStyleRef,
           panelSnapshot.aspectRatio || "16:9",
+          notesStr,
         );
 
         if (imageUrl) {
@@ -1154,6 +1156,19 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               )}
             </React.Fragment>
           ))}
+        </div>
+      )}
+
+      {/* Bottom continue button */}
+      {panels.length > 0 && (
+        <div className="flex justify-center pt-8">
+          <button
+            onClick={onContinue}
+            className="flex items-center justify-center gap-3 bg-secondary text-background px-10 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
+          >
+            CONTINUE TO LAYOUTS
+            <ArrowRight size={20} />
+          </button>
         </div>
       )}
     </div>

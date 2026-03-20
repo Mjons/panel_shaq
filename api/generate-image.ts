@@ -58,6 +58,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     referenceImages,
     styleReferenceImage,
     aspectRatio = "16:9",
+    styleNotes,
   } = req.body;
   if (!prompt?.trim())
     return res.status(400).json({ error: "Prompt is required" });
@@ -65,8 +66,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const parts: any[] = [
       {
-        text: `A cinematic comic book panel.
-        ${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style, brushwork, color palette, line weight, shading technique, and overall visual aesthetic. The output MUST look like it was drawn by the same artist. Do NOT deviate from this style under any circumstances — ignore any art style mentioned in the text prompt." : `Style: ${style}.`}
+        text: `${styleReferenceImage ? "A comic panel. MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style — line work, coloring, shading, proportions, level of detail, and overall aesthetic. If the reference is cartoony, the output MUST be cartoony. If it is realistic, the output MUST be realistic. Do NOT default to any other style. The output MUST look like it was drawn by the same artist as the reference." : `A cinematic comic book panel. Style: ${style}.`}
+        ${styleNotes ? `Style notes: ${styleNotes}.` : ""}
         ${prompt.includes("Subject:") ? prompt : `Subject: ${prompt}.`}
         CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image. The image should be pure artwork.
         ${referenceImages && referenceImages.length > 0 ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}`,

@@ -111,6 +111,10 @@ function AppInner() {
   const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
     string | null
   >("panelshaq_style_ref", "Cartoon");
+  const [styleNotes, setStyleNotes] = usePersistedState(
+    "panelshaq_style_notes",
+    "",
+  );
 
   // Check if user has an API key configured (BYOK or env var)
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -239,6 +243,7 @@ function AppInner() {
       panels,
       pages,
       styleReferenceImage,
+      styleNotes,
     });
   }, [
     currentProjectId,
@@ -248,6 +253,7 @@ function AppInner() {
     panels,
     pages,
     styleReferenceImage,
+    styleNotes,
   ]);
 
   // Auto-save on interval
@@ -288,6 +294,7 @@ function AppInner() {
     setPanels(project.panels);
     setPages(project.pages);
     setStyleReferenceImage(project.styleReferenceImage);
+    setStyleNotes(project.styleNotes || "");
     setActiveTab("workshop");
   };
 
@@ -308,6 +315,7 @@ function AppInner() {
     setPanels([]);
     setPages([]);
     setStyleReferenceImage("Cartoon");
+    setStyleNotes("");
     setActiveTab("workshop");
     setCharacters(DEFAULT_CHARACTERS);
   };
@@ -327,6 +335,8 @@ function AppInner() {
             setPanels={setPanels}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
+            styleNotes={styleNotes}
+            setStyleNotes={setStyleNotes}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );
@@ -339,6 +349,7 @@ function AppInner() {
             story={story}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
+            styleNotes={styleNotes}
             onContinue={() => setActiveTab("layout")}
           />
         );
@@ -374,6 +385,8 @@ function AppInner() {
             setPanels={setPanels}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
+            styleNotes={styleNotes}
+            setStyleNotes={setStyleNotes}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );

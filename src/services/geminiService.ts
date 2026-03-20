@@ -37,6 +37,7 @@ export interface PanelPrompt {
   selectedCharacterIds?: string[];
   customReferenceImages?: string[];
   useStyleRef?: boolean;
+  matchCharStyle?: boolean;
   bubbles: Bubble[];
   imageTransform?: { x: number; y: number; scale: number };
 }
@@ -271,13 +272,21 @@ export const generatePanelImage = async (
   referenceImages?: string[],
   styleReferenceImage?: string,
   aspectRatio: string = "16:9",
+  styleNotes?: string,
 ): Promise<string | null> => {
   if (!prompt.trim()) return null;
 
   try {
     const result = await apiPost<{ image: string }>(
       "generate-image",
-      { prompt, style, referenceImages, styleReferenceImage, aspectRatio },
+      {
+        prompt,
+        style,
+        referenceImages,
+        styleReferenceImage,
+        aspectRatio,
+        styleNotes,
+      },
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;
@@ -317,7 +326,7 @@ export const generatePanelImage = async (
         const hasCharRefs = referenceImages && referenceImages.length > 0;
         const parts: any[] = [
           {
-            text: `A cinematic comic book panel with ${aspectRatio} aspect ratio.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style, brushwork, color palette, line weight, shading technique, and overall visual aesthetic. The output MUST look like it was drawn by the same artist. Do NOT deviate from this style under any circumstances — ignore any art style mentioned in the text prompt." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
+            text: `${styleReferenceImage ? `A comic panel with ${aspectRatio} aspect ratio.\nMANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style — line work, coloring, shading, proportions, level of detail, and overall aesthetic. If the reference is cartoony, the output MUST be cartoony. If it is realistic, the output MUST be realistic. Do NOT default to any other style. The output MUST look like it was drawn by the same artist as the reference.` : `A cinematic comic book panel with ${aspectRatio} aspect ratio.\nStyle: ${style}.`}${styleNotes ? `\nStyle notes: ${styleNotes}.` : ""}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
           },
         ];
         if (styleReferenceImage) {

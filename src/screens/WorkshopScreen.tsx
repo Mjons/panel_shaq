@@ -30,6 +30,8 @@ interface WorkshopProps {
   setPanels: (panels: PanelPrompt[]) => void;
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
+  styleNotes: string;
+  setStyleNotes: (notes: string) => void;
   onGenerateSuccess: () => void;
 }
 
@@ -44,6 +46,8 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   setPanels,
   styleReferenceImage,
   setStyleReferenceImage,
+  styleNotes,
+  setStyleNotes,
   onGenerateSuccess,
 }) => {
   const { confirm } = useConfirm();
@@ -482,6 +486,21 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   </button>
                 </div>
               )}
+            <div className="mt-3">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40 mb-1.5 block">
+                Style Notes
+              </label>
+              <textarea
+                value={styleNotes}
+                onChange={(e) => setStyleNotes(e.target.value)}
+                className="w-full bg-background border border-outline/20 rounded-lg px-3 py-2 text-sm text-accent focus:border-primary outline-none transition-colors resize-none h-16 placeholder:text-accent/20"
+                placeholder="e.g. cute, round shapes, soft pastel colors, thick outlines..."
+                maxLength={200}
+              />
+              <p className="text-[8px] text-accent/30 mt-1">
+                Describe the visual style to reinforce during generation
+              </p>
+            </div>
             <input
               type="file"
               ref={styleInputRef}
