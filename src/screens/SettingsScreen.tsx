@@ -17,6 +17,7 @@ export interface AppSettings {
   exportQuality: "standard" | "high" | "maximum";
   autoSaveInterval: number;
   includePageNumbers: boolean;
+  imageModel: "flash" | "pro";
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   exportQuality: "high",
   autoSaveInterval: 30000,
   includePageNumbers: false,
+  imageModel: "flash",
 };
 
 export const SettingsScreen = () => {
@@ -180,6 +182,47 @@ export const SettingsScreen = () => {
               . Your key is stored locally in your browser — never sent to our
               servers.
             </p>
+          </div>
+        </section>
+
+        {/* Image Model */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-accent">
+            Image Generation Model
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => updateSetting("imageModel", "flash")}
+              className={`p-4 rounded-xl text-left border transition-all active:scale-95 ${
+                settings.imageModel === "flash"
+                  ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
+                  : "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
+              }`}
+            >
+              <span className="text-sm font-bold block">Flash</span>
+              <span className="text-[10px] opacity-70 block mt-1">
+                Faster, cheaper
+              </span>
+              <span className="text-[9px] opacity-50 block">
+                $0.067 / image
+              </span>
+            </button>
+            <button
+              onClick={() => updateSetting("imageModel", "pro")}
+              className={`p-4 rounded-xl text-left border transition-all active:scale-95 ${
+                settings.imageModel === "pro"
+                  ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
+                  : "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
+              }`}
+            >
+              <span className="text-sm font-bold block">Pro</span>
+              <span className="text-[10px] opacity-70 block mt-1">
+                Higher quality
+              </span>
+              <span className="text-[9px] opacity-50 block">
+                $0.134 / image
+              </span>
+            </button>
           </div>
         </section>
 

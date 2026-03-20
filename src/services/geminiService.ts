@@ -87,6 +87,19 @@ function getUserApiKey(): string {
   return "";
 }
 
+function getImageModel(): string {
+  try {
+    const saved = localStorage.getItem("panelshaq_settings");
+    if (saved) {
+      const pref = JSON.parse(saved).imageModel;
+      if (pref === "pro") return "gemini-3-pro-image-preview";
+    }
+  } catch {
+    /* ignore */
+  }
+  return "gemini-3.1-flash-image-preview";
+}
+
 // Direct Gemini client for BYOK / local dev fallback
 async function getDirectAI() {
   const { GoogleGenAI } = await import("@google/genai");
@@ -205,22 +218,34 @@ export const generatePanelPrompts = async (
   }
 };
 
-export const polishStory = async (text: string): Promise<string> => {
+export const polishStory = async (
+  text: string,
+  characters?: { name: string; description?: string }[],
+): Promise<string> => {
   if (!text.trim()) return text;
 
   try {
-    const result = await apiPost<{ text: string }>("polish-story", { text });
+    const result = await apiPost<{ text: string }>("polish-story", {
+      text,
+      characters,
+    });
     return result.text || text;
   } catch (error: any) {
     if (error?.message === "proxy-unavailable") {
       try {
+        const charContext = (characters || [])
+          .map((c) => `${c.name}: ${c.description || "A character"}`)
+          .join("\n");
+        const charNote = charContext
+          ? `\n\nCAST (preserve these names and descriptions exactly):\n${charContext}`
+          : "";
         const ai = await getDirectAI();
         const response = await ai.models.generateContent({
           model: "gemini-3.1-flash-lite-preview",
-          contents: `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone:\n\n${text}`,
+          contents: `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}`,
           config: {
             systemInstruction:
-              "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive.",
+              "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive. Keep all character names and references intact.",
           },
         });
         return response.text || text;
@@ -276,7 +301,7 @@ export const generatePanelImage = async (
           }
         }
         const response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-image-preview",
+          model: getImageModel(),
           contents: { parts },
           config: { responseModalities: ["IMAGE", "TEXT"] },
         });
@@ -341,7 +366,7 @@ export const finalNaturalRender = async (
           )
           .join("\n");
         const response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-image-preview",
+          model: getImageModel(),
           contents: {
             parts: [
               { inlineData: { mimeType: match[1], data: match[2] } },
