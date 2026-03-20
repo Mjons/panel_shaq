@@ -2,10 +2,5 @@
   "buildCommand": "vite build",
   "devCommand": "vite --port=3000 --host=0.0.0.0",
   "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3"
-    }
-  },
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
