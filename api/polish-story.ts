@@ -35,6 +35,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ text: result || text });
   } catch (error: any) {
     console.error("Polish story error:", error);
-    return res.status(500).json({ error: friendlyError(error) });
+    return res.status(500).json({
+      error: friendlyError(error),
+      debug: error.message,
+    });
   }
 }

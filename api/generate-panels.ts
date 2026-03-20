@@ -66,6 +66,9 @@ Return the result as a JSON array of objects.`,
     return res.status(200).json({ panels });
   } catch (error: any) {
     console.error("Generate panels error:", error);
-    return res.status(500).json({ error: friendlyError(error) });
+    return res.status(500).json({
+      error: friendlyError(error),
+      debug: error.message,
+    });
   }
 }
