@@ -100,7 +100,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   const handlePolish = async () => {
     if (!story.trim() || isPolishing) return;
     setIsPolishing(true);
-    const polished = await polishStory(story);
+    const polished = await polishStory(story, characters);
     setStory(polished);
     setIsPolishing(false);
   };

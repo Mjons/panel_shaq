@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, createAI } from "./_utils";
+import { resolveApiKey, createAI, friendlyError } from "./_utils";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
@@ -19,8 +19,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     return res.status(500).json({ error: "No response from Gemini" });
   } catch (error: any) {
-    return res
-      .status(500)
-      .json({ error: error.message || "Connection failed" });
+    return res.status(500).json({ error: friendlyError(error) });
   }
 }

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Type } from "@google/genai";
-import { resolveApiKey, createAI } from "./_utils";
+import { resolveApiKey, createAI, friendlyError } from "./_utils";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
@@ -92,8 +92,6 @@ Create a panel that bridges the narrative gap. Vary the camera angle from the ne
     return res.status(200).json({ panel });
   } catch (error: any) {
     console.error("Insert panel error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Panel insertion failed" });
+    return res.status(500).json({ error: friendlyError(error) });
   }
 }

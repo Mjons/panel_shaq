@@ -177,6 +177,7 @@ const PanelCard = ({
   setStyleReferenceImage,
   isQueued,
   isQueueGenerating,
+  isFailed,
   onQueueGenerate,
 }: {
   panel: PanelPrompt;
@@ -187,6 +188,7 @@ const PanelCard = ({
   setStyleReferenceImage: (img: string | null) => void;
   isQueued?: boolean;
   isQueueGenerating?: boolean;
+  isFailed?: boolean;
   onQueueGenerate: (panelId: string) => void;
   key?: string | number;
 }) => {
@@ -370,6 +372,14 @@ const PanelCard = ({
             <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
               <Loader2 size={10} className="animate-spin" /> Generating...
             </div>
+          )}
+          {isFailed && !isQueued && !isQueueGenerating && (
+            <button
+              onClick={handleGenerate}
+              className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
+            >
+              <RefreshCw size={10} /> Failed — Retry
+            </button>
           )}
 
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -609,6 +619,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   const [currentlyGenerating, setCurrentlyGenerating] = useState<string | null>(
     null,
   );
+  const [failedPanels, setFailedPanels] = useState<Set<string>>(new Set());
   const [insertingAt, setInsertingAt] = useState<number | null>(null);
   const [draftPanel, setDraftPanel] = useState<{
     panel: PanelPrompt;
@@ -655,9 +666,25 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   const handleQueueGenerate = (panelId: string) => {
     // Add to queue if not already queued or currently generating
     if (panelId === currentlyGenerating) return;
+    // Clear failed state if retrying
+    setFailedPanels((prev) => {
+      if (!prev.has(panelId)) return prev;
+      const next = new Set(prev);
+      next.delete(panelId);
+      return next;
+    });
     setGenerationQueue((prev) =>
       prev.includes(panelId) ? prev : [...prev, panelId],
     );
+  };
+
+  const handleRetryFailed = () => {
+    const ids = Array.from(failedPanels);
+    setFailedPanels(new Set());
+    setGenerationQueue((prev) => [
+      ...prev,
+      ...ids.filter((id) => !prev.includes(id)),
+    ]);
   };
 
   const handleGenerateAll = () => {
@@ -747,6 +774,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         }
       } catch (err) {
         console.error(`Failed to generate panel ${nextId}:`, err);
+        setFailedPanels((prev) => new Set(prev).add(nextId));
       } finally {
         setGenerationQueue((prev) => prev.slice(1));
         setCurrentlyGenerating(null);
@@ -799,6 +827,15 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                   className="px-4 py-4 rounded-lg border border-red-500/30 text-red-500 font-headline font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
                 >
                   Cancel
+                </button>
+              )}
+              {failedPanels.size > 0 && !queueActive && (
+                <button
+                  onClick={handleRetryFailed}
+                  className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-red-500/30 text-red-400 font-headline font-bold text-xs uppercase tracking-widest hover:bg-red-500/10 transition-all"
+                >
+                  <RefreshCw size={16} />
+                  RETRY {failedPanels.size} FAILED
                 </button>
               )}
             </>
@@ -855,6 +892,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 setStyleReferenceImage={setStyleReferenceImage}
                 isQueued={generationQueue.includes(panel.id)}
                 isQueueGenerating={currentlyGenerating === panel.id}
+                isFailed={failedPanels.has(panel.id)}
                 onQueueGenerate={handleQueueGenerate}
               />
               {/* Insert button / draft card after this panel */}

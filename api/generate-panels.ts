@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Type } from "@google/genai";
-import { resolveApiKey, createAI } from "./_utils";
+import { resolveApiKey, createAI, friendlyError } from "./_utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "4mb" } },
@@ -69,8 +69,6 @@ Return the result as a JSON array of objects.`,
     return res.status(200).json({ panels });
   } catch (error: any) {
     console.error("Generate panels error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Generation failed" });
+    return res.status(500).json({ error: friendlyError(error) });
   }
 }

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, createAI } from "./_utils";
+import { resolveApiKey, createAI, friendlyError } from "./_utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "20mb" } },
@@ -66,6 +66,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "No image generated" });
   } catch (error: any) {
     console.error("Final render error:", error);
-    return res.status(500).json({ error: error.message || "Render failed" });
+    return res.status(500).json({ error: friendlyError(error) });
   }
 }

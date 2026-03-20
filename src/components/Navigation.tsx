@@ -46,12 +46,21 @@ export const TopNav = ({
               PANEL SHAQ
             </h1>
           </div>
-          <button
-            onClick={onCreate}
-            className="bg-primary text-background font-headline font-bold px-5 py-2 rounded-lg text-sm hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
-          >
-            CREATE
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onTabChange("settings")}
+              className="text-accent/40 hover:text-primary transition-colors active:scale-90 duration-200 p-2"
+              title="Settings"
+            >
+              <Settings size={22} />
+            </button>
+            <button
+              onClick={onCreate}
+              className="bg-primary text-background font-headline font-bold px-5 py-2 rounded-lg text-sm hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
+            >
+              CREATE
+            </button>
+          </div>
         </div>
       </header>
 
@@ -121,12 +130,17 @@ export const TopNav = ({
                     Settings
                   </span>
                 </button>
-                <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 transition-all">
+                <a
+                  href="https://github.com/anthropics/claude-code/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 transition-all"
+                >
                   <HelpCircle size={20} />
                   <span className="text-sm font-bold uppercase tracking-widest">
                     Help
                   </span>
-                </button>
+                </a>
               </div>
             </motion.div>
           </>

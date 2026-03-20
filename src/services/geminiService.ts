@@ -311,7 +311,7 @@ export const generatePanelImage = async (
         const hasCharRefs = referenceImages && referenceImages.length > 0;
         const parts: any[] = [
           {
-            text: `A cinematic comic book panel.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: Replicate the exact artistic style of the provided reference." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
+            text: `A cinematic comic book panel with ${aspectRatio} aspect ratio.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: Replicate the exact artistic style of the provided reference." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
           },
         ];
         if (styleReferenceImage) {
@@ -327,7 +327,10 @@ export const generatePanelImage = async (
         const response = await ai.models.generateContent({
           model: getImageModel(),
           contents: { parts },
-          config: { responseModalities: ["IMAGE", "TEXT"] },
+          config: {
+            responseModalities: ["IMAGE", "TEXT"],
+            imageConfig: { aspectRatio, imageSize: "1K" },
+          },
         });
         for (const part of response.candidates?.[0]?.content?.parts || []) {
           if (part.inlineData) {
