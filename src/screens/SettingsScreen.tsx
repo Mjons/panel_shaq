@@ -47,13 +47,24 @@ export const SettingsScreen = () => {
   const handleTestConnection = async () => {
     setTestStatus("testing");
     try {
-      const res = await fetch("/api/health", { method: "POST" });
-      if (res.ok) {
+      const key = settings.geminiApiKey;
+      if (!key) {
+        setTestStatus("error");
+        return;
+      }
+      const { GoogleGenAI } = await import("@google/genai");
+      const ai = new GoogleGenAI({ apiKey: key });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-05-20",
+        contents: "Reply with just the word OK",
+      });
+      if (response.text) {
         setTestStatus("success");
       } else {
         setTestStatus("error");
       }
-    } catch {
+    } catch (err) {
+      console.error("Connection test failed:", err);
       setTestStatus("error");
     }
   };
@@ -112,7 +123,7 @@ export const SettingsScreen = () => {
                   onChange={(e) =>
                     updateSetting("geminiApiKey", e.target.value)
                   }
-                  placeholder="Enter your Gemini API key (or use env var)"
+                  placeholder="AIzaSy..."
                   className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent placeholder-accent/20 outline-none focus:border-primary/50 pr-10"
                 />
                 <button
@@ -124,7 +135,7 @@ export const SettingsScreen = () => {
               </div>
               <button
                 onClick={handleTestConnection}
-                disabled={testStatus === "testing"}
+                disabled={testStatus === "testing" || !settings.geminiApiKey}
                 className="px-4 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50"
               >
                 {testStatus === "testing" ? (
@@ -133,6 +144,18 @@ export const SettingsScreen = () => {
                   "Test"
                 )}
               </button>
+              {settings.geminiApiKey && (
+                <button
+                  onClick={() => {
+                    updateSetting("geminiApiKey", "");
+                    setTestStatus("idle");
+                  }}
+                  className="px-3 py-3 text-red-400/60 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all"
+                  title="Remove API key"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
             {testStatus === "success" && (
               <p className="text-xs text-green-500 flex items-center gap-1">
@@ -144,8 +167,18 @@ export const SettingsScreen = () => {
                 <XCircle size={12} /> Connection failed — check your key
               </p>
             )}
-            <p className="text-[10px] text-accent/30">
-              Leave blank to use the environment variable (GEMINI_API_KEY)
+            <p className="text-[10px] text-accent/30 leading-relaxed">
+              Get a free key at{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                aistudio.google.com/apikey
+              </a>
+              . Your key is stored locally in your browser — never sent to our
+              servers.
             </p>
           </div>
         </section>
