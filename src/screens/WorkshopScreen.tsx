@@ -418,7 +418,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               )}
             <div className="mt-3">
               <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40 mb-1.5 block">
-                Style Notes
+                Style Notes{" "}
+                <span className="normal-case tracking-normal text-accent/25">
+                  (optional)
+                </span>
               </label>
               <textarea
                 value={styleNotes}
