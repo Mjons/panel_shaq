@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { TopNav, BottomNav } from "./components/Navigation";
 import { WorkshopScreen } from "./screens/WorkshopScreen";
 import { DirectorScreen } from "./screens/DirectorScreen";
 import { VaultScreen } from "./screens/VaultScreen";
 import { EditorScreen } from "./screens/EditorScreen";
 import { LayoutScreen, Page } from "./screens/LayoutScreen";
+import { SettingsScreen } from "./screens/SettingsScreen";
+import { ShareScreen } from "./screens/ShareScreen";
+import { ProjectManager } from "./components/ProjectManager";
 import { PanelPrompt } from "./services/geminiService";
+import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
+import { useIndexedDBState } from "./hooks/useIndexedDBState";
 
 export interface Character {
   id: string;
@@ -36,17 +41,17 @@ export default function App() {
     "workshop",
   );
   const [story, setStory] = usePersistedState("panelshaq_story", "");
-  const [characters, setCharacters] = usePersistedState<Character[]>(
+  const [characters, setCharacters] = useIndexedDBState<Character[]>(
     "panelshaq_characters",
     DEFAULT_CHARACTERS,
   );
-  const [panels, setPanels] = usePersistedState<PanelPrompt[]>(
+  const [panels, setPanels] = useIndexedDBState<PanelPrompt[]>(
     "panelshaq_panels",
     [],
   );
   const [pages, setPages] = usePersistedState<Page[]>("panelshaq_pages", []);
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
-  const [styleReferenceImage, setStyleReferenceImage] = usePersistedState<
+  const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
     string | null
   >("panelshaq_style_ref", null);
 
@@ -99,7 +104,83 @@ export default function App() {
     );
   }
 
+  // Project management
+  const [currentProjectId, setCurrentProjectId] = usePersistedState<
+    string | null
+  >("panelshaq_current_project_id", null);
+  const [projectName, setProjectName] = usePersistedState(
+    "panelshaq_project_name",
+    "Untitled Project",
+  );
+  const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false);
+
+  // Auto-save to IndexedDB
+  const saveCurrentProject = useCallback(async () => {
+    if (!story && panels.length === 0) return;
+
+    const id = currentProjectId || crypto.randomUUID();
+    if (!currentProjectId) setCurrentProjectId(id);
+
+    const thumbnail = panels.find((p) => p.image)?.image || "";
+    const smallThumb = thumbnail ? thumbnail.substring(0, 200) + "..." : "";
+
+    await saveProject({
+      id,
+      name: projectName,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      thumbnail: smallThumb,
+      story,
+      characters,
+      panels,
+      pages,
+      styleReferenceImage,
+    });
+  }, [
+    currentProjectId,
+    projectName,
+    story,
+    characters,
+    panels,
+    pages,
+    styleReferenceImage,
+  ]);
+
+  // Auto-save on interval
+  useEffect(() => {
+    const settingsRaw = localStorage.getItem("panelshaq_settings");
+    const settings = settingsRaw ? JSON.parse(settingsRaw) : {};
+    const interval = settings.autoSaveInterval ?? 30000;
+    if (interval === 0) return;
+
+    const timer = setInterval(saveCurrentProject, interval);
+    return () => clearInterval(timer);
+  }, [saveCurrentProject]);
+
+  // Save on beforeunload
+  useEffect(() => {
+    const handler = () => {
+      saveCurrentProject();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [saveCurrentProject]);
+
+  const handleLoadProject = (project: SavedProject) => {
+    setCurrentProjectId(project.id);
+    setProjectName(project.name);
+    setStory(project.story);
+    setCharacters(project.characters);
+    setPanels(project.panels);
+    setPages(project.pages);
+    setStyleReferenceImage(project.styleReferenceImage);
+    setActiveTab("workshop");
+  };
+
   const handleCreateNew = () => {
+    saveCurrentProject();
+    setCurrentProjectId(null);
+    setProjectName("Untitled Project");
     setStory("");
     setPanels([]);
     setPages([]);
@@ -129,6 +210,7 @@ export default function App() {
             panels={panels}
             setPanels={setPanels}
             characters={characters}
+            story={story}
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
             onContinue={() => setActiveTab("layout")}
@@ -149,6 +231,10 @@ export default function App() {
         return (
           <EditorScreen panels={panels} pages={pages} setPanels={setPanels} />
         );
+      case "settings":
+        return <SettingsScreen />;
+      case "share":
+        return <ShareScreen />;
       default:
         return (
           <WorkshopScreen
@@ -172,11 +258,22 @@ export default function App() {
         <div className="w-full h-full bg-[radial-gradient(#FF9100_1px,transparent_1px)] [background-size:24px_24px]"></div>
       </div>
 
-      <TopNav onCreate={handleCreateNew} onTabChange={setActiveTab} />
+      <TopNav
+        onCreate={() => setIsProjectManagerOpen(true)}
+        onTabChange={setActiveTab}
+      />
 
       <main className="relative z-10">{renderScreen()}</main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      <ProjectManager
+        isOpen={isProjectManagerOpen}
+        onClose={() => setIsProjectManagerOpen(false)}
+        onLoadProject={handleLoadProject}
+        onNewProject={handleCreateNew}
+        currentProjectId={currentProjectId}
+      />
     </div>
   );
 }

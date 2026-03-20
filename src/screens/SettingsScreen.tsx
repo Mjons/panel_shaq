@@ -1,0 +1,290 @@
+import React, { useState, useEffect } from "react";
+import {
+  Key,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Trash2,
+  Info,
+} from "lucide-react";
+import { usePersistedState } from "../hooks/usePersistedState";
+
+export interface AppSettings {
+  geminiApiKey: string;
+  defaultExportFormat: "pdf" | "png";
+  exportQuality: "standard" | "high" | "maximum";
+  autoSaveInterval: number;
+  includePageNumbers: boolean;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  geminiApiKey: "",
+  defaultExportFormat: "pdf",
+  exportQuality: "high",
+  autoSaveInterval: 30000,
+  includePageNumbers: false,
+};
+
+export const SettingsScreen = () => {
+  const [settings, setSettings] = usePersistedState<AppSettings>(
+    "panelshaq_settings",
+    DEFAULT_SETTINGS,
+  );
+  const [showKey, setShowKey] = useState(false);
+  const [testStatus, setTestStatus] = useState<
+    "idle" | "testing" | "success" | "error"
+  >("idle");
+
+  const updateSetting = <K extends keyof AppSettings>(
+    key: K,
+    value: AppSettings[K],
+  ) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleTestConnection = async () => {
+    setTestStatus("testing");
+    try {
+      const { GoogleGenAI } = await import("@google/genai");
+      const key =
+        settings.geminiApiKey ||
+        process.env.GEMINI_API_KEY ||
+        process.env.API_KEY ||
+        "";
+      if (!key) {
+        setTestStatus("error");
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey: key });
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: "Say OK",
+      });
+      if (response.text) {
+        setTestStatus("success");
+      } else {
+        setTestStatus("error");
+      }
+    } catch {
+      setTestStatus("error");
+    }
+  };
+
+  const handleClearProjectData = () => {
+    if (
+      window.confirm(
+        "This will delete ALL project data (story, panels, pages, characters). Are you sure?",
+      )
+    ) {
+      localStorage.removeItem("panelshaq_story");
+      localStorage.removeItem("panelshaq_characters");
+      localStorage.removeItem("panelshaq_panels");
+      localStorage.removeItem("panelshaq_pages");
+      localStorage.removeItem("panelshaq_style_ref");
+      localStorage.removeItem("panelshaq_vault");
+      localStorage.removeItem("panelshaq_active_tab");
+      window.location.reload();
+    }
+  };
+
+  const handleClearExportHistory = () => {
+    if (window.confirm("Clear all export history?")) {
+      localStorage.removeItem("comic_export_history");
+    }
+  };
+
+  return (
+    <div className="pt-24 px-6 max-w-2xl mx-auto pb-40">
+      <header className="mb-10">
+        <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block">
+          Configuration
+        </span>
+        <h2 className="font-headline text-5xl font-bold text-accent tracking-tighter">
+          Settings
+        </h2>
+      </header>
+
+      <div className="space-y-8">
+        {/* API Configuration */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <Key size={18} />
+            API Configuration
+          </h3>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+              Gemini API Key
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <input
+                  type={showKey ? "text" : "password"}
+                  value={settings.geminiApiKey}
+                  onChange={(e) =>
+                    updateSetting("geminiApiKey", e.target.value)
+                  }
+                  placeholder="Enter your Gemini API key (or use env var)"
+                  className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent placeholder-accent/20 outline-none focus:border-primary/50 pr-10"
+                />
+                <button
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/30 hover:text-accent transition-colors"
+                >
+                  {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              <button
+                onClick={handleTestConnection}
+                disabled={testStatus === "testing"}
+                className="px-4 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50"
+              >
+                {testStatus === "testing" ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Test"
+                )}
+              </button>
+            </div>
+            {testStatus === "success" && (
+              <p className="text-xs text-green-500 flex items-center gap-1">
+                <CheckCircle size={12} /> Connected successfully
+              </p>
+            )}
+            {testStatus === "error" && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <XCircle size={12} /> Connection failed — check your key
+              </p>
+            )}
+            <p className="text-[10px] text-accent/30">
+              Leave blank to use the environment variable (GEMINI_API_KEY)
+            </p>
+          </div>
+        </section>
+
+        {/* Export Preferences */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-accent">
+            Export Preferences
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+                Default Format
+              </label>
+              <select
+                value={settings.defaultExportFormat}
+                onChange={(e) =>
+                  updateSetting(
+                    "defaultExportFormat",
+                    e.target.value as "pdf" | "png",
+                  )
+                }
+                className="w-full bg-background text-accent text-sm py-2.5 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+              >
+                <option value="pdf">PDF</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+                Export Quality
+              </label>
+              <select
+                value={settings.exportQuality}
+                onChange={(e) =>
+                  updateSetting(
+                    "exportQuality",
+                    e.target.value as "standard" | "high" | "maximum",
+                  )
+                }
+                className="w-full bg-background text-accent text-sm py-2.5 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+              >
+                <option value="standard">Standard</option>
+                <option value="high">High (300 DPI)</option>
+                <option value="maximum">Maximum</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg">
+            <span className="text-sm text-accent">Include Page Numbers</span>
+            <input
+              type="checkbox"
+              checked={settings.includePageNumbers}
+              onChange={(e) =>
+                updateSetting("includePageNumbers", e.target.checked)
+              }
+              className="accent-primary w-4 h-4"
+            />
+          </div>
+        </section>
+
+        {/* App Preferences */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-accent">
+            App Preferences
+          </h3>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+              Auto-Save Interval
+            </label>
+            <select
+              value={settings.autoSaveInterval}
+              onChange={(e) =>
+                updateSetting("autoSaveInterval", parseInt(e.target.value))
+              }
+              className="w-full bg-background text-accent text-sm py-2.5 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+            >
+              <option value={0}>Off</option>
+              <option value={30000}>Every 30 seconds</option>
+              <option value={60000}>Every 1 minute</option>
+              <option value={300000}>Every 5 minutes</option>
+            </select>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-outline/10">
+            <button
+              onClick={handleClearExportHistory}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/10 text-accent/60 hover:text-red-500 transition-all"
+            >
+              <Trash2 size={16} />
+              <span className="text-sm font-bold">Clear Export History</span>
+            </button>
+            <button
+              onClick={handleClearProjectData}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/10 text-accent/60 hover:text-red-500 transition-all"
+            >
+              <Trash2 size={16} />
+              <span className="text-sm font-bold">Clear All Project Data</span>
+            </button>
+          </div>
+        </section>
+
+        {/* About */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-3">
+          <h3 className="font-headline text-lg font-bold text-accent flex items-center gap-2">
+            <Info size={18} />
+            About
+          </h3>
+          <div className="space-y-2 text-sm text-accent/60">
+            <div className="flex justify-between">
+              <span>Version</span>
+              <span className="font-bold text-primary">0.1.0</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Engine</span>
+              <span className="font-bold text-accent/80">
+                Gemini 3.1 Flash / Pro
+              </span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+};

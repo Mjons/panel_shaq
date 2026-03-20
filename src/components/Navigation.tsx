@@ -106,7 +106,13 @@ export const TopNav = ({
               </nav>
 
               <div className="pt-6 border-t border-surface-container space-y-2">
-                <button className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 transition-all">
+                <button
+                  onClick={() => {
+                    onTabChange("settings");
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 hover:text-primary transition-all"
+                >
                   <Settings size={20} />
                   <span className="text-sm font-bold uppercase tracking-widest">
                     Settings

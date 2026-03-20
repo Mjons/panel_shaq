@@ -1,7 +1,16 @@
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 
 const getAI = () => {
-  const key = process.env.API_KEY || process.env.GEMINI_API_KEY || "";
+  // Check settings first, then env vars
+  let settingsKey = "";
+  try {
+    const saved = localStorage.getItem("panelshaq_settings");
+    if (saved) settingsKey = JSON.parse(saved).geminiApiKey || "";
+  } catch {
+    /* ignore */
+  }
+  const key =
+    settingsKey || process.env.API_KEY || process.env.GEMINI_API_KEY || "";
   return new GoogleGenAI({ apiKey: key });
 };
 
