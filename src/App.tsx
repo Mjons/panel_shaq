@@ -4,6 +4,7 @@ import { TopNav, BottomNav } from "./components/Navigation";
 import { LoadingSkeleton } from "./components/LoadingSkeleton";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider, useToast } from "./components/Toast";
+import { ConfirmProvider, useConfirm } from "./components/ConfirmDialog";
 import { ProjectManager } from "./components/ProjectManager";
 import {
   PanelPrompt,
@@ -82,6 +83,7 @@ const DEFAULT_CHARACTERS: Character[] = [
 
 function AppInner() {
   const { addToast } = useToast();
+  const { confirm } = useConfirm();
 
   // Connect API error notifications to toast system
   useEffect(() => {
@@ -268,14 +270,16 @@ function AppInner() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [saveCurrentProject]);
 
-  const handleLoadProject = (project: SavedProject) => {
-    if (
-      panels.some((p) => p.image) &&
-      !window.confirm(
-        "Load this project? Your current work will be saved first.",
-      )
-    )
-      return;
+  const handleLoadProject = async (project: SavedProject) => {
+    if (panels.some((p) => p.image)) {
+      const ok = await confirm({
+        title: "Switch Project",
+        message:
+          "Your current work will be saved before loading the new project. You can find it in the project manager anytime.",
+        confirmText: "Save & Switch",
+      });
+      if (!ok) return;
+    }
     saveCurrentProject();
     setCurrentProjectId(project.id);
     setProjectName(project.name);
@@ -287,14 +291,16 @@ function AppInner() {
     setActiveTab("workshop");
   };
 
-  const handleCreateNew = () => {
-    if (
-      panels.some((p) => p.image) &&
-      !window.confirm(
-        "Start a new project? Your current work will be saved and you can reload it from the project manager.",
-      )
-    )
-      return;
+  const handleCreateNew = async () => {
+    if (panels.some((p) => p.image)) {
+      const ok = await confirm({
+        title: "New Project",
+        message:
+          "Your current work will be saved. You can reload it from the project manager anytime.",
+        confirmText: "Save & Start Fresh",
+      });
+      if (!ok) return;
+    }
     saveCurrentProject();
     setCurrentProjectId(null);
     setProjectName("Untitled Project");
@@ -425,8 +431,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AppInner />
-    </ToastProvider>
+    <ConfirmProvider>
+      <ToastProvider>
+        <AppInner />
+      </ToastProvider>
+    </ConfirmProvider>
   );
 }

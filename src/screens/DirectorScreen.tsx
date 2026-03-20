@@ -20,6 +20,7 @@ import {
   InsertionContext,
 } from "../services/geminiService";
 import { Character } from "../App";
+import { useConfirm } from "../components/ConfirmDialog";
 
 interface DirectorProps {
   panels: PanelPrompt[];
@@ -205,6 +206,9 @@ const PanelCard = ({
   const [useStyleRef, setUseStyleRef] = useState(
     panel.useStyleRef !== undefined ? panel.useStyleRef : !!styleReferenceImage,
   );
+  const [matchCharStyle, setMatchCharStyle] = useState(
+    panel.matchCharStyle ?? false,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customCharRefs, setCustomCharRefs] = useState<string[]>(
     panel.customReferenceImages || [],
@@ -251,6 +255,7 @@ const PanelCard = ({
       selectedCharacterIds: selectedCharIds,
       customReferenceImages: customCharRefs,
       useStyleRef,
+      matchCharStyle,
     });
     // Add to the shared generation queue
     onQueueGenerate(panel.id);
@@ -523,9 +528,12 @@ const PanelCard = ({
                 : "None selected"}
               <br />
               <span className="text-primary font-bold">Art Style:</span>{" "}
-              {useStyleRef && styleReferenceImage
-                ? "Custom Reference"
-                : artStyle}
+              {matchCharStyle &&
+              (selectedCharIds.length > 0 || customCharRefs.length > 0)
+                ? "From Character Refs"
+                : useStyleRef && styleReferenceImage
+                  ? "Custom Reference"
+                  : artStyle}
               {cameraAngle !== "None" && <> • {cameraAngle}</>}
               {mood !== "None" && <> • {mood}</>}
             </div>
@@ -737,6 +745,32 @@ const PanelCard = ({
                 </div>
               )}
             </div>
+
+            {(selectedCharIds.length > 0 || customCharRefs.length > 0) && (
+              <button
+                onClick={() => setMatchCharStyle(!matchCharStyle)}
+                className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all ${
+                  matchCharStyle
+                    ? "bg-primary/15 border-primary/40 text-primary"
+                    : "bg-transparent border-outline/15 text-accent/35 hover:border-primary/20 hover:text-accent/50"
+                }`}
+              >
+                <div
+                  className={`w-3 h-3 rounded-sm border transition-all flex items-center justify-center ${
+                    matchCharStyle
+                      ? "bg-primary border-primary"
+                      : "border-accent/30"
+                  }`}
+                >
+                  {matchCharStyle && (
+                    <span className="text-background text-[8px] leading-none">
+                      ✓
+                    </span>
+                  )}
+                </div>
+                Match character art style
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -753,6 +787,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   setStyleReferenceImage,
   onContinue,
 }) => {
+  const { confirm } = useConfirm();
   const [generationQueue, setGenerationQueue] = useState<string[]>([]);
   const [currentlyGenerating, setCurrentlyGenerating] = useState<string | null>(
     null,
@@ -838,29 +873,27 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
       });
   };
 
-  const handleGenerateAll = () => {
+  const handleGenerateAll = async () => {
     const missing = panels.filter((p) => !p.image).map((p) => p.id);
     const withImages = panels.filter((p) => p.image).length;
 
     if (missing.length > 0 && withImages > 0) {
-      // Some have images, some don't — ask user
-      const choice = window.confirm(
-        `${withImages} of ${panels.length} panels already have images.\n\nOK = Generate only the ${missing.length} missing panels\nCancel = Abort`,
-      );
-      if (choice) {
-        setGenerationQueue(missing);
-      }
+      const ok = await confirm({
+        title: "Generate Missing Panels",
+        message: `${withImages} of ${panels.length} panels already have images. Only the ${missing.length} missing panels will be generated.`,
+        confirmText: `Generate ${missing.length} Panels`,
+      });
+      if (ok) setGenerationQueue(missing);
     } else if (missing.length === 0) {
-      // All have images — confirm regenerate all
-      if (
-        window.confirm(
-          "All panels already have images. Regenerate everything? This will replace all current images.",
-        )
-      ) {
-        setGenerationQueue(panels.map((p) => p.id));
-      }
+      const ok = await confirm({
+        title: "Regenerate Everything",
+        message:
+          "All panels already have images. This will replace every image with a new generation.",
+        confirmText: "Regenerate All",
+        danger: true,
+      });
+      if (ok) setGenerationQueue(panels.map((p) => p.id));
     } else {
-      // None have images — just generate all
       setGenerationQueue(missing);
     }
   };
@@ -915,16 +948,20 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
 
         // Only use styleReferenceImage if it's an actual base64 image, not an art style name
         const isBase64Image = (s: string) => s.startsWith("data:image/");
+        const wantsCharStyle = panelSnapshot.matchCharStyle === true;
+
+        // When matchCharStyle is on, use the first character ref as the style reference
         const effectiveStyleRef =
           panelSnapshot.useStyleRef !== false
-            ? (styleReferenceImage && isBase64Image(styleReferenceImage)
+            ? (wantsCharStyle && charRefs.find(isBase64Image)) ||
+              (styleReferenceImage && isBase64Image(styleReferenceImage)
                 ? styleReferenceImage
                 : undefined) ||
               charRefs.find(isBase64Image) ||
               undefined
             : undefined;
 
-        // When a custom style reference image is provided, don't include art style text
+        // When a style reference image is active, don't include art style text
         // — it conflicts with the reference and the model ignores the image
         const hasCustomStyleRef = !!effectiveStyleRef;
 
@@ -932,6 +969,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           ${hasCustomStyleRef ? "" : `Art Style: ${artStyleStr}.`}
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
+          ${wantsCharStyle ? "CRITICAL: Match the exact artistic style, line work, coloring technique, and visual aesthetic of the character reference images. The output must look like it belongs in the same comic/animation as the reference." : ""}
           ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
           ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
           ${moodStr ? `Mood: ${moodStr}.` : ""}

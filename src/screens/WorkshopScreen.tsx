@@ -16,6 +16,7 @@ import {
   generatePanelPrompts,
   PanelPrompt,
 } from "../services/geminiService";
+import { useConfirm } from "../components/ConfirmDialog";
 import { Character } from "../App";
 
 interface WorkshopProps {
@@ -45,6 +46,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   setStyleReferenceImage,
   onGenerateSuccess,
 }) => {
+  const { confirm } = useConfirm();
   const [isPolishing, setIsPolishing] = useState(false);
   const [isGeneratingPanels, setIsGeneratingPanels] = useState(false);
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(
@@ -117,12 +119,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     // Warn if panels with images already exist
     const panelsWithImages = panels.filter((p) => p.image).length;
     if (panelsWithImages > 0) {
-      if (
-        !window.confirm(
-          `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Generating new panels will replace them all.\n\nContinue?`,
-        )
-      )
-        return;
+      const ok = await confirm({
+        title: "Replace Existing Panels",
+        message: `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Creating new panels will replace them all. Download your images first if you want to keep them.`,
+        confirmText: "Replace Panels",
+        danger: true,
+      });
+      if (!ok) return;
     }
 
     setIsGeneratingPanels(true);
