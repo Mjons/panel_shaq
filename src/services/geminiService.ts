@@ -103,10 +103,14 @@ async function apiPost<T>(
   const userKey = getUserApiKey();
   if (userKey) headers["x-api-key"] = userKey;
 
-  // Send user ID for usage tracking
-  const { getUserId } = await import("./supabase");
-  const userId = await getUserId();
-  if (userId) headers["x-user-id"] = userId;
+  // Send user ID for usage tracking (non-blocking — don't break API calls if Supabase fails)
+  try {
+    const { getUserId } = await import("./supabase");
+    const userId = await getUserId();
+    if (userId) headers["x-user-id"] = userId;
+  } catch {
+    /* Supabase not available — skip usage tracking */
+  }
 
   try {
     const res = await fetch(`/api/${endpoint}`, {
