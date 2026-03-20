@@ -197,7 +197,7 @@ const PanelCard = ({
   const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
-    panel.selectedCharacterIds ?? characters.map((c) => c.id),
+    panel.selectedCharacterIds ?? characters.map((c) => c.id).slice(0, 5),
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customCharRefs, setCustomCharRefs] = useState<string[]>(
@@ -351,8 +351,10 @@ const PanelCard = ({
     setMood(val);
     if (val !== "None" && MOOD_DESC[val]) appendToPrompt(MOOD_DESC[val]);
   };
+  const MAX_CHAR_REFS = 5;
   const toggleChar = (id: string) => {
     const isSelecting = !selectedCharIds.includes(id);
+    if (isSelecting && selectedCharIds.length >= MAX_CHAR_REFS) return;
     setSelectedCharIds((prev) =>
       isSelecting ? [...prev, id] : prev.filter((i) => i !== id),
     );
@@ -479,6 +481,9 @@ const PanelCard = ({
             <div className="flex items-center justify-between">
               <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
                 Characters
+                <span className="text-accent/25 normal-case tracking-normal ml-1">
+                  ({selectedCharIds.length}/{MAX_CHAR_REFS})
+                </span>
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -853,7 +858,8 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
       try {
         const selectedChars = characters.filter((c) =>
           (
-            panelSnapshot.selectedCharacterIds ?? characters.map((ch) => ch.id)
+            panelSnapshot.selectedCharacterIds ??
+            characters.map((ch) => ch.id).slice(0, 5)
           ).includes(c.id),
         );
         // Only include base64 images — URLs can't be sent as inline data to Gemini
@@ -861,7 +867,9 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           ...(panelSnapshot.customReferenceImages || []),
           ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
         ];
-        const charRefs = allRefs.filter((r) => r.startsWith("data:image/"));
+        const charRefs = allRefs
+          .filter((r) => r.startsWith("data:image/"))
+          .slice(0, 5);
         const characterContext = selectedChars
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join(". ");
