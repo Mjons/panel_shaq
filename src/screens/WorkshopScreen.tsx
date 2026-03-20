@@ -373,7 +373,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         e.stopPropagation();
                         removeCharacter(char.id);
                       }}
-                      className="absolute -top-1 -right-1 bg-background text-accent p-1 rounded-full border border-outline/20 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary"
+                      className="absolute -top-1 -right-1 bg-background text-accent p-1 rounded-full border border-outline/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:text-primary"
                     >
                       <X size={10} />
                     </button>
