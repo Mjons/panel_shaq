@@ -128,7 +128,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
 
       {/* Bottom controls */}
       <div
-        className="shrink-0 px-6 pb-6 pt-3 max-w-3xl mx-auto w-full space-y-3"
+        className="shrink-0 px-6 pb-6 pt-3 max-w-3xl mx-auto w-full space-y-3 -mt-6"
         style={{ paddingBottom: "calc(1.5rem + var(--sab, 0px))" }}
       >
         {/* Description summary */}

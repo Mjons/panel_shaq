@@ -473,7 +473,80 @@ const PanelCard = ({
           </div>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-3">
+          {/* Character References — compact */}
+          <div className="space-y-2 p-2.5 bg-background/30 rounded-lg border border-outline/5">
+            <div className="flex items-center justify-between">
+              <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                Characters
+              </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
+              >
+                <Upload size={9} />
+                Add
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
+                accept="image/*"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {characters.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => toggleChar(c.id)}
+                  className={`relative w-10 h-10 rounded-md overflow-hidden border-2 transition-all ${selectedCharIds.includes(c.id) ? "border-primary" : "border-outline/20 opacity-40 hover:opacity-100"}`}
+                  title={c.name}
+                >
+                  {c.image ? (
+                    <img
+                      src={c.image}
+                      className="w-full h-full object-cover"
+                      alt={c.name}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-surface-container text-[7px] font-bold">
+                      {c.name.substring(0, 2)}
+                    </div>
+                  )}
+                  {selectedCharIds.includes(c.id) && (
+                    <div className="absolute top-0 right-0 bg-primary text-background p-0.5 rounded-bl-md">
+                      <Sparkles size={5} />
+                    </div>
+                  )}
+                </button>
+              ))}
+              {customCharRefs.map((ref, idx) => (
+                <div
+                  key={idx}
+                  className="relative w-10 h-10 rounded-md overflow-hidden border-2 border-primary"
+                >
+                  <img
+                    src={ref}
+                    className="w-full h-full object-cover"
+                    alt="Custom Ref"
+                  />
+                  <button
+                    onClick={() => removeCustomRef(idx)}
+                    className="absolute top-0 right-0 bg-background/80 text-accent p-0.5 rounded-bl-md hover:text-primary"
+                  >
+                    <X size={7} />
+                  </button>
+                </div>
+              ))}
+              {selectedCharIds.length === 0 && customCharRefs.length === 0 && (
+                <div className="w-10 h-10 rounded-md bg-surface-container flex items-center justify-center border border-dashed border-outline/30 opacity-30">
+                  <ImageIcon size={12} />
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-start justify-between border-b border-outline/10 pb-3">
             <div className="w-full space-y-2">
               <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
@@ -617,91 +690,6 @@ const PanelCard = ({
                 <option value="4:3">4:3 Standard</option>
                 <option value="3:4">3:4 Tall</option>
               </select>
-            </div>
-          </div>
-
-          {/* Character Reference Selection */}
-          <div className="space-y-3 p-3 bg-background/30 rounded-lg border border-outline/5">
-            <div className="flex items-center justify-between">
-              <p className="text-[9px] font-label text-accent/40 uppercase tracking-widest font-bold">
-                Character References
-              </p>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-[10px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
-              >
-                <Upload size={10} />
-                Add Custom
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              {characters.map((c) => (
-                <div
-                  key={c.id}
-                  className="relative group/char flex flex-col items-center gap-1"
-                >
-                  <button
-                    onClick={() => toggleChar(c.id)}
-                    className={`relative w-12 h-12 rounded-md overflow-hidden border-2 transition-all ${selectedCharIds.includes(c.id) ? "border-primary" : "border-outline/20 opacity-40 hover:opacity-100"}`}
-                    title={c.name}
-                  >
-                    {c.image ? (
-                      <img
-                        src={c.image}
-                        className="w-full h-full object-cover"
-                        alt={c.name}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-surface-container text-[8px] font-bold">
-                        {c.name.substring(0, 2)}
-                      </div>
-                    )}
-                    {selectedCharIds.includes(c.id) && (
-                      <div className="absolute top-0 right-0 bg-primary text-background p-0.5 rounded-bl-md">
-                        <Sparkles size={6} />
-                      </div>
-                    )}
-                  </button>
-                  <span
-                    className={`text-[8px] font-bold uppercase tracking-tighter text-center w-12 truncate ${selectedCharIds.includes(c.id) ? "text-primary" : "text-accent/40"}`}
-                  >
-                    {c.name}
-                  </span>
-                </div>
-              ))}
-
-              {customCharRefs.map((ref, idx) => (
-                <div
-                  key={idx}
-                  className="relative w-10 h-10 rounded-md overflow-hidden border-2 border-primary"
-                >
-                  <img
-                    src={ref}
-                    className="w-full h-full object-cover"
-                    alt="Custom Ref"
-                  />
-                  <button
-                    onClick={() => removeCustomRef(idx)}
-                    className="absolute top-0 right-0 bg-background/80 text-accent p-0.5 rounded-bl-md hover:text-primary"
-                  >
-                    <X size={8} />
-                  </button>
-                </div>
-              ))}
-
-              {selectedCharIds.length === 0 && customCharRefs.length === 0 && (
-                <div className="w-10 h-10 rounded-md bg-surface-container flex items-center justify-center border border-dashed border-outline/30 opacity-30">
-                  <ImageIcon size={14} />
-                </div>
-              )}
             </div>
           </div>
         </div>
