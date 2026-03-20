@@ -382,7 +382,7 @@ const PanelCard = ({
             </button>
           )}
 
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center opacity-40 lg:opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
             <button
               onClick={handleGenerate}
               disabled={isQueued || isQueueGenerating}

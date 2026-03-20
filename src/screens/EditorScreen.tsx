@@ -217,6 +217,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setExportProgress(0);
     setSelectedPanelId(null);
     setSelectedBubbleId(null);
+    // Wait for selection highlights to clear before capturing
+    await waitForPaint();
 
     try {
       const pdf = new jsPDF("p", "mm", "a4");
@@ -300,6 +302,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setExportProgress(0);
     setSelectedPanelId(null);
     setSelectedBubbleId(null);
+    await waitForPaint();
 
     try {
       const pagesToExport = allPages ? pages : [pages[selectedPageIdx]];
@@ -360,8 +363,15 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
       const bind = useGesture(
         {
-          onDrag: ({ delta: [dx, dy], event }) => {
-            if (!isSelected || isExporting) return;
+          onDrag: ({ delta: [dx, dy], event, tap }) => {
+            if (isExporting) return;
+            if (tap) {
+              // Tap selects the panel
+              setSelectedPanelId(panel.id);
+              return;
+            }
+            // Auto-select on drag start
+            if (selectedPanelId !== panel.id) setSelectedPanelId(panel.id);
             event.preventDefault();
             updatePanel(panel.id, {
               imageTransform: {
@@ -372,7 +382,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
             });
           },
           onPinch: ({ offset: [scale], event }) => {
-            if (!isSelected || isExporting) return;
+            if (isExporting) return;
+            if (selectedPanelId !== panel.id) setSelectedPanelId(panel.id);
             event?.preventDefault();
             const clamped = Math.min(4.2, Math.max(0.5, scale));
             updatePanel(panel.id, {
@@ -392,7 +403,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
       return (
         <div
           ref={gestureRef}
-          {...(isSelected && !isExporting ? bind() : {})}
+          {...(!isExporting ? bind() : {})}
           className="w-full h-full relative overflow-hidden touch-none"
         >
           <img
