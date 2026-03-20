@@ -10,7 +10,7 @@ import {
   Trash2,
   Edit2,
 } from "lucide-react";
-import { usePersistedState } from "../hooks/usePersistedState";
+
 import { BottomSheet } from "../components/BottomSheet";
 
 export type VaultCategory = "Character" | "Environment" | "Prop" | "Vehicle";
@@ -25,57 +25,12 @@ export interface VaultEntry {
   visualLook?: string;
 }
 
-const INITIAL_ENTRIES: VaultEntry[] = [
-  {
-    id: "1",
-    type: "Character",
-    name: "Commander Vex",
-    image: "https://picsum.photos/seed/vex/800/1000",
-    description: "Stoic, tactical brilliance, haunted by the Lunar Wars.",
-    personality:
-      "Stoic, tactical brilliance, haunted by the Lunar Wars. Prefers isolation but commands absolute loyalty.",
-    visualLook:
-      "Chrome-plated prosthetic arm, tattered navy greatcoat with glowing fiber-optics, short-cropped white hair.",
-  },
-  {
-    id: "2",
-    type: "Environment",
-    name: "Sector-7 Market",
-    image: "https://picsum.photos/seed/market/600/400",
-    description:
-      "Dense, vertical architecture, perpetual rain, saturated pink and cyan neon lights.",
-    visualLook:
-      "Dense, vertical architecture, perpetual rain, saturated pink and cyan neon lights reflected in oil puddles. Crowded stalls.",
-  },
-  {
-    id: "3",
-    type: "Prop",
-    name: "Peeper-Bot v2",
-    image: "https://picsum.photos/seed/bot/200/200",
-    description:
-      "Quirky, twitchy movements. Scuffed yellow paint, rusted sensors.",
-  },
-  {
-    id: "4",
-    type: "Character",
-    name: "The Oracle",
-    image: "https://picsum.photos/seed/oracle/200/200",
-    description: "Cryptic, slow speech. Floating meditation pose.",
-  },
-  {
-    id: "5",
-    type: "Environment",
-    name: "Aegis Cockpit",
-    image: "https://picsum.photos/seed/cockpit/200/200",
-    description: "Minimalist, sterile white. Advanced holographic interfaces.",
-  },
-];
+interface VaultProps {
+  entries: VaultEntry[];
+  setEntries: React.Dispatch<React.SetStateAction<VaultEntry[]>>;
+}
 
-export const VaultScreen = () => {
-  const [entries, setEntries] = usePersistedState<VaultEntry[]>(
-    "panelshaq_vault",
-    INITIAL_ENTRIES,
-  );
+export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "All">(
     "All",

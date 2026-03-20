@@ -1,6 +1,7 @@
 import { Character } from "../App";
 import { PanelPrompt } from "./geminiService";
 import { Page } from "../screens/LayoutScreen";
+import type { VaultEntry } from "../screens/VaultScreen";
 
 export interface SavedProject {
   id: string;
@@ -14,6 +15,7 @@ export interface SavedProject {
   pages: Page[];
   styleReferenceImage: string | null;
   styleNotes?: string;
+  vaultEntries?: VaultEntry[];
 }
 
 export interface ProjectMeta {

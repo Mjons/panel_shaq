@@ -164,6 +164,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
       reader.onloadend = () => {
         const newChar: Character = {
           id: Date.now().toString(),
+          type: "Character",
           name: `New Character ${characters.length + 1}`,
           image: reader.result as string,
           description: "A new character in your story.",

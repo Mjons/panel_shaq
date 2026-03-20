@@ -15,6 +15,7 @@ import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
 import type { Page } from "./screens/LayoutScreen";
+import type { VaultEntry } from "./screens/VaultScreen";
 
 // Auto-reload on stale chunk errors (happens after new deployments)
 function lazyWithReload<T extends React.ComponentType<any>>(
@@ -64,16 +65,13 @@ const ShareScreen = lazyWithReload(() =>
   import("./screens/ShareScreen").then((m) => ({ default: m.ShareScreen })),
 );
 
-export interface Character {
-  id: string;
-  name: string;
-  image: string;
-  description?: string;
-}
+// Character is now a VaultEntry with type "Character" — single source of truth
+export type Character = VaultEntry;
 
-const DEFAULT_CHARACTERS: Character[] = [
+const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
   {
     id: "1",
+    type: "Character",
     name: "Dev Guy",
     image: "/sample.png",
     description:
@@ -95,10 +93,22 @@ function AppInner() {
     "workshop",
   );
   const [story, setStory] = usePersistedState("panelshaq_story", "");
-  const [characters, setCharacters] = useIndexedDBState<Character[]>(
-    "panelshaq_characters",
-    DEFAULT_CHARACTERS,
+  const [vaultEntries, setVaultEntries] = useIndexedDBState<VaultEntry[]>(
+    "panelshaq_vault_entries",
+    DEFAULT_VAULT_ENTRIES,
   );
+  const characters = vaultEntries.filter((e) => e.type === "Character");
+  const setCharacters: React.Dispatch<React.SetStateAction<Character[]>> = (
+    action,
+  ) => {
+    setVaultEntries((prev) => {
+      const nonChars = prev.filter((e) => e.type !== "Character");
+      const currentChars = prev.filter((e) => e.type === "Character");
+      const newChars =
+        typeof action === "function" ? action(currentChars) : action;
+      return [...nonChars, ...newChars];
+    });
+  };
   const [rawPanels, setRawPanels] = useIndexedDBState<PanelPrompt[]>(
     "panelshaq_panels",
     [],
@@ -115,6 +125,26 @@ function AppInner() {
     "panelshaq_style_notes",
     "",
   );
+
+  // One-time migration: merge old vault (localStorage) into unified vault entries
+  useEffect(() => {
+    const migrated = localStorage.getItem("panelshaq_vault_migrated");
+    if (migrated) return;
+    try {
+      const oldVault = localStorage.getItem("panelshaq_vault");
+      if (oldVault) {
+        const oldEntries: VaultEntry[] = JSON.parse(oldVault);
+        if (oldEntries.length > 0) {
+          setVaultEntries((prev) => {
+            const existingIds = new Set(prev.map((e) => e.id));
+            const newEntries = oldEntries.filter((e) => !existingIds.has(e.id));
+            return newEntries.length > 0 ? [...prev, ...newEntries] : prev;
+          });
+        }
+      }
+    } catch {}
+    localStorage.setItem("panelshaq_vault_migrated", "1");
+  }, []);
 
   // Check if user has an API key configured (BYOK or env var)
   const [apiKeyInput, setApiKeyInput] = useState("");
@@ -240,6 +270,7 @@ function AppInner() {
       thumbnail: smallThumb,
       story,
       characters,
+      vaultEntries,
       panels,
       pages,
       styleReferenceImage,
@@ -249,7 +280,7 @@ function AppInner() {
     currentProjectId,
     projectName,
     story,
-    characters,
+    vaultEntries,
     panels,
     pages,
     styleReferenceImage,
@@ -290,7 +321,17 @@ function AppInner() {
     setCurrentProjectId(project.id);
     setProjectName(project.name);
     setStory(project.story);
-    setCharacters(project.characters);
+    // Restore vault entries — backward compat: convert old characters-only projects
+    if (project.vaultEntries) {
+      setVaultEntries(project.vaultEntries);
+    } else {
+      const converted: VaultEntry[] = project.characters.map((c) => ({
+        ...c,
+        type: "Character" as const,
+        description: c.description || "",
+      }));
+      setVaultEntries(converted);
+    }
     setPanels(project.panels);
     setPages(project.pages);
     setStyleReferenceImage(project.styleReferenceImage);
@@ -317,7 +358,7 @@ function AppInner() {
     setStyleReferenceImage("Cartoon");
     setStyleNotes("");
     setActiveTab("workshop");
-    setCharacters(DEFAULT_CHARACTERS);
+    setVaultEntries(DEFAULT_VAULT_ENTRIES);
   };
 
   const renderScreen = () => {
@@ -363,7 +404,9 @@ function AppInner() {
           />
         );
       case "vault":
-        return <VaultScreen />;
+        return (
+          <VaultScreen entries={vaultEntries} setEntries={setVaultEntries} />
+        );
       case "editor":
         return (
           <EditorScreen panels={panels} pages={pages} setPanels={setPanels} />
