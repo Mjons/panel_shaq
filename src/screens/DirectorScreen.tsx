@@ -1027,22 +1027,51 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         let effectiveStyleRef: string | undefined;
         let finalPrompt: string;
 
+        // Rich art style enforcement descriptions
+        const ART_STYLE_ENFORCE: Record<string, string> = {
+          Cartoon:
+            "Bold black outlines, flat bright colors, simplified shapes, exaggerated proportions, clean vector-like rendering. Think Cartoon Network / adult swim style.",
+          Manga:
+            "Japanese manga style with screentone shading, speed lines, large expressive eyes, sharp angular features, black and white with high contrast ink work.",
+          "Comic Book":
+            "Western comic book style with heavy ink outlines, halftone dot shading, dynamic poses, bold shadows, cel-shaded coloring like Marvel/DC comics.",
+          Realistic:
+            "Photorealistic rendering with accurate proportions, detailed textures, natural lighting, film-quality cinematography, no stylization.",
+          Watercolor:
+            "Soft watercolor washes with visible brush strokes, bleeding edges, translucent color layers, paper texture, painterly and organic feel.",
+          "Pixel Art":
+            "Retro pixel art with visible blocky pixels, extremely limited color palette (max 16 colors), no anti-aliasing, sharp pixel edges, 8-bit / 16-bit video game aesthetic. Every element must be clearly pixelated.",
+          Noir: "Film noir style with extreme high contrast black and white, dramatic shadows, venetian blind lighting, grain texture, 1940s detective aesthetic.",
+          Anime:
+            "Modern anime style with large detailed eyes, soft shading gradients, vibrant hair colors, clean line art, dynamic action poses, Japanese animation aesthetic.",
+          Chibi:
+            "Super-deformed chibi style with oversized heads (3:1 head-to-body ratio), tiny bodies, minimal detail, extremely cute and round proportions.",
+          Sketch:
+            "Rough pencil sketch style with visible construction lines, crosshatching for shadows, unfinished edges, graphite texture on paper.",
+        };
+
+        const styleEnforce =
+          ART_STYLE_ENFORCE[artStyleStr] ||
+          `${artStyleStr} art style applied consistently to every element.`;
+
         if (prioritizesArtStyle) {
-          // Art Style mode: NO images sent, full text control
+          // Art Style mode: NO images sent, full text control, aggressive style enforcement
           effectiveCharRefs = [];
           effectiveStyleRef = undefined;
 
           finalPrompt = `
-            Art Style: ${artStyleStr}. You MUST render in this exact art style. This is the #1 priority.
+            MANDATORY ART STYLE — THIS OVERRIDES EVERYTHING:
+            Render this ENTIRELY in ${artStyleStr} style: ${styleEnforce}
+            Every single element — characters, backgrounds, props — MUST be rendered in this style. Do NOT use any other art style.
+
             ${notesStr ? `Style notes: ${notesStr}.` : ""}
             Subject: ${panelSnapshot.description}.
-            Characters present: ${characterContext}.
-            IMPORTANT: Render the characters based on their text descriptions above. Use ${artStyleStr} art style for everything.
+            Characters (render from description, in ${artStyleStr} style): ${characterContext}.
             ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
             ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
             ${moodStr ? `Mood: ${moodStr}.` : ""}
             ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
-            CRITICAL: Do NOT include any speech bubbles or text in the image.
+            CRITICAL: Do NOT include any speech bubbles or text. Do NOT deviate from ${artStyleStr} style.
           `.trim();
         } else {
           // Character Look mode: send reference images, style follows references
@@ -1060,11 +1089,11 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           const hasCustomStyleRef = !!effectiveStyleRef;
 
           finalPrompt = `
-            ${hasCustomStyleRef ? `The art style should be ${artStyleStr} — use this as guidance alongside the style reference image.` : `Art Style: ${artStyleStr}.`}
+            ${hasCustomStyleRef ? `Art style hint: ${artStyleStr}. But primarily match the visual style of the attached reference image.` : `Art Style: ${styleEnforce}`}
             ${notesStr ? `Style notes: ${notesStr}.` : ""}
             Subject: ${panelSnapshot.description}.
             Characters present: ${characterContext}.
-            ${hasCustomStyleRef ? "IMPORTANT: The attached reference image is for BOTH character appearance AND art style. Match the visual style of the reference." : ""}
+            ${hasCustomStyleRef ? "IMPORTANT: The attached reference image defines the art style. Match its line work, coloring, and aesthetic." : ""}
             ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
             ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
             ${moodStr ? `Mood: ${moodStr}.` : ""}
