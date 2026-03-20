@@ -247,6 +247,10 @@ const PanelCard = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image too large. Please use an image under 5MB.");
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setCustomCharRefs((prev) => [...prev, reader.result as string]);
@@ -434,87 +438,6 @@ const PanelCard = ({
                   generation.
                 </p>
               </div>
-            )}
-          </div>
-
-          {/* Art Style */}
-          <div className="space-y-2">
-            <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-              Art Style
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                "Cartoon",
-                "Manga",
-                "Comic Book",
-                "Realistic",
-                "Watercolor",
-                "Pixel Art",
-              ].map((style) => (
-                <button
-                  key={style}
-                  type="button"
-                  onClick={() => {
-                    setArtStyle(style);
-                    setUseStyleRef(false);
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                    artStyle === style && !useStyleRef
-                      ? "bg-primary text-background border-primary"
-                      : "bg-background text-accent/50 border-outline/20 hover:border-primary/50"
-                  }`}
-                >
-                  {style}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                  useStyleRef && styleReferenceImage
-                    ? "bg-primary text-background border-primary"
-                    : "bg-background text-accent/50 border-outline/20 hover:border-primary/50"
-                }`}
-              >
-                {useStyleRef && styleReferenceImage
-                  ? "Custom Ref ✓"
-                  : "+ Custom Image"}
-              </button>
-            </div>
-            {useStyleRef && styleReferenceImage && (
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-10 h-10 rounded-md overflow-hidden border border-primary">
-                  <img
-                    src={styleReferenceImage}
-                    alt="Style ref"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    setUseStyleRef(false);
-                    setStyleReferenceImage(null);
-                  }}
-                  className="text-[9px] text-red-500 font-bold uppercase tracking-widest hover:opacity-80"
-                >
-                  Remove
-                </button>
-              </div>
-            )}
-            {image && (
-              <button
-                onClick={() => {
-                  setStyleReferenceImage(
-                    styleReferenceImage === image ? null : image,
-                  );
-                  setUseStyleRef(styleReferenceImage !== image);
-                }}
-                className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded transition-colors ${styleReferenceImage === image ? "bg-primary text-background" : "text-primary hover:bg-primary/10"}`}
-              >
-                {styleReferenceImage === image
-                  ? "Panel is Style Ref ✓"
-                  : "Use This Panel as Style Ref"}
-              </button>
             )}
           </div>
 
