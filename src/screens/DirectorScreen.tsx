@@ -677,9 +677,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   };
 
   const handleUpdatePanel = (index: number, updated: PanelPrompt) => {
-    const newPanels = [...panels];
-    newPanels[index] = updated;
-    setPanels(newPanels);
+    setPanels((prev) => prev.map((p, i) => (i === index ? updated : p)));
   };
 
   const handleQueueGenerate = (panelId: string) => {
@@ -705,23 +703,25 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     if (generationQueue.length === 0 || currentlyGenerating) return;
 
     const nextId = generationQueue[0];
-    const panelIndex = panels.findIndex((p) => p.id === nextId);
-    const panel = panels[panelIndex];
+    const panel = panels.find((p) => p.id === nextId);
 
     if (!panel) {
       setGenerationQueue((prev) => prev.slice(1));
       return;
     }
 
+    // Snapshot the panel data we need for the API call so stale closures don't matter
+    const panelSnapshot = { ...panel };
+
     setCurrentlyGenerating(nextId);
 
     const generate = async () => {
       try {
         const selectedChars = characters.filter((c) =>
-          (panel.selectedCharacterIds || []).includes(c.id),
+          (panelSnapshot.selectedCharacterIds || []).includes(c.id),
         );
         const charRefs = [
-          ...(panel.customReferenceImages || []),
+          ...(panelSnapshot.customReferenceImages || []),
           ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
         ];
         const characterContext = selectedChars
@@ -729,15 +729,15 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           .join(". ");
 
         const finalPrompt = `
-          Subject: ${panel.description}.
+          Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
-          Camera Angle: ${panel.cameraAngle || "Cinematic 35mm"}.
-          Mood: ${panel.mood || "Cyberpunk Neon"}.
+          Camera Angle: ${panelSnapshot.cameraAngle || "Cinematic 35mm"}.
+          Mood: ${panelSnapshot.mood || "Cyberpunk Neon"}.
         `.trim();
 
-        const style = `${panel.cameraAngle || "Cinematic 35mm"}, ${panel.mood || "Cyberpunk Neon"}, Heavy Inks, High Contrast`;
+        const style = `${panelSnapshot.cameraAngle || "Cinematic 35mm"}, ${panelSnapshot.mood || "Cyberpunk Neon"}, Heavy Inks, High Contrast`;
         const effectiveStyleRef =
-          panel.useStyleRef !== false
+          panelSnapshot.useStyleRef !== false
             ? styleReferenceImage || charRefs[0] || undefined
             : undefined;
 
@@ -746,11 +746,14 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           style,
           charRefs,
           effectiveStyleRef,
-          panel.aspectRatio || "16:9",
+          panelSnapshot.aspectRatio || "16:9",
         );
 
         if (imageUrl) {
-          handleUpdatePanel(panelIndex, { ...panel, image: imageUrl });
+          // Use functional updater to merge into the CURRENT state, not stale closure
+          setPanels((prev) =>
+            prev.map((p) => (p.id === nextId ? { ...p, image: imageUrl } : p)),
+          );
         }
       } catch (err) {
         console.error(`Failed to generate panel ${nextId}:`, err);
@@ -814,7 +817,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             onClick={onContinue}
             className="flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
           >
-            CONTINUE TO DIALOGUE
+            CONTINUE TO LAYOUTS
             <ArrowRight size={20} />
           </button>
         </div>
