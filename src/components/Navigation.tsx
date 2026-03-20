@@ -53,11 +53,8 @@ export const TopNav = ({
               className="flex items-baseline gap-0.5 group"
             >
               <h1 className="font-headline font-bold tracking-tighter text-3xl text-primary italic uppercase group-hover:opacity-80 transition-opacity">
-                PANELHAUS
+                PANEL SHAQ
               </h1>
-              <span className="text-[10px] text-primary/50 font-bold">
-                .app
-              </span>
             </a>
           </div>
           <div className="flex items-center gap-3">
@@ -72,7 +69,7 @@ export const TopNav = ({
               onClick={onCreate}
               className="bg-primary text-background font-headline font-bold px-5 py-2 rounded-lg text-sm hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
             >
-              NEW PROJECT
+              NEW / LOAD
             </button>
           </div>
         </div>

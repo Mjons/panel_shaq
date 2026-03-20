@@ -514,12 +514,12 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             </div>
           </div>
 
-          {/* STEP 4: Polish + Generate */}
-          <div className="flex flex-wrap gap-3">
+          {/* STEP 4: Polish */}
+          <div className="flex items-center gap-4 border border-outline/20 rounded-xl p-3">
             <button
               onClick={handlePolish}
               disabled={isPolishing || !story.trim()}
-              className="bg-surface px-5 py-2.5 rounded-lg border border-primary/20 flex items-center gap-3 hover:bg-primary/10 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-surface px-5 py-2.5 rounded-lg border border-primary/20 flex items-center gap-3 hover:bg-primary/10 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             >
               {isPolishing ? (
                 <Loader2 size={18} className="text-primary animate-spin" />
@@ -530,6 +530,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 <span className="text-primary">4.</span> AI Polish
               </span>
             </button>
+            <p className="text-[10px] text-accent/40 leading-relaxed">
+              Optional. Rewrites your story with cinematic flair. Considers your
+              cast from step 1 and uses your text as a guide.
+            </p>
           </div>
 
           <button
