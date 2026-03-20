@@ -13,9 +13,9 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         manifest: {
-          name: "Panel Shaq",
-          short_name: "Panel Shaq",
-          description: "AI-powered comic book creation studio",
+          name: "Panelhaus",
+          short_name: "Panelhaus",
+          description: "AI-powered comic book creation studio — panelhaus.app",
           theme_color: "#0F172A",
           background_color: "#0F172A",
           display: "standalone",

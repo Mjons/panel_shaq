@@ -42,9 +42,19 @@ export const TopNav = ({
             >
               <Menu size={28} />
             </button>
-            <h1 className="font-headline font-bold tracking-tighter text-3xl text-primary italic uppercase">
-              PANEL SHAQ
-            </h1>
+            <a
+              href="https://panelhaus.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-baseline gap-0.5 group"
+            >
+              <h1 className="font-headline font-bold tracking-tighter text-3xl text-primary italic uppercase group-hover:opacity-80 transition-opacity">
+                PANELHAUS
+              </h1>
+              <span className="text-[10px] text-primary/50 font-bold">
+                .app
+              </span>
+            </a>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -85,9 +95,14 @@ export const TopNav = ({
               className="fixed top-0 left-0 h-full w-[280px] bg-[#0B1326] z-[70] shadow-2xl border-r border-surface-container p-6 flex flex-col"
             >
               <div className="flex justify-between items-center mb-10">
-                <h2 className="font-headline font-bold text-2xl text-primary italic uppercase">
-                  MENU
-                </h2>
+                <div className="flex items-baseline gap-0.5">
+                  <h2 className="font-headline font-bold text-2xl text-primary italic uppercase">
+                    PANELHAUS
+                  </h2>
+                  <span className="text-[9px] text-primary/40 font-bold">
+                    .app
+                  </span>
+                </div>
                 <button
                   onClick={() => setIsMenuOpen(false)}
                   className="text-accent/60 hover:text-primary transition-colors"
@@ -141,6 +156,24 @@ export const TopNav = ({
                     Help
                   </span>
                 </a>
+              </div>
+
+              {/* Brand footer */}
+              <div className="pt-4 mt-4 border-t border-surface-container text-center">
+                <a
+                  href="https://panelhaus.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-baseline gap-0.5 opacity-30 hover:opacity-60 transition-opacity"
+                >
+                  <span className="font-headline font-bold text-[11px] text-accent italic uppercase tracking-tight">
+                    PANELHAUS
+                  </span>
+                  <span className="text-[8px] text-accent font-bold">.app</span>
+                </a>
+                <p className="text-[8px] text-accent/20 mt-1">
+                  AI Comic Studio
+                </p>
               </div>
             </motion.div>
           </>
