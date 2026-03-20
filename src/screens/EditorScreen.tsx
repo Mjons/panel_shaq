@@ -780,7 +780,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid ? "border-primary" : "border-transparent"}`}
+                        className={`${colSpan} bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid && !isExporting ? "border-primary" : "border-transparent"}`}
                       >
                         {panel.image ? (
                           <div className="w-full h-full relative overflow-hidden">
@@ -794,7 +794,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               }}
                             />
                             {/* Framing Overlay for overflow */}
-                            {selectedPanelId === pid && (
+                            {selectedPanelId === pid && !isExporting && (
                               <div className="absolute inset-0 pointer-events-none border-2 border-primary z-30"></div>
                             )}
                           </div>
