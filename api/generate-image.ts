@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, createAI, friendlyError } from "../lib/api-utils";
+import { resolveApiKey, geminiImage, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "20mb" } },
@@ -22,8 +22,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } = req.body;
   if (!prompt?.trim())
     return res.status(400).json({ error: "Prompt is required" });
-
-  const ai = createAI(apiKey);
 
   try {
     const parts: any[] = [
@@ -54,22 +52,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
-      contents: { parts },
-      config: {
-        imageConfig: { aspectRatio, imageSize: "1K" },
-      },
-    });
+    const image = await geminiImage(
+      apiKey,
+      "gemini-3.1-flash-image-preview",
+      parts,
+      { aspectRatio, imageSize: "1K" },
+    );
 
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return res.status(200).json({
-          image: `data:image/png;base64,${part.inlineData.data}`,
-        });
-      }
+    if (!image) {
+      return res.status(500).json({ error: "No image generated" });
     }
-    return res.status(500).json({ error: "No image generated" });
+    return res.status(200).json({ image });
   } catch (error: any) {
     console.error("Generate image error:", error);
     return res.status(500).json({ error: friendlyError(error) });

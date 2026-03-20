@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, createAI, friendlyError } from "../lib/api-utils";
+import { resolveApiKey, geminiImage, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "20mb" } },
@@ -35,35 +35,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
     .join("\n");
 
-  const ai = createAI(apiKey);
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
-      contents: {
-        parts: [
-          { inlineData: { mimeType: match[1], data: match[2] } },
-          {
-            text: `Regenerate this comic panel image. Integrate the following bubbles naturally into the scene:
+    const parts: any[] = [
+      { inlineData: { mimeType: match[1], data: match[2] } },
+      {
+        text: `Regenerate this comic panel image. Integrate the following bubbles naturally into the scene:
             ${bubblesDesc}
             The bubbles and text should look like they are part of the original hand-drawn or painted comic art, not a digital overlay.
             Maintain the original character likeness and scene composition.`,
-          },
-        ],
       },
-      config: {
-        imageConfig: { aspectRatio: "16:9", imageSize: "1K" },
-      },
-    });
+    ];
 
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return res.status(200).json({
-          image: `data:image/png;base64,${part.inlineData.data}`,
-        });
-      }
+    const image = await geminiImage(
+      apiKey,
+      "gemini-3.1-flash-image-preview",
+      parts,
+      { aspectRatio: "16:9", imageSize: "1K" },
+    );
+
+    if (!image) {
+      return res.status(500).json({ error: "No image generated" });
     }
-    return res.status(500).json({ error: "No image generated" });
+    return res.status(200).json({ image });
   } catch (error: any) {
     console.error("Final render error:", error);
     return res.status(500).json({ error: friendlyError(error) });

@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { Type } from "@google/genai";
-import { resolveApiKey, createAI, friendlyError } from "../lib/api-utils";
+import { resolveApiKey, geminiText, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "4mb" } },
@@ -23,12 +22,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     )
     .join("\n");
 
-  const ai = createAI(apiKey);
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
-      contents: `Break down the following story into 4-6 distinct comic book panels. For each panel, provide a visual description, which character is the focus (if any), a suggested camera angle, and a suggested mood.
+    const text = await geminiText(
+      apiKey,
+      "gemini-3.1-flash-lite-preview",
+      `Break down the following story into 4-6 distinct comic book panels. For each panel, provide a visual description, which character is the focus (if any), a suggested camera angle, and a suggested mood.
 
 Story:
 ${story}
@@ -37,35 +35,34 @@ Characters:
 ${charContext}
 
 Return the result as a JSON array of objects.`,
-      config: {
+      {
         systemInstruction:
           "You are an expert comic book storyboard artist. You excel at breaking down narratives into compelling visual sequences.",
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.ARRAY,
+          type: "ARRAY",
           items: {
-            type: Type.OBJECT,
+            type: "OBJECT",
             properties: {
-              id: { type: Type.STRING },
+              id: { type: "STRING" },
               description: {
-                type: Type.STRING,
+                type: "STRING",
                 description: "Detailed visual description of the panel",
               },
               characterFocus: {
-                type: Type.STRING,
+                type: "STRING",
                 description: "Name of the character in focus",
               },
-              cameraAngle: { type: Type.STRING },
-              mood: { type: Type.STRING },
+              cameraAngle: { type: "STRING" },
+              mood: { type: "STRING" },
             },
             required: ["id", "description"],
           },
         },
       },
-    });
+    );
 
-    const text = response.text || "[]";
-    const panels = JSON.parse(text);
+    const panels = JSON.parse(text || "[]");
     return res.status(200).json({ panels });
   } catch (error: any) {
     console.error("Generate panels error:", error);

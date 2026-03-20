@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, createAI, friendlyError } from "../lib/api-utils";
+import { resolveApiKey, geminiText, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "1mb" } },
@@ -22,18 +22,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? `\n\nCAST (preserve these character names and references exactly — do not rename or remove them):\n${charContext}`
     : "";
 
-  const ai = createAI(apiKey);
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
-      contents: `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}`,
-      config: {
+    const result = await geminiText(
+      apiKey,
+      "gemini-3.1-flash-lite-preview",
+      `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}`,
+      {
         systemInstruction:
           "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive. Keep all character names and references intact — never rename or remove characters from the story.",
       },
-    });
-    return res.status(200).json({ text: response.text || text });
+    );
+    return res.status(200).json({ text: result || text });
   } catch (error: any) {
     console.error("Polish story error:", error);
     return res.status(500).json({ error: friendlyError(error) });

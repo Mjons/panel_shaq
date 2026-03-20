@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { Type } from "@google/genai";
-import { resolveApiKey, createAI, friendlyError } from "../lib/api-utils";
+import { resolveApiKey, geminiText, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "1mb" } },
@@ -52,12 +51,11 @@ The story continues beyond the last panel. Create the next narrative beat that a
 `;
   }
 
-  const ai = createAI(apiKey);
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite-preview",
-      contents: `You are a comic book director. Given a story and the surrounding panels, create a single new panel that fits naturally between them.
+    const text = await geminiText(
+      apiKey,
+      "gemini-3.1-flash-lite-preview",
+      `You are a comic book director. Given a story and the surrounding panels, create a single new panel that fits naturally between them.
 
 STORY:
 ${story}
@@ -68,31 +66,30 @@ AVAILABLE CHARACTERS:
 ${charContext}
 
 Create a panel that bridges the narrative gap. Vary the camera angle from the neighbors for visual rhythm. Return JSON with: description, characterFocus, cameraAngle, mood.`,
-      config: {
+      {
         systemInstruction:
           "You are an expert comic book storyboard artist. You create compelling single panels that bridge narrative gaps seamlessly.",
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
             description: {
-              type: Type.STRING,
+              type: "STRING",
               description: "Detailed visual description of the panel",
             },
             characterFocus: {
-              type: Type.STRING,
+              type: "STRING",
               description: "Name of the character in focus",
             },
-            cameraAngle: { type: Type.STRING },
-            mood: { type: Type.STRING },
+            cameraAngle: { type: "STRING" },
+            mood: { type: "STRING" },
           },
           required: ["description"],
         },
       },
-    });
+    );
 
-    const text = response.text || "{}";
-    const panel = JSON.parse(text);
+    const panel = JSON.parse(text || "{}");
     return res.status(200).json({ panel });
   } catch (error: any) {
     console.error("Insert panel error:", error);
