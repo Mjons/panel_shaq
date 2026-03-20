@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
 import { useDrag } from "@use-gesture/react";
 import { TopNav, BottomNav } from "./components/Navigation";
 import { LoadingSkeleton } from "./components/LoadingSkeleton";
@@ -97,18 +103,23 @@ function AppInner() {
     "panelshaq_vault_entries",
     DEFAULT_VAULT_ENTRIES,
   );
-  const characters = vaultEntries.filter((e) => e.type === "Character");
-  const setCharacters: React.Dispatch<React.SetStateAction<Character[]>> = (
-    action,
-  ) => {
-    setVaultEntries((prev) => {
-      const nonChars = prev.filter((e) => e.type !== "Character");
-      const currentChars = prev.filter((e) => e.type === "Character");
-      const newChars =
-        typeof action === "function" ? action(currentChars) : action;
-      return [...nonChars, ...newChars];
-    });
-  };
+  const characters = useMemo(
+    () => vaultEntries.filter((e) => e.type === "Character"),
+    [vaultEntries],
+  );
+  const setCharacters: React.Dispatch<React.SetStateAction<Character[]>> =
+    useCallback(
+      (action) => {
+        setVaultEntries((prev) => {
+          const nonChars = prev.filter((e) => e.type !== "Character");
+          const currentChars = prev.filter((e) => e.type === "Character");
+          const newChars =
+            typeof action === "function" ? action(currentChars) : action;
+          return [...nonChars, ...newChars];
+        });
+      },
+      [setVaultEntries],
+    );
   const [rawPanels, setRawPanels] = useIndexedDBState<PanelPrompt[]>(
     "panelshaq_panels",
     [],

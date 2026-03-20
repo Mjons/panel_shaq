@@ -118,10 +118,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const result = await geminiText(
       apiKey,
       "gemini-3.1-flash-lite-preview",
-      `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}`,
+      `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}\n\nRespond with ONLY the polished story text. No tips, no explanations, no commentary, no preamble, no closing remarks.`,
       {
         systemInstruction:
-          "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive. Keep all character names and references intact — never rename or remove characters from the story.",
+          "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive. Keep all character names and references intact — never rename or remove characters from the story. Output ONLY the polished story text — nothing else. No introductions, no tips, no suggestions, no meta-commentary.",
       },
     );
     return res.status(200).json({ text: result || text });

@@ -38,6 +38,7 @@ export interface PanelPrompt {
   customReferenceImages?: string[];
   useStyleRef?: boolean;
   matchCharStyle?: boolean;
+  notes?: string;
   bubbles: Bubble[];
   imageTransform?: { x: number; y: number; scale: number };
 }

@@ -12,6 +12,7 @@ import {
   Check,
   ChevronDown,
   Download,
+  Eye,
 } from "lucide-react";
 import {
   generatePanelImage,
@@ -21,6 +22,7 @@ import {
 } from "../services/geminiService";
 import { Character } from "../App";
 import { useConfirm } from "../components/ConfirmDialog";
+import { PreviewCarousel } from "../components/PreviewCarousel";
 
 interface DirectorProps {
   panels: PanelPrompt[];
@@ -182,6 +184,7 @@ const PanelCard = ({
   isQueueGenerating,
   isFailed,
   onQueueGenerate,
+  onPreview,
 }: {
   panel: PanelPrompt;
   characters: Character[];
@@ -193,6 +196,7 @@ const PanelCard = ({
   isQueueGenerating?: boolean;
   isFailed?: boolean;
   onQueueGenerate: (panelId: string) => void;
+  onPreview?: () => void;
   key?: string | number;
 }) => {
   const [prompt, setPrompt] = useState(panel.description);
@@ -421,9 +425,10 @@ const PanelCard = ({
         >
           {image ? (
             <img
-              className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+              className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer"
               src={image}
               alt={`Panel ${index + 1}`}
+              onClick={onPreview}
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
@@ -810,6 +815,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     panel: PanelPrompt;
     insertIndex: number;
   } | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   const handleInsertPanel = async (insertIndex: number) => {
     setInsertingAt(insertIndex);
@@ -1000,6 +1006,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
           ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
           ${moodStr ? `Mood: ${moodStr}.` : ""}
+          ${panelSnapshot.notes?.trim() ? `User feedback for this panel: ${panelSnapshot.notes.trim()}. Incorporate these changes.` : ""}
         `.trim();
 
         const styleParts = [
@@ -1067,6 +1074,13 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           )}
           {panels.length > 0 && (
             <>
+              <button
+                onClick={() => setPreviewIndex(0)}
+                className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-accent/20 text-accent/60 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+              >
+                <Eye size={16} />
+                PREVIEW
+              </button>
               <button
                 onClick={handleGenerateAll}
                 disabled={queueActive}
@@ -1157,6 +1171,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 isQueueGenerating={currentlyGenerating === panel.id}
                 isFailed={failedPanels.has(panel.id)}
                 onQueueGenerate={handleQueueGenerate}
+                onPreview={() => setPreviewIndex(index)}
               />
               {/* Insert button / draft card after this panel */}
               {draftPanel && draftPanel.insertIndex === index + 1 ? (
@@ -1195,6 +1210,21 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             <ArrowRight size={20} />
           </button>
         </div>
+      )}
+
+      {previewIndex !== null && (
+        <PreviewCarousel
+          panels={panels}
+          initialIndex={previewIndex}
+          onUpdatePanel={(updated) =>
+            setPanels((prev) =>
+              prev.map((p) => (p.id === updated.id ? updated : p)),
+            )
+          }
+          onRegenerate={handleQueueGenerate}
+          onClose={() => setPreviewIndex(null)}
+          generatingId={currentlyGenerating}
+        />
       )}
     </div>
   );
