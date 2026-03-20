@@ -1,17 +1,56 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { resolveApiKey, geminiImage, friendlyError } from "../lib/api-utils";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "20mb" } },
   maxDuration: 60,
 };
 
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+function getApiKey(req: any): string | null {
+  return (
+    (req.headers["x-api-key"] as string) || process.env.GEMINI_API_KEY || ""
+  );
+}
+
+async function geminiImage(
+  apiKey: string,
+  model: string,
+  parts: any[],
+  imageConfig?: {
+    aspectRatio?: string;
+    imageSize?: string;
+  },
+): Promise<string | null> {
+  const body: any = {
+    contents: [{ parts }],
+    generationConfig: {
+      responseModalities: ["IMAGE", "TEXT"],
+      ...(imageConfig ? { imageConfig } : {}),
+    },
+  };
+  const res = await fetch(
+    `${GEMINI_BASE}/models/${model}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  );
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  for (const part of data.candidates?.[0]?.content?.parts || []) {
+    if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+  }
+  return null;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
 
-  const apiKey = resolveApiKey(req, res);
-  if (!apiKey) return;
+  const apiKey = getApiKey(req);
+  if (!apiKey) return res.status(401).json({ error: "No API key configured." });
 
   const {
     prompt,
@@ -65,6 +104,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ image });
   } catch (error: any) {
     console.error("Generate image error:", error);
-    return res.status(500).json({ error: friendlyError(error) });
+    return res.status(500).json({ error: error.message || "Failed" });
   }
 }
