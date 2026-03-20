@@ -171,7 +171,7 @@ export const generatePanelPrompts = async (
           )
           .join("\n");
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-preview-05-20",
+          model: "gemini-2.0-flash",
           contents: `Break down the following story into 4-6 distinct comic book panels. For each panel, provide a visual description, which character is the focus (if any), a suggested camera angle, and a suggested mood.\n\nStory:\n${story}\n\nCharacters:\n${charContext}\n\nReturn the result as a JSON array of objects.`,
           config: {
             systemInstruction:
@@ -216,7 +216,7 @@ export const polishStory = async (text: string): Promise<string> => {
       try {
         const ai = await getDirectAI();
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-preview-05-20",
+          model: "gemini-2.0-flash",
           contents: `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone:\n\n${text}`,
           config: {
             systemInstruction:
@@ -276,7 +276,7 @@ export const generatePanelImage = async (
           }
         }
         const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash-preview-image-generation",
+          model: "gemini-2.0-flash-exp",
           contents: { parts },
           config: { responseModalities: ["IMAGE", "TEXT"] },
         });
@@ -341,7 +341,7 @@ export const finalNaturalRender = async (
           )
           .join("\n");
         const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash-preview-image-generation",
+          model: "gemini-2.0-flash-exp",
           contents: {
             parts: [
               { inlineData: { mimeType: match[1], data: match[2] } },
