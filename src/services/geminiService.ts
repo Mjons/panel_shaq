@@ -166,9 +166,14 @@ export const generatePanelPrompts = async (
   if (!story.trim()) return [];
 
   try {
+    // Strip image data — server only needs name + description
+    const lightChars = characters.map(({ name, description }: any) => ({
+      name,
+      description,
+    }));
     const { panels } = await apiPost<{ panels: any[] }>("generate-panels", {
       story,
-      characters,
+      characters: lightChars,
     });
     return panels.map(hydratePanel);
   } catch (error: any) {
@@ -352,8 +357,27 @@ export const generatePanelImage = async (
 export const generateInsertedPanelPrompt = async (
   context: InsertionContext,
 ): Promise<PanelPrompt | null> => {
+  // Strip image data from panels — server only needs text metadata
+  const stripPanel = (p: PanelPrompt | null) =>
+    p
+      ? {
+          description: p.description,
+          characterFocus: p.characterFocus,
+          cameraAngle: p.cameraAngle,
+          mood: p.mood,
+        }
+      : null;
+  const lightContext = {
+    ...context,
+    previousPanel: stripPanel(context.previousPanel),
+    nextPanel: stripPanel(context.nextPanel),
+  };
+
   try {
-    const { panel } = await apiPost<{ panel: any }>("insert-panel", context);
+    const { panel } = await apiPost<{ panel: any }>(
+      "insert-panel",
+      lightContext,
+    );
     return hydratePanel({
       id: crypto.randomUUID(),
       description: panel.description || "",
