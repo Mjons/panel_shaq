@@ -57,7 +57,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
   if (!panel) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B1326]/95 backdrop-blur-md">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#0B1326]">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 shrink-0">
         <div className="flex items-center gap-3">
@@ -127,7 +127,10 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
       </div>
 
       {/* Bottom controls */}
-      <div className="shrink-0 px-6 pb-6 pt-3 max-w-3xl mx-auto w-full space-y-3">
+      <div
+        className="shrink-0 px-6 pb-6 pt-3 max-w-3xl mx-auto w-full space-y-3"
+        style={{ paddingBottom: "calc(1.5rem + var(--sab, 0px))" }}
+      >
         {/* Description summary */}
         <p className="text-accent/50 text-xs line-clamp-2 leading-relaxed">
           {panel.description}

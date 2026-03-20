@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { useGesture } from "@use-gesture/react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useGesture, useDrag } from "@use-gesture/react";
 import {
   MessageSquare,
   Zap,
@@ -104,6 +104,186 @@ const PanelImage: React.FC<{
         }}
       />
     </div>
+  );
+};
+
+/* ── Draggable Bubble with floating toolbar ── */
+const DraggableBubble: React.FC<{
+  bubble: Bubble;
+  isSelected: boolean;
+  isExporting: boolean;
+  onSelect: () => void;
+  onMove: (pos: { x: number; y: number }) => void;
+  onUpdateBubble: (updates: Partial<Bubble>) => void;
+  onRemove: () => void;
+}> = ({
+  bubble,
+  isSelected,
+  isExporting,
+  onSelect,
+  onMove,
+  onUpdateBubble,
+  onRemove,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const bindDrag = useDrag(
+    ({ delta: [dx, dy], tap, last }) => {
+      if (isExporting) return;
+      if (tap) {
+        onSelect();
+        setIsEditing(true);
+        return;
+      }
+      const parent = containerRef.current?.parentElement;
+      if (!parent) return;
+      const rect = parent.getBoundingClientRect();
+      const pctX = (dx / rect.width) * 100;
+      const pctY = (dy / rect.height) * 100;
+      const newX = Math.max(5, Math.min(95, bubble.pos.x + pctX));
+      const newY = Math.max(5, Math.min(95, bubble.pos.y + pctY));
+      if (last) onMove({ x: Math.round(newX), y: Math.round(newY) });
+    },
+    { filterTaps: true, pointer: { touch: true } },
+  );
+
+  const isSFX = bubble.style === "effect" || bubble.style === "action";
+
+  return (
+    <>
+      <div
+        ref={containerRef}
+        {...(!isExporting ? bindDrag() : {})}
+        className={`absolute z-20 touch-none cursor-grab active:cursor-grabbing ${
+          isSelected && !isExporting
+            ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
+            : ""
+        } ${isSFX ? "" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+        style={{
+          left: `${bubble.pos.x}%`,
+          top: `${bubble.pos.y}%`,
+          transform: "translate(-50%, -50%)",
+          ...(isSFX
+            ? {}
+            : {
+                borderRadius: bubble.style === "thought" ? "40%" : "9999px",
+                borderStyle: bubble.style === "thought" ? "dashed" : "solid",
+              }),
+          fontSize: `${bubble.fontSize}px`,
+          fontWeight: bubble.fontWeight,
+          fontStyle: bubble.fontStyle,
+        }}
+      >
+        {isSFX ? (
+          <p
+            className="leading-tight uppercase font-headline text-center font-black"
+            style={{
+              color: "#FFD600",
+              textShadow:
+                "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              transform: "rotate(-3deg)",
+              fontSize: `${bubble.fontSize + 4}px`,
+            }}
+          >
+            {bubble.text}
+          </p>
+        ) : (
+          <p className="leading-tight uppercase font-headline text-center text-background">
+            {bubble.text}
+          </p>
+        )}
+        {bubble.style === "speech" && bubble.tailPos && (
+          <div
+            className="absolute w-2 h-2 bg-white border-r-2 border-b-2 border-background rotate-45"
+            style={{
+              left: `${bubble.tailPos.x - bubble.pos.x + 50}%`,
+              top: `${bubble.tailPos.y - bubble.pos.y + 50}%`,
+              transform: "translate(-50%, -50%) rotate(45deg)",
+            }}
+          />
+        )}
+      </div>
+
+      {/* Floating toolbar on tap */}
+      {isSelected && isEditing && !isExporting && (
+        <div
+          className="absolute z-30 flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[200px]"
+          style={{
+            left: `${Math.min(75, Math.max(25, bubble.pos.x))}%`,
+            top: `${Math.max(0, bubble.pos.y - 5)}%`,
+            transform: "translate(-50%, -105%)",
+          }}
+        >
+          {/* Type pills */}
+          <div className="flex gap-1">
+            {[
+              { label: "Speech", value: "speech" as const },
+              { label: "Thought", value: "thought" as const },
+              { label: "SFX", value: "effect" as const },
+            ].map((t) => (
+              <button
+                key={t.value}
+                onClick={() => onUpdateBubble({ style: t.value })}
+                className={`flex-1 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
+                  bubble.style === t.value
+                    ? "bg-primary text-background"
+                    : "bg-background text-accent/50 border border-outline/20"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Text input */}
+          <textarea
+            value={bubble.text}
+            onChange={(e) => onUpdateBubble({ text: e.target.value })}
+            className="w-full bg-background border border-outline/20 rounded-lg px-2 py-1.5 text-xs text-accent outline-none focus:border-primary resize-none h-14 font-headline"
+            placeholder="Type text..."
+          />
+
+          {/* Font size + delete */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() =>
+                onUpdateBubble({ fontSize: Math.max(8, bubble.fontSize - 2) })
+              }
+              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
+            >
+              A-
+            </button>
+            <span className="text-[9px] text-accent/40 flex-1 text-center">
+              {bubble.fontSize}px
+            </span>
+            <button
+              onClick={() =>
+                onUpdateBubble({ fontSize: Math.min(24, bubble.fontSize + 2) })
+              }
+              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
+            >
+              A+
+            </button>
+            <button
+              onClick={() => {
+                onRemove();
+                setIsEditing(false);
+              }}
+              className="w-7 h-7 flex items-center justify-center bg-background border border-red-500/20 rounded text-red-500/60 hover:bg-red-500 hover:text-white transition-colors ml-1"
+            >
+              <Trash2 size={12} />
+            </button>
+            <button
+              onClick={() => setIsEditing(false)}
+              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/40 text-[10px] font-bold"
+            >
+              ✓
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -936,41 +1116,27 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
                         {/* Bubble Overlay */}
                         {(panel.bubbles || []).map((bubble) => (
-                          <div
+                          <DraggableBubble
                             key={bubble.id}
-                            className={`absolute p-2 bg-white text-background rounded-full border-2 border-background shadow-xl max-w-[100px] pointer-events-none z-20 ${selectedBubbleId === bubble.id && !isExporting ? "ring-2 ring-primary ring-offset-2" : ""}`}
-                            style={{
-                              left: `${bubble.pos.x}%`,
-                              top: `${bubble.pos.y}%`,
-                              transform: "translate(-50%, -50%)",
-                              borderRadius:
-                                bubble.style === "thought"
-                                  ? "40%"
-                                  : bubble.style === "action"
-                                    ? "0"
-                                    : "9999px",
-                              borderStyle:
-                                bubble.style === "thought" ? "dashed" : "solid",
-                              fontSize: `${bubble.fontSize}px`,
-                              fontWeight: bubble.fontWeight,
-                              fontStyle: bubble.fontStyle,
+                            bubble={bubble}
+                            isSelected={
+                              selectedBubbleId === bubble.id && !isExporting
+                            }
+                            isExporting={isExporting}
+                            onSelect={() => {
+                              setSelectedPanelId(pid);
+                              setSelectedBubbleId(bubble.id);
                             }}
-                          >
-                            <p className="leading-tight uppercase font-headline text-center">
-                              {bubble.text}
-                            </p>
-                            {bubble.style === "speech" && bubble.tailPos && (
-                              <div
-                                className="absolute w-2 h-2 bg-white border-r-2 border-b-2 border-background rotate-45"
-                                style={{
-                                  left: `${bubble.tailPos.x - bubble.pos.x + 50}%`,
-                                  top: `${bubble.tailPos.y - bubble.pos.y + 50}%`,
-                                  transform:
-                                    "translate(-50%, -50%) rotate(45deg)",
-                                }}
-                              ></div>
-                            )}
-                          </div>
+                            onMove={(pos) => {
+                              if (selectedPanelId !== pid)
+                                setSelectedPanelId(pid);
+                              updateBubble(bubble.id, { pos });
+                            }}
+                            onUpdateBubble={(updates) =>
+                              updateBubble(bubble.id, updates)
+                            }
+                            onRemove={() => removeBubble(bubble.id)}
+                          />
                         ))}
 
                         {/* Dim non-selected panels when one is selected */}

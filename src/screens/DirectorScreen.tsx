@@ -205,6 +205,9 @@ const PanelCard = ({
   const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
   const [artStyle, setArtStyle] = useState(panel.artStyle || "Cartoon");
+  const [stylePriority, setStylePriority] = useState<"reference" | "artStyle">(
+    panel.stylePriority || "reference",
+  );
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds ?? characters.map((c) => c.id),
   );
@@ -271,6 +274,7 @@ const PanelCard = ({
       customReferenceImages: customCharRefs,
       useStyleRef,
       matchCharStyle,
+      stylePriority,
     });
     // Add to the shared generation queue
     onQueueGenerate(panel.id);
@@ -666,6 +670,40 @@ const PanelCard = ({
             </div>
           </div>
 
+          {/* Style Priority Toggle */}
+          <div className="p-3 bg-background/30 rounded-lg border border-outline/5 space-y-2">
+            <p className="text-[9px] font-label text-accent/40 uppercase tracking-widest font-bold">
+              Generation Priority
+            </p>
+            <div className="flex rounded-lg overflow-hidden border border-outline/20">
+              <button
+                onClick={() => setStylePriority("reference")}
+                className={`flex-1 py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  stylePriority === "reference"
+                    ? "bg-primary text-background"
+                    : "bg-background text-accent/50 hover:text-accent"
+                }`}
+              >
+                Character Look
+              </button>
+              <button
+                onClick={() => setStylePriority("artStyle")}
+                className={`flex-1 py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  stylePriority === "artStyle"
+                    ? "bg-primary text-background"
+                    : "bg-background text-accent/50 hover:text-accent"
+                }`}
+              >
+                Art Style
+              </button>
+            </div>
+            <p className="text-[8px] text-accent/30 leading-relaxed">
+              {stylePriority === "reference"
+                ? "Reference images will guide character appearance and art style. The art style dropdown is used as a hint."
+                : "The art style dropdown fully controls the visual style. Characters are described by text only — no reference images sent."}
+            </p>
+          </div>
+
           {/* Character Reference Selection */}
           <div className="space-y-3 p-3 bg-background/30 rounded-lg border border-outline/5">
             <div className="flex items-center justify-between">
@@ -979,35 +1017,61 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             ? panelSnapshot.mood
             : "";
 
-        // Only use styleReferenceImage if it's an actual base64 image, not an art style name
         const isBase64Image = (s: string) => s.startsWith("data:image/");
-        const wantsCharStyle = panelSnapshot.matchCharStyle === true;
-
-        // When matchCharStyle is on, use the first character ref as the style reference
-        const effectiveStyleRef =
-          panelSnapshot.useStyleRef !== false
-            ? (wantsCharStyle && charRefs.find(isBase64Image)) ||
-              (styleReferenceImage && isBase64Image(styleReferenceImage)
-                ? styleReferenceImage
-                : undefined) ||
-              charRefs.find(isBase64Image) ||
-              undefined
-            : undefined;
-
-        const hasCustomStyleRef = !!effectiveStyleRef;
+        const prioritizesArtStyle = panelSnapshot.stylePriority === "artStyle";
         const notesStr = styleNotes?.trim() || "";
 
-        const finalPrompt = `
-          ${hasCustomStyleRef ? `The art style should be ${artStyleStr} — use this as guidance alongside the style reference image.` : `Art Style: ${artStyleStr}.`}
-          ${notesStr ? `Style notes: ${notesStr}.` : ""}
-          Subject: ${panelSnapshot.description}.
-          Characters present: ${characterContext}.
-          ${wantsCharStyle ? "CRITICAL: Match the exact artistic style, line work, coloring technique, and visual aesthetic of the character reference images. The output must look like it belongs in the same comic/animation as the reference." : ""}
-          ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
-          ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
-          ${moodStr ? `Mood: ${moodStr}.` : ""}
-          ${panelSnapshot.notes?.trim() ? `User feedback for this panel: ${panelSnapshot.notes.trim()}. Incorporate these changes.` : ""}
-        `.trim();
+        // When "Art Style" priority: no reference images, text descriptions only
+        // When "Character Look" priority: send reference images, style follows them
+        let effectiveCharRefs = charRefs;
+        let effectiveStyleRef: string | undefined;
+        let finalPrompt: string;
+
+        if (prioritizesArtStyle) {
+          // Art Style mode: NO images sent, full text control
+          effectiveCharRefs = [];
+          effectiveStyleRef = undefined;
+
+          finalPrompt = `
+            Art Style: ${artStyleStr}. You MUST render in this exact art style. This is the #1 priority.
+            ${notesStr ? `Style notes: ${notesStr}.` : ""}
+            Subject: ${panelSnapshot.description}.
+            Characters present: ${characterContext}.
+            IMPORTANT: Render the characters based on their text descriptions above. Use ${artStyleStr} art style for everything.
+            ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+            ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
+            ${moodStr ? `Mood: ${moodStr}.` : ""}
+            ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
+            CRITICAL: Do NOT include any speech bubbles or text in the image.
+          `.trim();
+        } else {
+          // Character Look mode: send reference images, style follows references
+          const wantsCharStyle = panelSnapshot.matchCharStyle === true;
+          effectiveStyleRef =
+            panelSnapshot.useStyleRef !== false
+              ? (wantsCharStyle && charRefs.find(isBase64Image)) ||
+                (styleReferenceImage && isBase64Image(styleReferenceImage)
+                  ? styleReferenceImage
+                  : undefined) ||
+                charRefs.find(isBase64Image) ||
+                undefined
+              : undefined;
+
+          const hasCustomStyleRef = !!effectiveStyleRef;
+
+          finalPrompt = `
+            ${hasCustomStyleRef ? `The art style should be ${artStyleStr} — use this as guidance alongside the style reference image.` : `Art Style: ${artStyleStr}.`}
+            ${notesStr ? `Style notes: ${notesStr}.` : ""}
+            Subject: ${panelSnapshot.description}.
+            Characters present: ${characterContext}.
+            ${hasCustomStyleRef ? "IMPORTANT: The attached reference image is for BOTH character appearance AND art style. Match the visual style of the reference." : ""}
+            ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+            ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
+            ${moodStr ? `Mood: ${moodStr}.` : ""}
+            ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
+            CRITICAL: Do NOT include any speech bubbles or text in the image.
+          `.trim();
+        }
 
         const styleParts = [
           artStyleStr,
@@ -1021,7 +1085,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         const imageUrl = await generatePanelImage(
           finalPrompt,
           style,
-          charRefs,
+          effectiveCharRefs,
           effectiveStyleRef,
           panelSnapshot.aspectRatio || "16:9",
           notesStr,
