@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import {
   Edit3,
-  History,
   PlusCircle,
   UserPlus,
   Palette,
@@ -72,9 +71,16 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     }
   };
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
   const handleAddCharacter = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("Image too large. Please use an image under 5MB.");
+        if (e.target) e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const newChar: Character = {
@@ -94,6 +100,11 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   const handleAddStyleRef = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        alert("Image too large. Please use an image under 5MB.");
+        if (e.target) e.target.value = "";
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setStyleReferenceImage(reader.result as string);
@@ -129,7 +140,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   Writing Studio
                 </label>
                 <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
-                  {story.length} / 2000 Words
+                  {story.length} / 2000 Characters
                 </span>
               </div>
               <textarea
@@ -154,12 +165,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               )}
               <span className="text-xs font-bold uppercase tracking-widest text-accent">
                 AI Polish
-              </span>
-            </button>
-            <button className="bg-surface px-5 py-2.5 rounded-lg border border-secondary/20 flex items-center gap-3 hover:bg-secondary/10 transition-all active:scale-95">
-              <History size={18} className="text-secondary" />
-              <span className="text-xs font-bold uppercase tracking-widest text-accent">
-                Drafts
               </span>
             </button>
           </div>
@@ -260,49 +265,94 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
             <div className="flex items-center justify-between mb-4">
               <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40">
-                Art Style Anchor
+                Art Style
               </label>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[
+                { name: "Cartoon", desc: "Bold outlines • Bright colors" },
+                { name: "Manga", desc: "Japanese style • Dynamic lines" },
+                { name: "Comic Book", desc: "Western comics • Heavy inks" },
+                { name: "Realistic", desc: "Photo-real • Detailed" },
+                { name: "Watercolor", desc: "Soft washes • Painterly" },
+                { name: "Pixel Art", desc: "Retro • 8-bit style" },
+              ].map((style) => (
+                <button
+                  key={style.name}
+                  onClick={() => setStyleReferenceImage(style.name)}
+                  className={`px-3 py-2 rounded-lg text-left border transition-all ${
+                    styleReferenceImage === style.name
+                      ? "bg-primary text-background border-primary"
+                      : !styleReferenceImage ||
+                          [
+                            "Cartoon",
+                            "Manga",
+                            "Comic Book",
+                            "Realistic",
+                            "Watercolor",
+                            "Pixel Art",
+                          ].includes(styleReferenceImage)
+                        ? "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
+                        : "bg-background text-accent/40 border-outline/10"
+                  }`}
+                >
+                  <span className="text-xs font-bold block">{style.name}</span>
+                  <span className="text-[8px] opacity-60">{style.desc}</span>
+                </button>
+              ))}
               <button
                 onClick={() => styleInputRef.current?.click()}
-                className="text-[10px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
+                className={`px-3 py-2 rounded-lg text-left border transition-all ${
+                  styleReferenceImage &&
+                  ![
+                    "Cartoon",
+                    "Manga",
+                    "Comic Book",
+                    "Realistic",
+                    "Watercolor",
+                    "Pixel Art",
+                  ].includes(styleReferenceImage)
+                    ? "bg-primary text-background border-primary"
+                    : "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
+                }`}
               >
-                <Upload size={10} />
-                Upload
+                <span className="text-xs font-bold block flex items-center gap-1">
+                  <Upload size={10} /> Custom
+                </span>
+                <span className="text-[8px] opacity-60">Upload image</span>
               </button>
             </div>
-            <div className="flex items-center gap-4 bg-background p-4 rounded-lg border border-secondary/10 relative group">
-              <div className="w-12 h-12 rounded bg-secondary/10 flex items-center justify-center overflow-hidden">
-                {styleReferenceImage ? (
-                  <img
-                    src={styleReferenceImage}
-                    className="w-full h-full object-cover"
-                    alt="Style Reference"
-                  />
-                ) : (
-                  <Palette size={24} className="text-secondary" />
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-accent">
-                  {styleReferenceImage
-                    ? "Custom Style Reference"
-                    : "Cyberpunk Noir"}
-                </p>
-                <p className="text-[10px] text-accent/40 uppercase font-medium tracking-wider">
-                  {styleReferenceImage
-                    ? "Using Uploaded Image"
-                    : "Heavy Inks • Warm Neon"}
-                </p>
-              </div>
-              {styleReferenceImage && (
-                <button
-                  onClick={() => setStyleReferenceImage(null)}
-                  className="absolute top-1 right-1 p-1 bg-background/80 text-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
-                >
-                  <X size={10} />
-                </button>
+            {styleReferenceImage &&
+              ![
+                "Cartoon",
+                "Manga",
+                "Comic Book",
+                "Realistic",
+                "Watercolor",
+                "Pixel Art",
+              ].includes(styleReferenceImage) && (
+                <div className="flex items-center gap-3 bg-background p-3 rounded-lg border border-primary/20 relative group">
+                  <div className="w-10 h-10 rounded overflow-hidden border border-primary">
+                    <img
+                      src={styleReferenceImage}
+                      className="w-full h-full object-cover"
+                      alt="Custom Style"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-accent">
+                      Custom Reference
+                    </p>
+                    <p className="text-[8px] text-accent/40">Uploaded image</p>
+                  </div>
+                  <button
+                    onClick={() => setStyleReferenceImage("Cartoon")}
+                    className="p-1 text-accent/30 hover:text-red-500 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
               )}
-            </div>
             <input
               type="file"
               ref={styleInputRef}

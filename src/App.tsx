@@ -15,31 +15,51 @@ import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
 import type { Page } from "./screens/LayoutScreen";
 
-const WorkshopScreen = React.lazy(() =>
+// Auto-reload on stale chunk errors (happens after new deployments)
+function lazyWithReload<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>,
+) {
+  return React.lazy(() =>
+    factory().catch((err) => {
+      if (
+        err.message?.includes("Failed to fetch dynamically imported module") ||
+        err.message?.includes("Loading chunk") ||
+        err.name === "ChunkLoadError"
+      ) {
+        window.location.reload();
+        // Return a never-resolving promise so React doesn't try to render
+        return new Promise<{ default: T }>(() => {});
+      }
+      throw err;
+    }),
+  );
+}
+
+const WorkshopScreen = lazyWithReload(() =>
   import("./screens/WorkshopScreen").then((m) => ({
     default: m.WorkshopScreen,
   })),
 );
-const DirectorScreen = React.lazy(() =>
+const DirectorScreen = lazyWithReload(() =>
   import("./screens/DirectorScreen").then((m) => ({
     default: m.DirectorScreen,
   })),
 );
-const VaultScreen = React.lazy(() =>
+const VaultScreen = lazyWithReload(() =>
   import("./screens/VaultScreen").then((m) => ({ default: m.VaultScreen })),
 );
-const EditorScreen = React.lazy(() =>
+const EditorScreen = lazyWithReload(() =>
   import("./screens/EditorScreen").then((m) => ({ default: m.EditorScreen })),
 );
-const LayoutScreen = React.lazy(() =>
+const LayoutScreen = lazyWithReload(() =>
   import("./screens/LayoutScreen").then((m) => ({ default: m.LayoutScreen })),
 );
-const SettingsScreen = React.lazy(() =>
+const SettingsScreen = lazyWithReload(() =>
   import("./screens/SettingsScreen").then((m) => ({
     default: m.SettingsScreen,
   })),
 );
-const ShareScreen = React.lazy(() =>
+const ShareScreen = lazyWithReload(() =>
   import("./screens/ShareScreen").then((m) => ({ default: m.ShareScreen })),
 );
 
@@ -94,7 +114,7 @@ function AppInner() {
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
   const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
     string | null
-  >("panelshaq_style_ref", null);
+  >("panelshaq_style_ref", "Cartoon");
 
   useEffect(() => {
     const checkKey = async () => {
@@ -225,7 +245,7 @@ function AppInner() {
     setStory("");
     setPanels([]);
     setPages([]);
-    setStyleReferenceImage(null);
+    setStyleReferenceImage("Cartoon");
     setActiveTab("workshop");
     setCharacters(DEFAULT_CHARACTERS);
   };
