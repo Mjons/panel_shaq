@@ -52,7 +52,7 @@ The story continues beyond the last panel. Create the next narrative beat that a
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.1-flash-lite-preview",
       contents: `You are a comic book director. Given a story and the surrounding panels, create a single new panel that fits naturally between them.
 
 STORY:

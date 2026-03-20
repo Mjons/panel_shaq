@@ -15,7 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-3.1-flash-lite-preview",
       contents: `Polish the following story segment to be more evocative and professional, maintaining a "Cyberpunk Noir" tone: \n\n${text}`,
       config: {
         systemInstruction:
