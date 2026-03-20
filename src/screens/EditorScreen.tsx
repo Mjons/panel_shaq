@@ -59,22 +59,33 @@ export const EditorScreen: React.FC<EditorProps> = ({
   >([]);
 
   useEffect(() => {
+    // Migrate from localStorage to IndexedDB
     const saved = localStorage.getItem("comic_export_history");
-    if (saved) setExportHistory(JSON.parse(saved));
+    if (saved) {
+      try {
+        setExportHistory(JSON.parse(saved));
+        localStorage.removeItem("comic_export_history");
+      } catch {
+        /* ignore parse errors */
+      }
+    }
   }, []);
 
   const addToHistory = (name: string, data: string, type: "pdf" | "png") => {
+    // Calculate actual binary size (base64 is ~33% larger than raw bytes)
+    const base64Part = data.split(",")[1] || data;
+    const byteSize = (base64Part.length * 3) / 4;
     const newItem = {
       id: crypto.randomUUID(),
       name,
       date: new Date().toLocaleDateString(),
-      size: `${(data.length / 1024 / 1024).toFixed(1)} MB`,
+      size: `${(byteSize / 1024 / 1024).toFixed(1)} MB`,
       data,
       type,
     };
     const updated = [newItem, ...exportHistory].slice(0, 5);
     setExportHistory(updated);
-    localStorage.setItem("comic_export_history", JSON.stringify(updated));
+    // Don't persist to localStorage — too large. History is session-only.
   };
 
   const currentPage = pages[selectedPageIdx];

@@ -47,22 +47,8 @@ export const SettingsScreen = () => {
   const handleTestConnection = async () => {
     setTestStatus("testing");
     try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const key =
-        settings.geminiApiKey ||
-        process.env.GEMINI_API_KEY ||
-        process.env.API_KEY ||
-        "";
-      if (!key) {
-        setTestStatus("error");
-        return;
-      }
-      const ai = new GoogleGenAI({ apiKey: key });
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: "Say OK",
-      });
-      if (response.text) {
+      const res = await fetch("/api/health", { method: "POST" });
+      if (res.ok) {
         setTestStatus("success");
       } else {
         setTestStatus("error");

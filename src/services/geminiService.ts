@@ -8,7 +8,7 @@ async function compressImage(base64: string, quality = 0.8): Promise<string> {
       canvas.getContext("2d")!.drawImage(img, 0, 0);
       resolve(canvas.toDataURL("image/jpeg", quality));
     };
-    img.onerror = () => resolve(base64); // fallback to original on error
+    img.onerror = () => resolve(base64);
     img.src = base64;
   });
 }
@@ -40,12 +40,38 @@ export interface PanelPrompt {
   imageTransform?: { x: number; y: number; scale: number };
 }
 
+/** Ensure a panel always has valid bubbles and imageTransform fields */
+export function hydratePanel(p: any): PanelPrompt {
+  return {
+    ...p,
+    bubbles: Array.isArray(p.bubbles) ? p.bubbles : [],
+    imageTransform: p.imageTransform || { x: 0, y: 0, scale: 1 },
+  };
+}
+
 export interface InsertionContext {
   story: string;
   previousPanel: PanelPrompt | null;
   nextPanel: PanelPrompt | null;
   allCharacters: { name: string; description?: string }[];
   insertIndex: number;
+}
+
+// Global error listener — components subscribe via onApiError
+type ErrorListener = (message: string) => void;
+let _errorListener: ErrorListener | null = null;
+
+export function onApiError(listener: ErrorListener) {
+  _errorListener = listener;
+  return () => {
+    if (_errorListener === listener) _errorListener = null;
+  };
+}
+
+function notifyError(context: string, error: unknown) {
+  const msg = error instanceof Error ? error.message : "Unknown error";
+  console.error(`${context}:`, error);
+  _errorListener?.(`${context}: ${msg}`);
 }
 
 async function apiPost<T>(endpoint: string, body: any): Promise<T> {
@@ -72,13 +98,9 @@ export const generatePanelPrompts = async (
       story,
       characters,
     });
-    return panels.map((p: any) => ({
-      ...p,
-      bubbles: [],
-      imageTransform: { x: 0, y: 0, scale: 1 },
-    }));
+    return panels.map(hydratePanel);
   } catch (error) {
-    console.error("Panel Breakdown Error:", error);
+    notifyError("Panel generation failed", error);
     return [];
   }
 };
@@ -90,7 +112,7 @@ export const polishStory = async (text: string): Promise<string> => {
     const result = await apiPost<{ text: string }>("polish-story", { text });
     return result.text || text;
   } catch (error) {
-    console.error("Polish Error:", error);
+    notifyError("Story polish failed", error);
     return text;
   }
 };
@@ -114,7 +136,7 @@ export const generatePanelImage = async (
     });
     return result.image ? await compressImage(result.image) : null;
   } catch (error) {
-    console.error("Image Gen Error:", error);
+    notifyError("Image generation failed", error);
     return null;
   }
 };
@@ -124,17 +146,15 @@ export const generateInsertedPanelPrompt = async (
 ): Promise<PanelPrompt | null> => {
   try {
     const { panel } = await apiPost<{ panel: any }>("insert-panel", context);
-    return {
+    return hydratePanel({
       id: crypto.randomUUID(),
       description: panel.description || "",
       characterFocus: panel.characterFocus,
       cameraAngle: panel.cameraAngle,
       mood: panel.mood,
-      bubbles: [],
-      imageTransform: { x: 0, y: 0, scale: 1 },
-    };
+    });
   } catch (error) {
-    console.error("Insert Panel Error:", error);
+    notifyError("Panel insertion failed", error);
     return null;
   }
 };
@@ -150,7 +170,7 @@ export const finalNaturalRender = async (
     });
     return result.image ? await compressImage(result.image) : null;
   } catch (error) {
-    console.error("Final Render Error:", error);
+    notifyError("Final render failed", error);
     return null;
   }
 };

@@ -2,8 +2,14 @@ import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useDrag } from "@use-gesture/react";
 import { TopNav, BottomNav } from "./components/Navigation";
 import { LoadingSkeleton } from "./components/LoadingSkeleton";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ToastProvider, useToast } from "./components/Toast";
 import { ProjectManager } from "./components/ProjectManager";
-import { PanelPrompt } from "./services/geminiService";
+import {
+  PanelPrompt,
+  onApiError,
+  hydratePanel,
+} from "./services/geminiService";
 import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
@@ -59,7 +65,14 @@ const DEFAULT_CHARACTERS: Character[] = [
   },
 ];
 
-export default function App() {
+function AppInner() {
+  const { addToast } = useToast();
+
+  // Connect API error notifications to toast system
+  useEffect(() => {
+    return onApiError((msg) => addToast(msg, "error"));
+  }, [addToast]);
+
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
     "workshop",
@@ -69,10 +82,14 @@ export default function App() {
     "panelshaq_characters",
     DEFAULT_CHARACTERS,
   );
-  const [panels, setPanels] = useIndexedDBState<PanelPrompt[]>(
+  const [rawPanels, setRawPanels] = useIndexedDBState<PanelPrompt[]>(
     "panelshaq_panels",
     [],
   );
+  // Hydrate panels to ensure bubbles[] and imageTransform always exist
+  const panels = rawPanels.map(hydratePanel);
+  const setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>> =
+    setRawPanels;
   const [pages, setPages] = usePersistedState<Page[]>("panelshaq_pages", []);
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
   const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
@@ -306,7 +323,9 @@ export default function App() {
         className="relative z-10"
         style={{ touchAction: "pan-y" }}
       >
-        <Suspense fallback={<LoadingSkeleton />}>{renderScreen()}</Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSkeleton />}>{renderScreen()}</Suspense>
+        </ErrorBoundary>
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
@@ -319,5 +338,13 @@ export default function App() {
         currentProjectId={currentProjectId}
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+    </ToastProvider>
   );
 }

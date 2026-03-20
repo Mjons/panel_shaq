@@ -55,6 +55,12 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
   };
 
   const repartitionPages = (count: number) => {
+    if (
+      pages.length > 0 &&
+      !window.confirm("Repartitioning will reset all page layouts. Continue?")
+    ) {
+      return;
+    }
     setPanelsPerPage(count);
     const newPages: Page[] = [];
     for (let i = 0; i < panels.length; i += count) {

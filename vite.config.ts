@@ -51,7 +51,7 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     define: {
-      "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY),
+      // API key is now server-side only (Vercel env vars)
     },
     resolve: {
       alias: {
