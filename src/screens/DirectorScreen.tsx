@@ -11,6 +11,7 @@ import {
   Plus,
   Check,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import {
   generatePanelImage,
@@ -231,6 +232,13 @@ const PanelCard = ({
   }, [styleReferenceImage, finalCharRefs.length]);
 
   const handleGenerate = () => {
+    if (
+      panel.image &&
+      !window.confirm(
+        "Regenerate this panel? The current image will be replaced.",
+      )
+    )
+      return;
     // Save current settings to the panel before queueing
     onUpdatePanel({
       ...panel,
@@ -263,28 +271,95 @@ const PanelCard = ({
     }
   };
 
-  const updateCameraAngle = (newAngle: string) => {
-    setCameraAngle(newAngle);
-    if (!prompt.toLowerCase().includes(newAngle.toLowerCase())) {
-      const separator = prompt.trim()
-        ? prompt.trim().endsWith(".")
-          ? " "
-          : ". "
-        : "";
-      setPrompt((prev) => `${prev.trim()}${separator}${newAngle}`);
-    }
+  // Descriptive phrases for each camera/mood option
+  const ANGLE_DESC: Record<string, string> = {
+    "Eye Level": "Shot from eye level, straight-on natural perspective",
+    "Low Angle":
+      "Low angle shot looking upward, making the subject appear powerful and imposing",
+    "High Angle":
+      "High angle shot looking downward, making the subject appear small or vulnerable",
+    "Bird's Eye": "Extreme overhead bird's eye view looking straight down",
+    "Worm's Eye": "Extreme low worm's eye view from ground level looking up",
+    "Over the Shoulder":
+      "Over-the-shoulder framing from behind one character looking at another",
+    "Dutch Angle":
+      "Tilted dutch angle with the horizon askew, creating unease and tension",
+    "POV / First Person": "First-person POV shot from the character's eyes",
+    "Three-Quarter View": "Three-quarter view angled slightly to the side",
+    "Profile / Side View": "Clean profile side view silhouette framing",
+    "Tracking Shot":
+      "Dynamic tracking shot with motion blur suggesting camera movement",
+    "Crane Shot": "Sweeping crane shot from an elevated moving vantage point",
+    "Dolly Zoom":
+      "Dolly zoom vertigo effect with compressed background perspective",
   };
 
-  const updateMood = (newMood: string) => {
-    setMood(newMood);
-    if (!prompt.toLowerCase().includes(newMood.toLowerCase())) {
-      const separator = prompt.trim()
-        ? prompt.trim().endsWith(".")
-          ? " "
-          : ". "
-        : "";
-      setPrompt((prev) => `${prev.trim()}${separator}${newMood}`);
-    }
+  const LENS_DESC: Record<string, string> = {
+    "Fish-eye 8mm":
+      "Fish-eye 8mm lens with extreme barrel distortion and exaggerated depth",
+    "Ultra Wide 14mm":
+      "Ultra wide 14mm lens with dramatic perspective and expansive field of view",
+    "Wide 24mm":
+      "Wide 24mm lens capturing broad scenes with slight perspective distortion",
+    "Cinematic 35mm":
+      "Cinematic 35mm lens with natural field of view and shallow depth of field",
+    "Standard 50mm": "Standard 50mm lens mimicking natural human vision",
+    "Portrait 85mm":
+      "Portrait 85mm lens with creamy bokeh background blur and subject isolation",
+    "Telephoto 135mm":
+      "Telephoto 135mm lens compressing depth and flattening perspective",
+    "Extreme Telephoto 200mm":
+      "Extreme telephoto 200mm with heavily compressed planes and intense subject isolation",
+    "Macro / Extreme Close-up":
+      "Macro extreme close-up revealing fine textures and tiny details",
+    "Tilt-Shift / Miniature":
+      "Tilt-shift miniature effect with selective focus making the scene look like a diorama",
+    "Anamorphic Widescreen":
+      "Anamorphic widescreen with horizontal lens flares and oval bokeh",
+  };
+
+  const MOOD_DESC: Record<string, string> = {
+    "Cyberpunk Neon":
+      "Drenched in neon pinks, blues, and purples with rain-slicked reflections",
+    "High Contrast Noir":
+      "High contrast noir with deep blacks, harsh shadows, and single-source dramatic lighting",
+    "Amber Glow":
+      "Warm amber glow with golden hour lighting casting long soft shadows",
+    "Sun-Kissed Tech":
+      "Bright sun-kissed lighting with clean whites and optimistic tech vibes",
+    "Cold Industrial":
+      "Cold industrial blue-grey tones with sterile fluorescent lighting",
+    "Warm Sunset":
+      "Warm sunset palette with rich oranges and deep magentas bleeding across the sky",
+    "Foggy / Atmospheric":
+      "Dense fog and atmospheric haze with diffused light and silhouetted shapes",
+    "Dark & Gritty":
+      "Dark and gritty with muted desaturated colors and grime textures",
+    "Bright & Cheerful":
+      "Bright and cheerful with vivid saturated colors and soft even lighting",
+    "Dramatic Shadows":
+      "Dramatic chiaroscuro with stark contrast between deep shadow and bright highlight",
+  };
+
+  const appendToPrompt = (desc: string) => {
+    if (!desc || prompt.includes(desc)) return;
+    const sep = prompt.trim() ? (prompt.trim().endsWith(".") ? " " : ". ") : "";
+    setPrompt((prev) => `${prev.trim()}${sep}${desc}.`);
+  };
+
+  const handleAngleChange = (val: string) => {
+    setCameraAngle(val);
+    if (val !== "None" && ANGLE_DESC[val]) appendToPrompt(ANGLE_DESC[val]);
+  };
+
+  const handleLensChange = (val: string) => {
+    setCameraLens(val);
+    if (val !== "None" && LENS_DESC[val]) appendToPrompt(LENS_DESC[val]);
+  };
+
+  const handleMoodChange = (val: string) => {
+    setMood(val);
+    if (val !== "None" && MOOD_DESC[val]) appendToPrompt(MOOD_DESC[val]);
   };
   const toggleChar = (id: string) => {
     const isSelecting = !selectedCharIds.includes(id);
@@ -383,23 +458,34 @@ const PanelCard = ({
               <RefreshCw size={10} /> Failed — Retry
             </button>
           )}
+          {image && !isQueued && !isQueueGenerating && !isFailed && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const link = document.createElement("a");
+                link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
+                link.href = image;
+                link.click();
+              }}
+              className="absolute top-2 right-2 md:top-4 md:right-4 bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg z-10 hover:text-primary hover:bg-background/90 transition-all"
+              title="Download panel image"
+            >
+              <Download size={14} />
+            </button>
+          )}
 
-          <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-30 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
             <button
               onClick={handleGenerate}
               disabled={isQueued || isQueueGenerating}
-              className="bg-primary panel-shaq-gradient text-background px-3 py-2 md:px-6 md:py-3 rounded-lg font-headline font-bold text-xs md:text-base flex items-center gap-1.5 md:gap-2 disabled:opacity-50 pointer-events-auto shadow-xl"
+              className="bg-primary/90 backdrop-blur-sm text-background px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-headline font-bold text-[10px] md:text-xs flex items-center gap-1 disabled:opacity-50 pointer-events-auto shadow-lg"
             >
               {isQueueGenerating ? (
-                <Loader2 size={16} className="animate-spin md:w-5 md:h-5" />
+                <Loader2 size={12} className="animate-spin" />
               ) : (
-                <Sparkles size={16} className="md:w-5 md:h-5" />
+                <Sparkles size={12} />
               )}
-              {isQueueGenerating
-                ? "GENERATING..."
-                : image
-                  ? "REGENERATE"
-                  : "GENERATE"}
+              {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
             </button>
           </div>
         </div>
@@ -460,7 +546,7 @@ const PanelCard = ({
               </label>
               <select
                 value={cameraAngle}
-                onChange={(e) => setCameraAngle(e.target.value)}
+                onChange={(e) => handleAngleChange(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
                 <option>None</option>
@@ -491,7 +577,7 @@ const PanelCard = ({
               </label>
               <select
                 value={cameraLens}
-                onChange={(e) => setCameraLens(e.target.value)}
+                onChange={(e) => handleLensChange(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
                 <option>None</option>
@@ -522,7 +608,7 @@ const PanelCard = ({
               </label>
               <select
                 value={mood}
-                onChange={(e) => setMood(e.target.value)}
+                onChange={(e) => handleMoodChange(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
                 <option>None</option>
@@ -739,13 +825,43 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     ]);
   };
 
+  const handleDownloadAll = () => {
+    panels
+      .filter((p) => p.image)
+      .forEach((panel, i) => {
+        const link = document.createElement("a");
+        link.download = `panel-${String(i + 1).padStart(2, "0")}.png`;
+        link.href = panel.image!;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+  };
+
   const handleGenerateAll = () => {
-    const panelIds = panels.filter((p) => !p.image).map((p) => p.id);
-    if (panelIds.length === 0) {
-      // All have images — regenerate all
-      setGenerationQueue(panels.map((p) => p.id));
+    const missing = panels.filter((p) => !p.image).map((p) => p.id);
+    const withImages = panels.filter((p) => p.image).length;
+
+    if (missing.length > 0 && withImages > 0) {
+      // Some have images, some don't — ask user
+      const choice = window.confirm(
+        `${withImages} of ${panels.length} panels already have images.\n\nOK = Generate only the ${missing.length} missing panels\nCancel = Abort`,
+      );
+      if (choice) {
+        setGenerationQueue(missing);
+      }
+    } else if (missing.length === 0) {
+      // All have images — confirm regenerate all
+      if (
+        window.confirm(
+          "All panels already have images. Regenerate everything? This will replace all current images.",
+        )
+      ) {
+        setGenerationQueue(panels.map((p) => p.id));
+      }
     } else {
-      setGenerationQueue(panelIds);
+      // None have images — just generate all
+      setGenerationQueue(missing);
     }
   };
 
@@ -868,7 +984,16 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             Panel Director
           </h2>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          {panels.some((p) => p.image) && (
+            <button
+              onClick={handleDownloadAll}
+              className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-accent/20 text-accent/60 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+            >
+              <Download size={16} />
+              DOWNLOAD ALL
+            </button>
+          )}
           {panels.length > 0 && (
             <>
               <button
