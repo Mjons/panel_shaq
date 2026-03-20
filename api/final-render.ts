@@ -135,10 +135,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ];
 
-    const models = [
-      "gemini-2.0-flash-preview-image-generation",
-      "gemini-2.0-flash",
-    ];
+    const models = ["gemini-3.1-pro-preview"];
 
     let lastError = "";
     for (const model of models) {
