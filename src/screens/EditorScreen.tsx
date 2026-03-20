@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useGesture } from "@use-gesture/react";
 import {
   MessageSquare,
@@ -27,6 +27,72 @@ import {
 import { Page, getTemplate } from "./LayoutScreen";
 import { toPng, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
+
+/* ── Gesture-enabled panel image ── */
+const PanelImage: React.FC<{
+  panel: PanelPrompt;
+  idx: number;
+  isSelected: boolean;
+  isExporting: boolean;
+  onSelect: (id: string) => void;
+  onTransform: (id: string, t: { x: number; y: number; scale: number }) => void;
+}> = ({ panel, idx, isSelected, isExporting, onSelect, onTransform }) => {
+  // Keep transform in a ref so gesture handlers always see latest values
+  // without causing re-renders mid-gesture
+  const transform = panel.imageTransform || { x: 0, y: 0, scale: 1 };
+  const tRef = useRef(transform);
+  tRef.current = transform;
+
+  const bind = useGesture(
+    {
+      onDrag: ({ delta: [dx, dy], tap, event }) => {
+        if (isExporting) return;
+        if (tap) {
+          onSelect(panel.id);
+          return;
+        }
+        event.preventDefault();
+        const t = tRef.current;
+        onTransform(panel.id, {
+          ...t,
+          x: t.x + dx / t.scale,
+          y: t.y + dy / t.scale,
+        });
+      },
+      onPinch: ({ offset: [s], event }) => {
+        if (isExporting) return;
+        event?.preventDefault();
+        const t = tRef.current;
+        onTransform(panel.id, { ...t, scale: Math.min(4.2, Math.max(0.5, s)) });
+      },
+    },
+    {
+      drag: { filterTaps: true, pointer: { touch: true } },
+      pinch: {
+        scaleBounds: { min: 0.5, max: 4.2 },
+        from: () => [tRef.current.scale, 0],
+      },
+    },
+  );
+
+  return (
+    <div
+      {...(!isExporting ? bind() : {})}
+      className="w-full h-full relative overflow-hidden touch-none"
+    >
+      <img
+        alt={`Panel ${idx + 1}`}
+        className={`w-full h-full object-contain select-none ${isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
+        src={panel.image}
+        draggable={false}
+        style={{
+          transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,
+          transformOrigin: "center",
+        }}
+      />
+    </div>
+  );
+};
 
 interface EditorProps {
   panels: PanelPrompt[];
@@ -346,84 +412,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
       setShouldCancelExport(false);
     }
   };
-
-  // Gesture-enabled panel image for pinch-to-zoom and drag-to-pan
-  const PanelImage = useCallback(
-    ({
-      panel,
-      idx,
-      isSelected,
-    }: {
-      panel: PanelPrompt;
-      idx: number;
-      isSelected: boolean;
-    }) => {
-      const transform = panel.imageTransform || { x: 0, y: 0, scale: 1 };
-      const gestureRef = useRef<HTMLDivElement>(null);
-
-      const bind = useGesture(
-        {
-          onDrag: ({ delta: [dx, dy], event, tap }) => {
-            if (isExporting) return;
-            if (tap) {
-              // Tap selects the panel
-              setSelectedPanelId(panel.id);
-              return;
-            }
-            // Auto-select on drag start
-            if (selectedPanelId !== panel.id) setSelectedPanelId(panel.id);
-            event.preventDefault();
-            updatePanel(panel.id, {
-              imageTransform: {
-                ...transform,
-                x: transform.x + dx / transform.scale,
-                y: transform.y + dy / transform.scale,
-              },
-            });
-          },
-          onPinch: ({ offset: [scale], event }) => {
-            if (isExporting) return;
-            if (selectedPanelId !== panel.id) setSelectedPanelId(panel.id);
-            event?.preventDefault();
-            const clamped = Math.min(4.2, Math.max(0.5, scale));
-            updatePanel(panel.id, {
-              imageTransform: { ...transform, scale: clamped },
-            });
-          },
-        },
-        {
-          drag: { filterTaps: true, pointer: { touch: true } },
-          pinch: {
-            scaleBounds: { min: 0.5, max: 4.2 },
-            from: () => [transform.scale, 0],
-          },
-        },
-      );
-
-      return (
-        <div
-          ref={gestureRef}
-          {...(!isExporting ? bind() : {})}
-          className="w-full h-full relative overflow-hidden touch-none"
-        >
-          <img
-            alt={`Panel ${idx + 1}`}
-            className={`w-full h-full object-contain transition-opacity select-none ${isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
-            src={panel.image}
-            draggable={false}
-            style={{
-              transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,
-              transformOrigin: "center",
-            }}
-          />
-          {isSelected && !isExporting && (
-            <div className="absolute inset-0 pointer-events-none border-2 border-primary z-30" />
-          )}
-        </div>
-      );
-    },
-    [isExporting, updatePanel],
-  );
 
   return (
     <main className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -885,7 +873,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`bg-black relative cursor-pointer border-2 transition-all overflow-hidden ${selectedPanelId === pid && !isExporting ? "border-primary" : "border-transparent"}`}
+                        className={`bg-black relative cursor-pointer transition-all overflow-hidden ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
                         style={
                           slot
                             ? {
@@ -900,6 +888,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             panel={panel}
                             idx={idx}
                             isSelected={selectedPanelId === pid}
+                            isExporting={isExporting}
+                            onSelect={setSelectedPanelId}
+                            onTransform={(id, t) =>
+                              updatePanel(id, { imageTransform: t })
+                            }
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-surface-container">
