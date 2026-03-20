@@ -1,18 +1,17 @@
-import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-
-const getAI = () => {
-  // Check settings first, then env vars
-  let settingsKey = "";
-  try {
-    const saved = localStorage.getItem("panelshaq_settings");
-    if (saved) settingsKey = JSON.parse(saved).geminiApiKey || "";
-  } catch {
-    /* ignore */
-  }
-  const key =
-    settingsKey || process.env.API_KEY || process.env.GEMINI_API_KEY || "";
-  return new GoogleGenAI({ apiKey: key });
-};
+async function compressImage(base64: string, quality = 0.8): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(base64); // fallback to original on error
+    img.src = base64;
+  });
+}
 
 export interface Bubble {
   id: string;
@@ -41,65 +40,45 @@ export interface PanelPrompt {
   imageTransform?: { x: number; y: number; scale: number };
 }
 
+export interface InsertionContext {
+  story: string;
+  previousPanel: PanelPrompt | null;
+  nextPanel: PanelPrompt | null;
+  allCharacters: { name: string; description?: string }[];
+  insertIndex: number;
+}
+
+async function apiPost<T>(endpoint: string, body: any): Promise<T> {
+  const res = await fetch(`/api/${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || `API error ${res.status}`);
+  }
+  return res.json();
+}
+
 export const generatePanelPrompts = async (
   story: string,
   characters: any[],
 ): Promise<PanelPrompt[]> => {
   if (!story.trim()) return [];
 
-  const charContext = characters
-    .map((c) => `${c.name}: ${c.description || "A character in the story"}`)
-    .join("\n");
-  const ai = getAI();
-
   try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: `Break down the following story into 4-6 distinct comic book panels. For each panel, provide a visual description, which character is the focus (if any), a suggested camera angle, and a suggested mood.
-
-Story:
-${story}
-
-Characters:
-${charContext}
-
-Return the result as a JSON array of objects.`,
-      config: {
-        systemInstruction:
-          "You are an expert comic book storyboard artist. You excel at breaking down narratives into compelling visual sequences.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              id: { type: Type.STRING },
-              description: {
-                type: Type.STRING,
-                description: "Detailed visual description of the panel",
-              },
-              characterFocus: {
-                type: Type.STRING,
-                description: "Name of the character in focus",
-              },
-              cameraAngle: { type: Type.STRING },
-              mood: { type: Type.STRING },
-            },
-            required: ["id", "description"],
-          },
-        },
-      },
+    const { panels } = await apiPost<{ panels: any[] }>("generate-panels", {
+      story,
+      characters,
     });
-
-    const text = response.text || "[]";
-    const rawPanels = JSON.parse(text);
-    return rawPanels.map((p: any) => ({
+    return panels.map((p: any) => ({
       ...p,
       bubbles: [],
       imageTransform: { x: 0, y: 0, scale: 1 },
     }));
   } catch (error) {
-    console.error("Gemini Panel Breakdown Error:", error);
+    console.error("Panel Breakdown Error:", error);
     return [];
   }
 };
@@ -107,19 +86,11 @@ Return the result as a JSON array of objects.`,
 export const polishStory = async (text: string): Promise<string> => {
   if (!text.trim()) return text;
 
-  const ai = getAI();
   try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: `Polish the following story segment to be more evocative and professional, maintaining a "Cyberpunk Noir" tone: \n\n${text}`,
-      config: {
-        systemInstruction:
-          "You are a world-class comic book writer specializing in Cyberpunk Noir. Your writing is punchy, atmospheric, and visually descriptive.",
-      },
-    });
-    return response.text || text;
+    const result = await apiPost<{ text: string }>("polish-story", { text });
+    return result.text || text;
   } catch (error) {
-    console.error("Gemini Polish Error:", error);
+    console.error("Polish Error:", error);
     return text;
   }
 };
@@ -133,170 +104,37 @@ export const generatePanelImage = async (
 ): Promise<string | null> => {
   if (!prompt.trim()) return null;
 
-  const ai = getAI();
   try {
-    const parts: any[] = [
-      {
-        text: `A cinematic comic book panel. 
-        ${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: You MUST strictly replicate the exact artistic style, brushwork, color palette, and line weight of the provided style reference image. The output should look like it was drawn by the same artist as the reference." : `Style: ${style}.`}
-        ${prompt.includes("Subject:") ? prompt : `Subject: ${prompt}.`}
-        CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image. The image should be pure artwork.
-        ${referenceImages && referenceImages.length > 0 ? "Ensure the characters in the panel match the provided character reference images." : ""}`,
-      },
-    ];
-
-    // Add style reference first if provided
-    if (styleReferenceImage) {
-      const match = styleReferenceImage.match(
-        /^data:(image\/\w+);base64,(.+)$/,
-      );
-      if (match) {
-        parts.push({
-          inlineData: {
-            mimeType: match[1],
-            data: match[2],
-          },
-        });
-      }
-    }
-
-    // Add character references
-    if (referenceImages && referenceImages.length > 0) {
-      referenceImages.forEach((ref) => {
-        const match = ref.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (match) {
-          parts.push({
-            inlineData: {
-              mimeType: match[1],
-              data: match[2],
-            },
-          });
-        }
-      });
-    }
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
-      contents: {
-        parts,
-      },
-      config: {
-        imageConfig: {
-          aspectRatio,
-          imageSize: "1K",
-        },
-      },
+    const result = await apiPost<{ image: string }>("generate-image", {
+      prompt,
+      style,
+      referenceImages,
+      styleReferenceImage,
+      aspectRatio,
     });
-
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
-    }
-    return null;
+    return result.image ? await compressImage(result.image) : null;
   } catch (error) {
-    console.error("Gemini Image Gen Error:", error);
+    console.error("Image Gen Error:", error);
     return null;
   }
 };
 
-export interface InsertionContext {
-  story: string;
-  previousPanel: PanelPrompt | null;
-  nextPanel: PanelPrompt | null;
-  allCharacters: { name: string; description?: string }[];
-  insertIndex: number;
-}
-
 export const generateInsertedPanelPrompt = async (
   context: InsertionContext,
 ): Promise<PanelPrompt | null> => {
-  const ai = getAI();
-
-  const charContext = context.allCharacters
-    .map((c) => `${c.name}: ${c.description || "A character in the story"}`)
-    .join("\n");
-
-  let neighborSection = "";
-
-  if (context.previousPanel) {
-    neighborSection += `
-PREVIOUS PANEL (Panel ${context.insertIndex}):
-- Description: ${context.previousPanel.description}
-- Character Focus: ${context.previousPanel.characterFocus || "None"}
-- Camera Angle: ${context.previousPanel.cameraAngle || "Cinematic 35mm"}
-- Mood: ${context.previousPanel.mood || "Cyberpunk Neon"}
-`;
-  } else {
-    neighborSection += `
-This panel will OPEN the comic. Set the scene and draw the reader in before the action of the next panel begins.
-`;
-  }
-
-  if (context.nextPanel) {
-    neighborSection += `
-NEXT PANEL (Panel ${context.insertIndex + 1}):
-- Description: ${context.nextPanel.description}
-- Character Focus: ${context.nextPanel.characterFocus || "None"}
-- Camera Angle: ${context.nextPanel.cameraAngle || "Cinematic 35mm"}
-- Mood: ${context.nextPanel.mood || "Cyberpunk Neon"}
-`;
-  } else {
-    neighborSection += `
-The story continues beyond the last panel. Create the next narrative beat that advances the plot.
-`;
-  }
-
   try {
-    const response: GenerateContentResponse = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: `You are a comic book director. Given a story and the surrounding panels, create a single new panel that fits naturally between them.
-
-STORY:
-${context.story}
-
-${neighborSection}
-
-AVAILABLE CHARACTERS:
-${charContext}
-
-Create a panel that bridges the narrative gap. Vary the camera angle from the neighbors for visual rhythm. Return JSON with: description, characterFocus, cameraAngle, mood.`,
-      config: {
-        systemInstruction:
-          "You are an expert comic book storyboard artist. You create compelling single panels that bridge narrative gaps seamlessly.",
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            description: {
-              type: Type.STRING,
-              description: "Detailed visual description of the panel",
-            },
-            characterFocus: {
-              type: Type.STRING,
-              description: "Name of the character in focus",
-            },
-            cameraAngle: { type: Type.STRING },
-            mood: { type: Type.STRING },
-          },
-          required: ["description"],
-        },
-      },
-    });
-
-    const text = response.text || "{}";
-    const raw = JSON.parse(text);
+    const { panel } = await apiPost<{ panel: any }>("insert-panel", context);
     return {
       id: crypto.randomUUID(),
-      description: raw.description || "",
-      characterFocus: raw.characterFocus,
-      cameraAngle: raw.cameraAngle,
-      mood: raw.mood,
+      description: panel.description || "",
+      characterFocus: panel.characterFocus,
+      cameraAngle: panel.cameraAngle,
+      mood: panel.mood,
       bubbles: [],
       imageTransform: { x: 0, y: 0, scale: 1 },
     };
   } catch (error) {
-    console.error("Gemini Insert Panel Error:", error);
+    console.error("Insert Panel Error:", error);
     return null;
   }
 };
@@ -305,60 +143,14 @@ export const finalNaturalRender = async (
   panelImage: string,
   bubbles: Bubble[],
 ): Promise<string | null> => {
-  const ai = getAI();
   try {
-    const match = panelImage.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (!match) return null;
-
-    const bubblesDesc = bubbles
-      .map((b, i) => {
-        const styleDesc = {
-          speech:
-            "a standard rounded speech bubble with a tail pointing to the speaker",
-          thought:
-            "a cloud-like thought bubble with small circles leading to the character",
-          action: "a jagged, explosive action bubble with bold, dynamic text",
-          effect:
-            "a stylized sound effect bubble integrated into the environment",
-        }[b.style];
-        return `Bubble ${i + 1}: ${styleDesc} containing the text: "${b.text}". Positioned at approximately ${b.pos.x}% from the left and ${b.pos.y}% from the top. Font size: ${b.fontSize}px, Style: ${b.fontWeight} ${b.fontStyle}.`;
-      })
-      .join("\n");
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: match[1],
-              data: match[2],
-            },
-          },
-          {
-            text: `Regenerate this comic panel image. Integrate the following bubbles naturally into the scene:
-            ${bubblesDesc}
-            The bubbles and text should look like they are part of the original hand-drawn or painted comic art, not a digital overlay. 
-            Maintain the original character likeness and scene composition.`,
-          },
-        ],
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: "16:9",
-          imageSize: "1K",
-        },
-      },
+    const result = await apiPost<{ image: string }>("final-render", {
+      panelImage,
+      bubbles,
     });
-
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
-    }
-    return null;
+    return result.image ? await compressImage(result.image) : null;
   } catch (error) {
-    console.error("Final Natural Render Error:", error);
+    console.error("Final Render Error:", error);
     return null;
   }
 };

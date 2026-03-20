@@ -1,17 +1,41 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
+import { useDrag } from "@use-gesture/react";
 import { TopNav, BottomNav } from "./components/Navigation";
-import { WorkshopScreen } from "./screens/WorkshopScreen";
-import { DirectorScreen } from "./screens/DirectorScreen";
-import { VaultScreen } from "./screens/VaultScreen";
-import { EditorScreen } from "./screens/EditorScreen";
-import { LayoutScreen, Page } from "./screens/LayoutScreen";
-import { SettingsScreen } from "./screens/SettingsScreen";
-import { ShareScreen } from "./screens/ShareScreen";
+import { LoadingSkeleton } from "./components/LoadingSkeleton";
 import { ProjectManager } from "./components/ProjectManager";
 import { PanelPrompt } from "./services/geminiService";
 import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
+import type { Page } from "./screens/LayoutScreen";
+
+const WorkshopScreen = React.lazy(() =>
+  import("./screens/WorkshopScreen").then((m) => ({
+    default: m.WorkshopScreen,
+  })),
+);
+const DirectorScreen = React.lazy(() =>
+  import("./screens/DirectorScreen").then((m) => ({
+    default: m.DirectorScreen,
+  })),
+);
+const VaultScreen = React.lazy(() =>
+  import("./screens/VaultScreen").then((m) => ({ default: m.VaultScreen })),
+);
+const EditorScreen = React.lazy(() =>
+  import("./screens/EditorScreen").then((m) => ({ default: m.EditorScreen })),
+);
+const LayoutScreen = React.lazy(() =>
+  import("./screens/LayoutScreen").then((m) => ({ default: m.LayoutScreen })),
+);
+const SettingsScreen = React.lazy(() =>
+  import("./screens/SettingsScreen").then((m) => ({
+    default: m.SettingsScreen,
+  })),
+);
+const ShareScreen = React.lazy(() =>
+  import("./screens/ShareScreen").then((m) => ({ default: m.ShareScreen })),
+);
 
 export interface Character {
   id: string;
@@ -251,6 +275,20 @@ export default function App() {
     }
   };
 
+  const TAB_ORDER = ["workshop", "director", "layout", "editor"];
+  const bindSwipe = useDrag(
+    ({ swipe: [swipeX] }) => {
+      if (swipeX === 0) return;
+      const currentIdx = TAB_ORDER.indexOf(activeTab);
+      if (currentIdx === -1) return;
+      const nextIdx = currentIdx - swipeX;
+      if (nextIdx >= 0 && nextIdx < TAB_ORDER.length) {
+        setActiveTab(TAB_ORDER[nextIdx]);
+      }
+    },
+    { axis: "x", swipe: { distance: 50, velocity: 0.3 } },
+  );
+
   return (
     <div className="min-h-screen bg-background selection:bg-primary/30">
       {/* Decorative Overlay */}
@@ -263,7 +301,13 @@ export default function App() {
         onTabChange={setActiveTab}
       />
 
-      <main className="relative z-10">{renderScreen()}</main>
+      <main
+        {...bindSwipe()}
+        className="relative z-10"
+        style={{ touchAction: "pan-y" }}
+      >
+        <Suspense fallback={<LoadingSkeleton />}>{renderScreen()}</Suspense>
+      </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 

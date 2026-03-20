@@ -6,12 +6,12 @@ import {
   ArrowRight,
   Sparkles,
   PlusCircle,
-  X,
   Upload,
   Trash2,
   Edit2,
 } from "lucide-react";
 import { usePersistedState } from "../hooks/usePersistedState";
+import { BottomSheet } from "../components/BottomSheet";
 
 export type VaultCategory = "Character" | "Environment" | "Prop" | "Vehicle";
 
@@ -374,188 +374,169 @@ export const VaultScreen = () => {
         </div>
       )}
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-background/80 backdrop-blur-md"
-            onClick={handleCloseModal}
-          ></div>
-          <div className="relative bg-surface-container border border-outline/20 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="sticky top-0 bg-surface-container/80 backdrop-blur-md p-6 border-b border-outline/10 flex justify-between items-center z-10">
-              <h3 className="font-headline text-2xl font-bold text-accent">
-                {editingEntry ? "Edit Entry" : "New Vault Entry"}
-              </h3>
-              <button
-                onClick={handleCloseModal}
-                className="p-2 hover:bg-accent/10 rounded-full transition-colors"
+      <BottomSheet
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingEntry ? "Edit Entry" : "New Vault Entry"}
+      >
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Image Upload */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block">
+                Entry Image
+              </label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="aspect-[4/5] bg-surface-container-highest rounded-xl border-2 border-dashed border-outline/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden relative group"
               >
-                <X size={24} className="text-accent" />
-              </button>
+                {formData.image ? (
+                  <>
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Upload size={32} className="text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={32} className="text-accent/20 mb-2" />
+                    <span className="text-xs text-accent/40">Upload Image</span>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageUpload}
+                className="hidden"
+                accept="image/*"
+              />
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block">
-                    Entry Image
-                  </label>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="aspect-[4/5] bg-surface-container-highest rounded-xl border-2 border-dashed border-outline/20 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors overflow-hidden relative group"
-                  >
-                    {formData.image ? (
-                      <>
-                        <img
-                          src={formData.image}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Upload size={32} className="text-white" />
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={32} className="text-accent/20 mb-2" />
-                        <span className="text-xs text-accent/40">
-                          Upload Image
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </div>
-
-                {/* Basic Info */}
-                <div className="space-y-6">
-                  <div>
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                      Category
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {["Character", "Environment", "Prop", "Vehicle"].map(
-                        (cat) => (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                type: cat as VaultCategory,
-                              }))
-                            }
-                            className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
-                              formData.type === cat
-                                ? "bg-primary text-background border-primary"
-                                : "bg-surface-container-highest text-accent/60 border-outline/10"
-                            }`}
-                          >
-                            {cat}
-                          </button>
-                        ),
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                      Name
-                    </label>
-                    <input
-                      required
-                      className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors"
-                      placeholder="e.g. Commander Vex"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                      Brief Description
-                    </label>
-                    <textarea
-                      required
-                      rows={3}
-                      className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
-                      placeholder="A short summary of this entry..."
-                      value={formData.description}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          description: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+            {/* Basic Info */}
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                  Category
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Character", "Environment", "Prop", "Vehicle"].map(
+                    (cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            type: cat as VaultCategory,
+                          }))
+                        }
+                        className={`py-2 px-3 rounded-lg text-xs font-bold border transition-all ${
+                          formData.type === cat
+                            ? "bg-primary text-background border-primary"
+                            : "bg-surface-container-highest text-accent/60 border-outline/10"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 
-              {/* Detailed Info */}
-              <div className="space-y-6 pt-6 border-t border-outline/10">
-                <div>
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                    Personality / Lore (Optional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
-                    placeholder="Describe their behavior, history, or purpose..."
-                    value={formData.personality}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        personality: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                    Visual Details (Optional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
-                    placeholder="Clothing, materials, lighting, distinct features..."
-                    value={formData.visualLook}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        visualLook: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                  Name
+                </label>
+                <input
+                  required
+                  className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors"
+                  placeholder="e.g. Commander Vex"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                />
               </div>
 
-              <div className="pt-6">
-                <button
-                  type="submit"
-                  disabled={!formData.name || !formData.image}
-                  className="w-full py-4 bg-primary text-background font-headline font-bold rounded-xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {editingEntry ? "Save Changes" : "Create Vault Entry"}
-                </button>
+              <div>
+                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                  Brief Description
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
+                  placeholder="A short summary of this entry..."
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                />
               </div>
-            </form>
+            </div>
           </div>
-        </div>
-      )}
+
+          {/* Detailed Info */}
+          <div className="space-y-6 pt-6 border-t border-outline/10">
+            <div>
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                Personality / Lore (Optional)
+              </label>
+              <textarea
+                rows={3}
+                className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
+                placeholder="Describe their behavior, history, or purpose..."
+                value={formData.personality}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    personality: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                Visual Details (Optional)
+              </label>
+              <textarea
+                rows={3}
+                className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
+                placeholder="Clothing, materials, lighting, distinct features..."
+                value={formData.visualLook}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    visualLook: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={!formData.name || !formData.image}
+              className="w-full py-4 bg-primary text-background font-headline font-bold rounded-xl shadow-lg active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {editingEntry ? "Save Changes" : "Create Vault Entry"}
+            </button>
+          </div>
+        </form>
+      </BottomSheet>
     </div>
   );
 };

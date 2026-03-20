@@ -30,7 +30,10 @@ export const TopNav = ({
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 bg-[#0B1326] border-b border-surface-container">
+      <header
+        className="fixed top-0 w-full z-50 bg-[#0B1326] border-b border-surface-container"
+        style={{ paddingTop: "var(--sat)" }}
+      >
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-4">
             <button
@@ -150,7 +153,10 @@ export const BottomNav = ({
 
   // Using Material Symbols for icons as seen in the screenshots
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-50">
+    <nav
+      className="bottom-nav fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-50"
+      style={{ bottom: "calc(var(--sab, 0px) + 1.5rem)" }}
+    >
       <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
         {tabs.map((tab) => (
           <button
