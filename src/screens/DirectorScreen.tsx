@@ -236,9 +236,19 @@ const PanelCard = ({
     }
   }, [styleReferenceImage, finalCharRefs.length]);
 
+  const getRegenWarning = () => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).showRegenWarnings !== false : true;
+    } catch {
+      return true;
+    }
+  };
+
   const handleGenerate = () => {
     if (
       panel.image &&
+      getRegenWarning() &&
       !window.confirm(
         "Regenerate this panel? The current image will be replaced.",
       )
@@ -875,26 +885,41 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
       });
   };
 
+  const shouldWarnRegen = () => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).showRegenWarnings !== false : true;
+    } catch {
+      return true;
+    }
+  };
+
   const handleGenerateAll = async () => {
     const missing = panels.filter((p) => !p.image).map((p) => p.id);
     const withImages = panels.filter((p) => p.image).length;
 
     if (missing.length > 0 && withImages > 0) {
-      const ok = await confirm({
-        title: "Generate Missing Panels",
-        message: `${withImages} of ${panels.length} panels already have images. Only the ${missing.length} missing panels will be generated.`,
-        confirmText: `Generate ${missing.length} Panels`,
-      });
-      if (ok) setGenerationQueue(missing);
+      if (shouldWarnRegen()) {
+        const ok = await confirm({
+          title: "Generate Missing Panels",
+          message: `${withImages} of ${panels.length} panels already have images. Only the ${missing.length} missing panels will be generated.`,
+          confirmText: `Generate ${missing.length} Panels`,
+        });
+        if (!ok) return;
+      }
+      setGenerationQueue(missing);
     } else if (missing.length === 0) {
-      const ok = await confirm({
-        title: "Regenerate Everything",
-        message:
-          "All panels already have images. This will replace every image with a new generation.",
-        confirmText: "Regenerate All",
-        danger: true,
-      });
-      if (ok) setGenerationQueue(panels.map((p) => p.id));
+      if (shouldWarnRegen()) {
+        const ok = await confirm({
+          title: "Regenerate Everything",
+          message:
+            "All panels already have images. This will replace every image with a new generation.",
+          confirmText: "Regenerate All",
+          danger: true,
+        });
+        if (!ok) return;
+      }
+      setGenerationQueue(panels.map((p) => p.id));
     } else {
       setGenerationQueue(missing);
     }

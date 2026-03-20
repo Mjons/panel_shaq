@@ -19,6 +19,8 @@ export interface AppSettings {
   autoSaveInterval: number;
   includePageNumbers: boolean;
   imageModel: "flash" | "pro";
+  showRegenWarnings: boolean;
+  showDataWarnings: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -28,6 +30,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoSaveInterval: 30000,
   includePageNumbers: false,
   imageModel: "flash",
+  showRegenWarnings: true,
+  showDataWarnings: true,
 };
 
 export const SettingsScreen = () => {
@@ -317,6 +321,40 @@ export const SettingsScreen = () => {
               <option value={60000}>Every 1 minute</option>
               <option value={300000}>Every 5 minutes</option>
             </select>
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg">
+            <div>
+              <span className="text-sm text-accent">Regeneration Warnings</span>
+              <p className="text-[10px] text-accent/30">
+                Confirm before replacing existing images
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.showRegenWarnings}
+              onChange={(e) =>
+                updateSetting("showRegenWarnings", e.target.checked)
+              }
+              className="accent-primary w-4 h-4"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg">
+            <div>
+              <span className="text-sm text-accent">Data Warnings</span>
+              <p className="text-[10px] text-accent/30">
+                Confirm before switching projects or clearing data
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.showDataWarnings}
+              onChange={(e) =>
+                updateSetting("showDataWarnings", e.target.checked)
+              }
+              className="accent-primary w-4 h-4"
+            />
           </div>
 
           <div className="space-y-2 pt-4 border-t border-outline/10">

@@ -307,8 +307,17 @@ function AppInner() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [saveCurrentProject]);
 
+  const shouldWarnData = () => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).showDataWarnings !== false : true;
+    } catch {
+      return true;
+    }
+  };
+
   const handleLoadProject = async (project: SavedProject) => {
-    if (panels.some((p) => p.image)) {
+    if (panels.some((p) => p.image) && shouldWarnData()) {
       const ok = await confirm({
         title: "Switch Project",
         message:
@@ -340,7 +349,7 @@ function AppInner() {
   };
 
   const handleCreateNew = async () => {
-    if (panels.some((p) => p.image)) {
+    if (panels.some((p) => p.image) && shouldWarnData()) {
       const ok = await confirm({
         title: "New Project",
         message:

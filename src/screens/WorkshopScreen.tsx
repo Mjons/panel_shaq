@@ -124,7 +124,15 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
     // Warn if panels with images already exist
     const panelsWithImages = panels.filter((p) => p.image).length;
-    if (panelsWithImages > 0) {
+    const shouldWarn = (() => {
+      try {
+        const s = localStorage.getItem("panelshaq_settings");
+        return s ? JSON.parse(s).showRegenWarnings !== false : true;
+      } catch {
+        return true;
+      }
+    })();
+    if (panelsWithImages > 0 && shouldWarn) {
       const ok = await confirm({
         title: "Replace Existing Panels",
         message: `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Creating new panels will replace them all. Download your images first if you want to keep them.`,
