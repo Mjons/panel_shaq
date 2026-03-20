@@ -1,6 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { resolveApiKey, createAI, friendlyError } from "./_utils";
 
+export const config = {
+  api: { bodyParser: { sizeLimit: "1mb" } },
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
