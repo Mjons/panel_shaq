@@ -29,6 +29,9 @@ import { toPng, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
 /* ── Gesture-enabled panel image ── */
+/* ── Gesture-enabled panel image ──
+   Applies transforms directly to the DOM during gestures for 60fps,
+   only commits to React state on gesture end. */
 const PanelImage: React.FC<{
   panel: PanelPrompt;
   idx: number;
@@ -37,15 +40,24 @@ const PanelImage: React.FC<{
   onSelect: (id: string) => void;
   onTransform: (id: string, t: { x: number; y: number; scale: number }) => void;
 }> = ({ panel, idx, isSelected, isExporting, onSelect, onTransform }) => {
-  // Keep transform in a ref so gesture handlers always see latest values
-  // without causing re-renders mid-gesture
-  const transform = panel.imageTransform || { x: 0, y: 0, scale: 1 };
-  const tRef = useRef(transform);
-  tRef.current = transform;
+  const initial = panel.imageTransform || { x: 0, y: 0, scale: 1 };
+  const imgRef = useRef<HTMLImageElement>(null);
+  const tRef = useRef({ ...initial });
+
+  // Sync ref when props change (e.g. slider adjustment)
+  useEffect(() => {
+    tRef.current = { ...initial };
+  }, [initial.x, initial.y, initial.scale]);
+
+  const applyTransform = () => {
+    if (!imgRef.current) return;
+    const { scale, x, y } = tRef.current;
+    imgRef.current.style.transform = `scale(${scale}) translate(${x}px, ${y}px)`;
+  };
 
   const bind = useGesture(
     {
-      onDrag: ({ delta: [dx, dy], tap, event }) => {
+      onDrag: ({ delta: [dx, dy], tap, event, last }) => {
         if (isExporting) return;
         if (tap) {
           onSelect(panel.id);
@@ -53,17 +65,17 @@ const PanelImage: React.FC<{
         }
         event.preventDefault();
         const t = tRef.current;
-        onTransform(panel.id, {
-          ...t,
-          x: t.x + dx / t.scale,
-          y: t.y + dy / t.scale,
-        });
+        t.x += dx / t.scale;
+        t.y += dy / t.scale;
+        applyTransform();
+        if (last) onTransform(panel.id, { ...t });
       },
-      onPinch: ({ offset: [s], event }) => {
+      onPinch: ({ offset: [s], event, last }) => {
         if (isExporting) return;
         event?.preventDefault();
-        const t = tRef.current;
-        onTransform(panel.id, { ...t, scale: Math.min(4.2, Math.max(0.5, s)) });
+        tRef.current.scale = Math.min(4.2, Math.max(0.5, s));
+        applyTransform();
+        if (last) onTransform(panel.id, { ...tRef.current });
       },
     },
     {
@@ -81,12 +93,13 @@ const PanelImage: React.FC<{
       className="w-full h-full relative overflow-hidden touch-none"
     >
       <img
+        ref={imgRef}
         alt={`Panel ${idx + 1}`}
-        className={`w-full h-full object-contain select-none ${isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
+        className={`w-full h-full object-contain select-none will-change-transform ${isSelected ? "opacity-100" : "opacity-90 hover:opacity-100"}`}
         src={panel.image}
         draggable={false}
         style={{
-          transform: `scale(${transform.scale}) translate(${transform.x}px, ${transform.y}px)`,
+          transform: `scale(${initial.scale}) translate(${initial.x}px, ${initial.y}px)`,
           transformOrigin: "center",
         }}
       />
