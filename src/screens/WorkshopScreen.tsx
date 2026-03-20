@@ -268,7 +268,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 Art Style
               </label>
             </div>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
               {[
                 { name: "Cartoon", desc: "Bold outlines • Bright colors" },
                 { name: "Manga", desc: "Japanese style • Dynamic lines" },
@@ -280,9 +280,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 <button
                   key={style.name}
                   onClick={() => setStyleReferenceImage(style.name)}
-                  className={`px-3 py-2 rounded-lg text-left border transition-all ${
+                  className={`min-h-[48px] px-3 py-3 rounded-xl text-left border transition-all active:scale-95 ${
                     styleReferenceImage === style.name
-                      ? "bg-primary text-background border-primary"
+                      ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
                       : !styleReferenceImage ||
                           [
                             "Cartoon",
@@ -296,13 +296,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         : "bg-background text-accent/40 border-outline/10"
                   }`}
                 >
-                  <span className="text-xs font-bold block">{style.name}</span>
-                  <span className="text-[8px] opacity-60">{style.desc}</span>
+                  <span className="text-sm font-bold block">{style.name}</span>
+                  <span className="text-[9px] opacity-60">{style.desc}</span>
                 </button>
               ))}
               <button
                 onClick={() => styleInputRef.current?.click()}
-                className={`px-3 py-2 rounded-lg text-left border transition-all ${
+                className={`min-h-[48px] px-3 py-3 rounded-xl text-left border transition-all active:scale-95 col-span-2 ${
                   styleReferenceImage &&
                   ![
                     "Cartoon",
@@ -312,14 +312,16 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                     "Watercolor",
                     "Pixel Art",
                   ].includes(styleReferenceImage)
-                    ? "bg-primary text-background border-primary"
+                    ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
                     : "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
                 }`}
               >
-                <span className="text-xs font-bold block flex items-center gap-1">
-                  <Upload size={10} /> Custom
+                <span className="text-sm font-bold block flex items-center gap-1.5">
+                  <Upload size={14} /> Custom Upload
                 </span>
-                <span className="text-[8px] opacity-60">Upload image</span>
+                <span className="text-[9px] opacity-60">
+                  Use your own reference image
+                </span>
               </button>
             </div>
             {styleReferenceImage &&
