@@ -38,6 +38,7 @@ export interface PanelPrompt {
   customReferenceImages?: string[];
   useStyleRef?: boolean;
   matchCharStyle?: boolean;
+  stylePriority?: "reference" | "artStyle";
   notes?: string;
   bubbles: Bubble[];
   imageTransform?: { x: number; y: number; scale: number };
@@ -263,14 +264,14 @@ export const finalNaturalRender = async (
 };
 
 export const analyzeCharacterImage = async (
-  imageBase64: string,
+  imageSrc: string,
 ): Promise<string> => {
   const prompt =
     "Describe this character's visual appearance for use as a reference in AI image generation. Focus ONLY on physical appearance: face shape, skin tone, hair, eye color, body type, clothing, accessories, tattoos, scars, and distinguishing features. Do NOT describe what they are doing, their pose, emotions, or the background. Be concise but specific. Write in a single paragraph, no bullet points.";
 
   try {
     const { text } = await apiPost<{ text: string }>("analyze-character", {
-      image: imageBase64,
+      image: imageSrc,
       prompt,
     });
     return text;

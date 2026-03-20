@@ -81,7 +81,7 @@ const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
     name: "Dev Guy",
     image: "/sample.png",
     description:
-      "A bald man with a thick scruffy brown beard, light skin, and an intense scowl. Wears a light blue t-shirt. Has blue tattoos on both forearms. Big ears, heavy brow, stocky build. Cartoon style with bold outlines.",
+      "A cute bald man with a brown beard, light skin. Wears a light blue t-shirt. Heavy brows. Cartoon round style with bold outlines.",
   },
 ];
 

@@ -210,114 +210,24 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
   return (
     <div className="pt-28 px-6 max-w-5xl mx-auto pb-32">
-      <section className="mb-12">
+      <section className="mb-8">
         <input
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className="bg-transparent border-none outline-none font-headline text-5xl md:text-7xl font-bold text-accent tracking-tighter mb-3 w-full placeholder:text-accent/20"
+          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/20"
           placeholder="Untitled Project"
         />
-        <p className="text-accent/60 font-body text-lg max-w-2xl leading-relaxed">
-          Craft the narrative spark that will ignite your visual journey.
-        </p>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Writing Area */}
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="bg-surface-container rounded-lg p-0.5 shadow-xl border border-outline/20">
-            <div className="bg-background rounded-lg p-6 min-h-[450px] flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <label className="font-headline text-xs uppercase tracking-[0.2em] text-secondary flex items-center gap-2 font-bold">
-                  <Edit3 size={18} className="text-secondary" />
-                  Writing Studio
-                </label>
-                <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
-                  {story.length} / 2000 Characters
-                </span>
-              </div>
-              {/* Character Tag Bar */}
-              {characters.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10">
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/30 mr-1">
-                    Cast:
-                  </span>
-                  {getCharacterMentions().map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() =>
-                        !c.mentioned && insertCharacterName(c.name)
-                      }
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
-                        c.mentioned
-                          ? "bg-primary/20 text-primary border border-primary/30"
-                          : "bg-surface-container text-accent/40 border border-outline/10 hover:border-primary/30 hover:text-accent/70 active:scale-95 cursor-pointer"
-                      }`}
-                      title={
-                        c.mentioned
-                          ? `"${c.name}" found in story`
-                          : `Tap to insert "${c.name}"`
-                      }
-                    >
-                      {c.image &&
-                        ![
-                          "Cartoon",
-                          "Manga",
-                          "Comic Book",
-                          "Realistic",
-                          "Watercolor",
-                          "Pixel Art",
-                        ].includes(c.image) && (
-                          <img
-                            src={c.image}
-                            alt=""
-                            className="w-4 h-4 rounded-full object-cover"
-                          />
-                        )}
-                      {c.name}
-                      {c.mentioned && (
-                        <span className="text-[8px] opacity-60">✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <textarea
-                ref={textareaRef}
-                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-lg leading-relaxed resize-none placeholder:text-accent/20 outline-none"
-                placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
-                value={story}
-                onChange={(e) => setStory(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-3 px-2">
-            <button
-              onClick={handlePolish}
-              disabled={isPolishing || !story.trim()}
-              className="bg-surface px-5 py-2.5 rounded-lg border border-primary/20 flex items-center gap-3 hover:bg-primary/10 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPolishing ? (
-                <Loader2 size={18} className="text-primary animate-spin" />
-              ) : (
-                <Sparkles size={18} className="text-primary" />
-              )}
-              <span className="text-xs font-bold uppercase tracking-widest text-accent">
-                AI Polish
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Right Column: Sidebar */}
-        <aside className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-surface-container p-6 rounded-lg border-t-2 border-primary shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
+        {/* Characters + Style + Generate — shown first on mobile, right on desktop */}
+        <aside className="lg:col-span-4 lg:order-2 order-first flex flex-col gap-6 w-full">
+          {/* STEP 1: Characters */}
+          <div className="bg-surface-container p-5 rounded-lg border-t-2 border-primary shadow-2xl">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
-                Characters
+                <span className="text-primary">1.</span> Characters
               </h3>
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -326,6 +236,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 <PlusCircle size={24} />
               </button>
             </div>
+            <p className="text-[10px] text-accent/40 mb-4">
+              Upload character images. Tap to edit name and description. These
+              will be used as references during generation.
+            </p>
             <div className="grid grid-cols-2 gap-4">
               <AnimatePresence>
                 {characters.map((char) => (
@@ -404,13 +318,18 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             />
           </div>
 
+          {/* STEP 2: Art Style */}
           <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
-            <div className="flex items-center justify-between mb-4">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40">
-                Art Style
-              </label>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
+                <span className="text-primary">2.</span> Art Style
+              </h3>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <p className="text-[10px] text-accent/40 mb-3">
+              Pick a preset or upload a reference image. Add style notes to
+              fine-tune.
+            </p>
+            <div className="grid grid-cols-3 gap-2 mb-3">
               {[
                 { name: "Cartoon", desc: "Bold outlines • Bright colors" },
                 { name: "Manga", desc: "Japanese style • Dynamic lines" },
@@ -520,31 +439,117 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               accept="image/*"
             />
           </div>
-
-          <div className="mt-2">
-            <button
-              onClick={handleGeneratePanels}
-              disabled={isGeneratingPanels || !story.trim()}
-              className="panel-shaq-gradient w-full py-5 rounded-lg flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,145,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,145,0,0.4)] transition-all active:scale-95 disabled:opacity-50"
-            >
-              <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
-                {isGeneratingPanels ? "Generating..." : "Generate Panels"}
-              </span>
-              {isGeneratingPanels ? (
-                <Loader2 size={24} className="text-background animate-spin" />
-              ) : (
-                <ArrowRight
-                  size={24}
-                  className="text-background group-hover:translate-x-2 transition-transform"
-                />
-              )}
-            </button>
-            <p className="text-center mt-4 text-[10px] text-accent/40 font-bold uppercase tracking-[0.25em]">
-              Estimated: {Math.ceil(story.split(" ").length / 50) || 4} Story
-              Panels
-            </p>
-          </div>
         </aside>
+
+        {/* STEP 3: Story — shown after characters+style on mobile, left on desktop */}
+        <div className="lg:col-span-8 lg:order-1 order-2 flex flex-col gap-4 w-full">
+          <div className="bg-surface-container rounded-lg p-0.5 shadow-xl border border-outline/20">
+            <div className="bg-background rounded-lg p-5 min-h-[300px] lg:min-h-[450px] flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
+                  <span className="text-primary">3.</span> Story
+                </h3>
+                <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
+                  {story.length} / 2000
+                </span>
+              </div>
+              <p className="text-[10px] text-accent/40 mb-3">
+                Write your story. Mention character names to link them. Tap a
+                character tag below to insert their name.
+              </p>
+              {/* Character Tag Bar */}
+              {characters.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/30 mr-1">
+                    Cast:
+                  </span>
+                  {getCharacterMentions().map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() =>
+                        !c.mentioned && insertCharacterName(c.name)
+                      }
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
+                        c.mentioned
+                          ? "bg-primary/20 text-primary border border-primary/30"
+                          : "bg-surface-container text-accent/40 border border-outline/10 hover:border-primary/30 hover:text-accent/70 active:scale-95 cursor-pointer"
+                      }`}
+                      title={
+                        c.mentioned
+                          ? `"${c.name}" found in story`
+                          : `Tap to insert "${c.name}"`
+                      }
+                    >
+                      {c.image &&
+                        ![
+                          "Cartoon",
+                          "Manga",
+                          "Comic Book",
+                          "Realistic",
+                          "Watercolor",
+                          "Pixel Art",
+                        ].includes(c.image) && (
+                          <img
+                            src={c.image}
+                            alt=""
+                            className="w-4 h-4 rounded-full object-cover"
+                          />
+                        )}
+                      {c.name}
+                      {c.mentioned && (
+                        <span className="text-[8px] opacity-60">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <textarea
+                ref={textareaRef}
+                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-base leading-relaxed resize-none placeholder:text-accent/20 outline-none"
+                placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
+                value={story}
+                onChange={(e) => setStory(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* STEP 4: Polish + Generate */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handlePolish}
+              disabled={isPolishing || !story.trim()}
+              className="bg-surface px-5 py-2.5 rounded-lg border border-primary/20 flex items-center gap-3 hover:bg-primary/10 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPolishing ? (
+                <Loader2 size={18} className="text-primary animate-spin" />
+              ) : (
+                <Sparkles size={18} className="text-primary" />
+              )}
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">
+                <span className="text-primary">4.</span> AI Polish
+              </span>
+            </button>
+          </div>
+
+          <button
+            onClick={handleGeneratePanels}
+            disabled={isGeneratingPanels || !story.trim()}
+            className="panel-shaq-gradient w-full py-5 rounded-lg flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,145,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,145,0,0.4)] transition-all active:scale-95 disabled:opacity-50"
+          >
+            <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
+              {isGeneratingPanels ? "Generating..." : "5. Generate Panels"}
+            </span>
+            {isGeneratingPanels ? (
+              <Loader2 size={24} className="text-background animate-spin" />
+            ) : (
+              <ArrowRight
+                size={24}
+                className="text-background group-hover:translate-x-2 transition-transform"
+              />
+            )}
+          </button>
+        </div>
       </div>
       <AnimatePresence>
         {editingCharacter && (
@@ -601,33 +606,32 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                     <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
                       Appearance & Role
                     </label>
-                    {editingCharacter.image &&
-                      editingCharacter.image.startsWith("data:image/") && (
-                        <button
-                          onClick={async () => {
-                            setIsAnalyzing(true);
-                            const description = await analyzeCharacterImage(
-                              editingCharacter.image,
-                            );
-                            if (description) {
-                              setEditingCharacter({
-                                ...editingCharacter,
-                                description,
-                              });
-                            }
-                            setIsAnalyzing(false);
-                          }}
-                          disabled={isAnalyzing}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/20 hover:bg-primary/10 transition-all text-[10px] font-bold uppercase tracking-widest text-primary disabled:opacity-50"
-                        >
-                          {isAnalyzing ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            <Sparkles size={12} />
-                          )}
-                          {isAnalyzing ? "Analyzing..." : "Auto-Describe"}
-                        </button>
-                      )}
+                    {editingCharacter.image && editingCharacter.image && (
+                      <button
+                        onClick={async () => {
+                          setIsAnalyzing(true);
+                          const description = await analyzeCharacterImage(
+                            editingCharacter.image,
+                          );
+                          if (description) {
+                            setEditingCharacter({
+                              ...editingCharacter,
+                              description,
+                            });
+                          }
+                          setIsAnalyzing(false);
+                        }}
+                        disabled={isAnalyzing}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/20 hover:bg-primary/10 transition-all text-[10px] font-bold uppercase tracking-widest text-primary disabled:opacity-50"
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={12} />
+                        )}
+                        {isAnalyzing ? "Analyzing..." : "Auto-Describe"}
+                      </button>
+                    )}
                   </div>
                   <textarea
                     value={editingCharacter.description}
