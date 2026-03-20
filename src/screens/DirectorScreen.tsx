@@ -194,6 +194,7 @@ const PanelCard = ({
 }) => {
   const [prompt, setPrompt] = useState(panel.description);
   const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
+  const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
   const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
   const [artStyle, setArtStyle] = useState(panel.artStyle || "Cartoon");
@@ -235,6 +236,7 @@ const PanelCard = ({
       ...panel,
       description: prompt,
       cameraAngle,
+      cameraLens,
       mood,
       aspectRatio,
       artStyle,
@@ -346,9 +348,9 @@ const PanelCard = ({
             </div>
           )}
 
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
-            <div className="bg-background/80 backdrop-blur-md px-3 py-1 rounded-lg border border-outline/20">
-              <span className="font-label text-[10px] text-primary uppercase font-bold tracking-widest">
+          <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1">
+            <div className="bg-background/80 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-lg border border-outline/20">
+              <span className="font-label text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-widest">
                 Panel {String(index + 1).padStart(2, "0")}
               </span>
             </div>
@@ -382,22 +384,22 @@ const PanelCard = ({
             </button>
           )}
 
-          <div className="absolute inset-0 flex items-center justify-center opacity-40 lg:opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-100 transition-opacity pointer-events-none">
             <button
               onClick={handleGenerate}
               disabled={isQueued || isQueueGenerating}
-              className="bg-primary panel-shaq-gradient text-background px-6 py-3 rounded-lg font-headline font-bold flex items-center gap-2 disabled:opacity-50 pointer-events-auto shadow-xl"
+              className="bg-primary panel-shaq-gradient text-background px-3 py-2 md:px-6 md:py-3 rounded-lg font-headline font-bold text-xs md:text-base flex items-center gap-1.5 md:gap-2 disabled:opacity-50 pointer-events-auto shadow-xl"
             >
               {isQueueGenerating ? (
-                <Loader2 size={20} className="animate-spin" />
+                <Loader2 size={16} className="animate-spin md:w-5 md:h-5" />
               ) : (
-                <Sparkles size={20} />
+                <Sparkles size={16} className="md:w-5 md:h-5" />
               )}
               {isQueueGenerating
                 ? "GENERATING..."
                 : image
                   ? "REGENERATE"
-                  : "GENERATE IMAGE"}
+                  : "GENERATE"}
             </button>
           </div>
         </div>
@@ -451,22 +453,67 @@ const PanelCard = ({
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="space-y-1">
               <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
                 Camera Angle
               </label>
               <select
                 value={cameraAngle}
-                onChange={(e) => updateCameraAngle(e.target.value)}
+                onChange={(e) => setCameraAngle(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
                 <option>None</option>
-                <option>Ultra Wide 14mm</option>
-                <option>Cinematic 35mm</option>
-                <option>Portrait 85mm</option>
-                <option>Low Angle</option>
-                <option>Bird's Eye</option>
+                <optgroup label="Height">
+                  <option>Eye Level</option>
+                  <option>Low Angle</option>
+                  <option>High Angle</option>
+                  <option>Bird's Eye</option>
+                  <option>Worm's Eye</option>
+                </optgroup>
+                <optgroup label="Position">
+                  <option>Over the Shoulder</option>
+                  <option>Dutch Angle</option>
+                  <option>POV / First Person</option>
+                  <option>Three-Quarter View</option>
+                  <option>Profile / Side View</option>
+                </optgroup>
+                <optgroup label="Movement">
+                  <option>Tracking Shot</option>
+                  <option>Crane Shot</option>
+                  <option>Dolly Zoom</option>
+                </optgroup>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                Camera Lens
+              </label>
+              <select
+                value={cameraLens}
+                onChange={(e) => setCameraLens(e.target.value)}
+                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+              >
+                <option>None</option>
+                <optgroup label="Wide">
+                  <option>Fish-eye 8mm</option>
+                  <option>Ultra Wide 14mm</option>
+                  <option>Wide 24mm</option>
+                </optgroup>
+                <optgroup label="Standard">
+                  <option>Cinematic 35mm</option>
+                  <option>Standard 50mm</option>
+                </optgroup>
+                <optgroup label="Telephoto">
+                  <option>Portrait 85mm</option>
+                  <option>Telephoto 135mm</option>
+                  <option>Extreme Telephoto 200mm</option>
+                </optgroup>
+                <optgroup label="Special">
+                  <option>Macro / Extreme Close-up</option>
+                  <option>Tilt-Shift / Miniature</option>
+                  <option>Anamorphic Widescreen</option>
+                </optgroup>
               </select>
             </div>
             <div className="space-y-1">
@@ -475,7 +522,7 @@ const PanelCard = ({
               </label>
               <select
                 value={mood}
-                onChange={(e) => updateMood(e.target.value)}
+                onChange={(e) => setMood(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
                 <option>None</option>
@@ -484,6 +531,11 @@ const PanelCard = ({
                 <option>Amber Glow</option>
                 <option>Sun-Kissed Tech</option>
                 <option>Cold Industrial</option>
+                <option>Warm Sunset</option>
+                <option>Foggy / Atmospheric</option>
+                <option>Dark & Gritty</option>
+                <option>Bright & Cheerful</option>
+                <option>Dramatic Shadows</option>
               </select>
             </div>
             <div className="space-y-1">
@@ -719,10 +771,12 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         const selectedChars = characters.filter((c) =>
           (panelSnapshot.selectedCharacterIds || []).includes(c.id),
         );
-        const charRefs = [
+        // Only include base64 images — URLs can't be sent as inline data to Gemini
+        const allRefs = [
           ...(panelSnapshot.customReferenceImages || []),
           ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
         ];
+        const charRefs = allRefs.filter((r) => r.startsWith("data:image/"));
         const characterContext = selectedChars
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join(". ");
@@ -731,6 +785,10 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         const cameraStr =
           panelSnapshot.cameraAngle && panelSnapshot.cameraAngle !== "None"
             ? panelSnapshot.cameraAngle
+            : "";
+        const lensStr =
+          panelSnapshot.cameraLens && panelSnapshot.cameraLens !== "None"
+            ? panelSnapshot.cameraLens
             : "";
         const moodStr =
           panelSnapshot.mood && panelSnapshot.mood !== "None"
@@ -742,20 +800,29 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
           ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+          ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
           ${moodStr ? `Mood: ${moodStr}.` : ""}
         `.trim();
 
         const styleParts = [
           artStyleStr,
           cameraStr,
+          lensStr,
           moodStr,
           "Heavy Inks",
           "High Contrast",
         ].filter(Boolean);
         const style = styleParts.join(", ");
+
+        // Only use styleReferenceImage if it's an actual base64 image, not an art style name
+        const isBase64Image = (s: string) => s.startsWith("data:image/");
         const effectiveStyleRef =
           panelSnapshot.useStyleRef !== false
-            ? styleReferenceImage || charRefs[0] || undefined
+            ? (styleReferenceImage && isBase64Image(styleReferenceImage)
+                ? styleReferenceImage
+                : undefined) ||
+              charRefs.find(isBase64Image) ||
+              undefined
             : undefined;
 
         const imageUrl = await generatePanelImage(

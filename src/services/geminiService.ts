@@ -29,6 +29,7 @@ export interface PanelPrompt {
   description: string;
   characterFocus?: string;
   cameraAngle?: string;
+  cameraLens?: string;
   mood?: string;
   aspectRatio?: string;
   artStyle?: string;
