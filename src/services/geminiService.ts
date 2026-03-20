@@ -89,40 +89,11 @@ function getUserApiKey(): string {
   return "";
 }
 
-function getImageModel(): string {
-  try {
-    const saved = localStorage.getItem("panelshaq_settings");
-    if (saved) {
-      const pref = JSON.parse(saved).imageModel;
-      if (pref === "pro") return "gemini-3-pro-image-preview";
-    }
-  } catch {
-    /* ignore */
-  }
-  return "gemini-3.1-flash-image-preview";
-}
-
-// Direct Gemini client for BYOK / local dev fallback
-async function getDirectAI() {
-  const { GoogleGenAI } = await import("@google/genai");
-  const key = getUserApiKey();
-  if (!key) throw new Error("No API key configured. Add one in Settings.");
-  return new GoogleGenAI({ apiKey: key });
-}
-
-// Track whether the serverless proxy is available
-let _proxyAvailable: boolean | null = null;
-
 async function apiPost<T>(
   endpoint: string,
   body: any,
   timeoutMs: number = DEFAULT_TIMEOUT,
 ): Promise<T> {
-  // If we already know proxy is down, skip it
-  if (_proxyAvailable === false) {
-    throw new Error("proxy-unavailable");
-  }
-
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -144,15 +115,10 @@ async function apiPost<T>(
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (res.status === 404) {
-      _proxyAvailable = false;
-      throw new Error("proxy-unavailable");
-    }
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(err.error || `API error ${res.status}`);
     }
-    _proxyAvailable = true;
     return res.json();
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -183,48 +149,7 @@ export const generatePanelPrompts = async (
       characters: lightChars,
     });
     return panels.map(hydratePanel);
-  } catch (error: any) {
-    if (error?.message === "proxy-unavailable") {
-      // Direct Gemini fallback
-      try {
-        const ai = await getDirectAI();
-        const { Type } = await import("@google/genai");
-        const charContext = (characters || [])
-          .map(
-            (c: any) =>
-              `${c.name}: ${c.description || "A character in the story"}`,
-          )
-          .join("\n");
-        const response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-lite-preview",
-          contents: `Break down the following story into 4-6 distinct comic book panels. For each panel, provide a visual description, which character is the focus (if any), a suggested camera angle, and a suggested mood.\n\nStory:\n${story}\n\nCharacters:\n${charContext}\n\nReturn the result as a JSON array of objects.`,
-          config: {
-            systemInstruction:
-              "You are an expert comic book storyboard artist. You excel at breaking down narratives into compelling visual sequences.",
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  characterFocus: { type: Type.STRING },
-                  cameraAngle: { type: Type.STRING },
-                  mood: { type: Type.STRING },
-                },
-                required: ["id", "description"],
-              },
-            },
-          },
-        });
-        const panels = JSON.parse(response.text || "[]");
-        return panels.map(hydratePanel);
-      } catch (directError) {
-        notifyError("Panel generation failed", directError);
-        return [];
-      }
-    }
+  } catch (error) {
     notifyError("Panel generation failed", error);
     return [];
   }
@@ -242,30 +167,7 @@ export const polishStory = async (
       characters,
     });
     return result.text || text;
-  } catch (error: any) {
-    if (error?.message === "proxy-unavailable") {
-      try {
-        const charContext = (characters || [])
-          .map((c) => `${c.name}: ${c.description || "A character"}`)
-          .join("\n");
-        const charNote = charContext
-          ? `\n\nCAST (preserve these names and descriptions exactly):\n${charContext}`
-          : "";
-        const ai = await getDirectAI();
-        const response = await ai.models.generateContent({
-          model: "gemini-3.1-flash-lite-preview",
-          contents: `Polish the following story segment to be more evocative and professional, maintaining a cinematic tone.${charNote}\n\nSTORY:\n${text}`,
-          config: {
-            systemInstruction:
-              "You are a world-class comic book writer. Your writing is punchy, atmospheric, and visually descriptive. Keep all character names and references intact.",
-          },
-        });
-        return response.text || text;
-      } catch (directError) {
-        notifyError("Story polish failed", directError);
-        return text;
-      }
-    }
+  } catch (error) {
     notifyError("Story polish failed", error);
     return text;
   }
@@ -295,75 +197,7 @@ export const generatePanelImage = async (
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;
-  } catch (error: any) {
-    if (error?.message === "proxy-unavailable") {
-      try {
-        const ai = await getDirectAI();
-
-        // Convert URL images to base64 for inline data
-        const toBase64 = async (
-          src: string,
-        ): Promise<{ mimeType: string; data: string } | null> => {
-          // Already base64
-          const b64Match = src.match(/^data:(image\/\w+);base64,(.+)$/);
-          if (b64Match) return { mimeType: b64Match[1], data: b64Match[2] };
-          // URL — fetch and convert
-          try {
-            const resp = await fetch(src);
-            const blob = await resp.blob();
-            return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                const result = (reader.result as string).match(
-                  /^data:(image\/\w+);base64,(.+)$/,
-                );
-                resolve(
-                  result ? { mimeType: result[1], data: result[2] } : null,
-                );
-              };
-              reader.readAsDataURL(blob);
-            });
-          } catch {
-            return null;
-          }
-        };
-
-        const hasCharRefs = referenceImages && referenceImages.length > 0;
-        const parts: any[] = [
-          {
-            text: `${styleReferenceImage ? `A comic panel with ${aspectRatio} aspect ratio.\nMANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style — line work, coloring, shading, proportions, level of detail, and overall aesthetic. If the reference is cartoony, the output MUST be cartoony. If it is realistic, the output MUST be realistic. Do NOT default to any other style. The output MUST look like it was drawn by the same artist as the reference.` : `A cinematic comic book panel with ${aspectRatio} aspect ratio.\nStyle: ${style}.`}${styleNotes ? `\nStyle notes: ${styleNotes}.` : ""}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
-          },
-        ];
-        if (styleReferenceImage) {
-          const imgData = await toBase64(styleReferenceImage);
-          if (imgData) parts.push({ inlineData: imgData });
-        }
-        if (referenceImages) {
-          for (const ref of referenceImages) {
-            const imgData = await toBase64(ref);
-            if (imgData) parts.push({ inlineData: imgData });
-          }
-        }
-        const response = await ai.models.generateContent({
-          model: getImageModel(),
-          contents: { parts },
-          config: {
-            responseModalities: ["IMAGE", "TEXT"],
-            imageConfig: { aspectRatio, imageSize: "1K" },
-          },
-        });
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-          if (part.inlineData) {
-            const img = `data:image/png;base64,${part.inlineData.data}`;
-            return await compressImage(img);
-          }
-        }
-        return null;
-      } catch (directError) {
-        notifyError("Image generation failed", directError);
-        return null;
-      }
-    }
+  } catch (error) {
     notifyError("Image generation failed", error);
     return null;
   }
@@ -400,10 +234,8 @@ export const generateInsertedPanelPrompt = async (
       cameraAngle: panel.cameraAngle,
       mood: panel.mood,
     });
-  } catch (error: any) {
-    if (error?.message !== "proxy-unavailable") {
-      notifyError("Panel insertion failed", error);
-    }
+  } catch (error) {
+    notifyError("Panel insertion failed", error);
     return null;
   }
 };
@@ -419,42 +251,7 @@ export const finalNaturalRender = async (
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;
-  } catch (error: any) {
-    if (error?.message === "proxy-unavailable") {
-      try {
-        const ai = await getDirectAI();
-        const match = panelImage.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (!match) return null;
-        const bubblesDesc = bubbles
-          .map(
-            (b, i) =>
-              `Bubble ${i + 1}: ${b.style} bubble containing "${b.text}" at ${b.pos.x}%/${b.pos.y}%.`,
-          )
-          .join("\n");
-        const response = await ai.models.generateContent({
-          model: getImageModel(),
-          contents: {
-            parts: [
-              { inlineData: { mimeType: match[1], data: match[2] } },
-              {
-                text: `Regenerate this comic panel with integrated dialogue:\n${bubblesDesc}\nMaintain original scene composition.`,
-              },
-            ],
-          },
-          config: { responseModalities: ["IMAGE", "TEXT"] },
-        });
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-          if (part.inlineData) {
-            const img = `data:image/png;base64,${part.inlineData.data}`;
-            return await compressImage(img);
-          }
-        }
-        return null;
-      } catch (directError) {
-        notifyError("Final render failed", directError);
-        return null;
-      }
-    }
+  } catch (error) {
     notifyError("Final render failed", error);
     return null;
   }
@@ -472,27 +269,7 @@ export const analyzeCharacterImage = async (
       prompt,
     });
     return text;
-  } catch (error: any) {
-    if (error?.message === "proxy-unavailable") {
-      try {
-        const ai = await getDirectAI();
-        const match = imageBase64.match(/^data:(image\/\w+);base64,(.+)$/);
-        if (!match) throw new Error("Invalid image data");
-        const response = await ai.models.generateContent({
-          model: "gemini-2.0-flash",
-          contents: {
-            parts: [
-              { inlineData: { mimeType: match[1], data: match[2] } },
-              { text: prompt },
-            ],
-          },
-        });
-        return response.text || "";
-      } catch (directError) {
-        notifyError("Character analysis failed", directError);
-        return "";
-      }
-    }
+  } catch (error) {
     notifyError("Character analysis failed", error);
     return "";
   }
