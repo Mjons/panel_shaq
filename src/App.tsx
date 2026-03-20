@@ -129,6 +129,9 @@ function AppInner() {
   const setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>> =
     setRawPanels;
   const [pages, setPages] = usePersistedState<Page[]>("panelshaq_pages", []);
+  const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
+    string | null
+  >("panelshaq_style_ref", null);
 
   // One-time migration: merge old vault (localStorage) into unified vault entries
   useEffect(() => {
@@ -372,6 +375,8 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
+            styleReferenceImage={styleReferenceImage}
+            setStyleReferenceImage={setStyleReferenceImage}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );
@@ -417,6 +422,8 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
+            styleReferenceImage={styleReferenceImage}
+            setStyleReferenceImage={setStyleReferenceImage}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );

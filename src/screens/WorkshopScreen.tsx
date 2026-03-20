@@ -8,6 +8,7 @@ import {
   Loader2,
   X,
   Upload,
+  Palette,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -28,6 +29,8 @@ interface WorkshopProps {
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   panels: PanelPrompt[];
   setPanels: (panels: PanelPrompt[]) => void;
+  styleReferenceImage: string | null;
+  setStyleReferenceImage: (img: string | null) => void;
   onGenerateSuccess: () => void;
 }
 
@@ -40,6 +43,8 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   setCharacters,
   panels,
   setPanels,
+  styleReferenceImage,
+  setStyleReferenceImage,
   onGenerateSuccess,
 }) => {
   const { confirm } = useConfirm();
@@ -268,13 +273,59 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             />
           </div>
 
-          {/* Style info */}
+          {/* STEP 2: Style */}
           <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
-            <p className="text-[10px] text-accent/40 leading-relaxed">
-              The art style of your comic is determined by your character
-              reference images. Upload characters in the style you want your
-              comic to be.
+            <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight mb-2">
+              <span className="text-primary">2.</span> Style
+            </h3>
+            <p className="text-[10px] text-accent/40 mb-3">
+              Tap the palette icon on a character to set it as the art style
+              reference. Your comic will match that image's look.
             </p>
+            {characters.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {characters.map((char) => {
+                  const isStyleRef = styleReferenceImage === char.image;
+                  return (
+                    <button
+                      key={char.id}
+                      onClick={() =>
+                        setStyleReferenceImage(isStyleRef ? null : char.image)
+                      }
+                      className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                        isStyleRef
+                          ? "border-primary shadow-[0_0_10px_rgba(255,145,0,0.4)]"
+                          : "border-outline/20 opacity-50 hover:opacity-100"
+                      }`}
+                    >
+                      <img
+                        src={char.image}
+                        className="w-full h-full object-cover"
+                        alt={char.name}
+                      />
+                      {isStyleRef && (
+                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                          <Palette
+                            size={16}
+                            className="text-primary drop-shadow-lg"
+                          />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-[10px] text-accent/25 italic">
+                Upload characters in step 1 first
+              </p>
+            )}
+            {styleReferenceImage && (
+              <p className="text-[9px] text-primary/60 mt-2 font-bold">
+                Style reference set — all panels will match this image's art
+                style
+              </p>
+            )}
           </div>
         </aside>
 
@@ -284,7 +335,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             <div className="bg-background rounded-lg p-5 min-h-[300px] lg:min-h-[450px] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
-                  <span className="text-primary">2.</span> Story
+                  <span className="text-primary">3.</span> Story
                 </h3>
                 <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
                   {story.length} / 2000
@@ -364,7 +415,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 <Sparkles size={18} className="text-primary" />
               )}
               <span className="text-xs font-bold uppercase tracking-widest text-accent">
-                <span className="text-primary">3.</span> Polish
+                <span className="text-primary">4.</span> Polish
               </span>
             </button>
             <p className="text-[10px] text-accent/40 leading-relaxed">
@@ -379,7 +430,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             className="panel-shaq-gradient w-full py-5 rounded-lg flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,145,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,145,0,0.4)] transition-all active:scale-95 disabled:opacity-50"
           >
             <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
-              {isGeneratingPanels ? "Generating..." : "4. Generate Panels"}
+              {isGeneratingPanels ? "Generating..." : "5. Generate Panels"}
             </span>
             {isGeneratingPanels ? (
               <Loader2 size={24} className="text-background animate-spin" />
