@@ -59,7 +59,9 @@ async function checkUsage(
   const userId = (req.headers["x-user-id"] as string) || "";
   if (!userId) return null;
 
-  const supabase = createClient(url, key);
+  const supabase = createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   const today = new Date().toISOString().split("T")[0];
   const col = type === "image" ? "image_generations" : "text_generations";
   const limit = type === "image" ? LIMITS.image : LIMITS.text;

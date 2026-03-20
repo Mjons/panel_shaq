@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (supabaseUrl && supabaseKey) {
     try {
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabase = createClient(supabaseUrl, supabaseKey, { auth: { autoRefreshToken: false, persistSession: false } });
       const { error } = await supabase.from("usage").insert({
         user_id: "00000000-0000-0000-0000-000000000000",
         date: new Date().toISOString().split("T")[0],
