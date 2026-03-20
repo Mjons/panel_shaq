@@ -191,11 +191,10 @@ const PanelCard = ({
   key?: string | number;
 }) => {
   const [prompt, setPrompt] = useState(panel.description);
-  const [cameraAngle, setCameraAngle] = useState(
-    panel.cameraAngle || "Cinematic 35mm",
-  );
-  const [mood, setMood] = useState(panel.mood || "Cyberpunk Neon");
+  const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
+  const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
+  const [artStyle, setArtStyle] = useState(panel.artStyle || "Cartoon");
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds || [],
   );
@@ -236,6 +235,7 @@ const PanelCard = ({
       cameraAngle,
       mood,
       aspectRatio,
+      artStyle,
       selectedCharacterIds: selectedCharIds,
       customReferenceImages: customCharRefs,
       useStyleRef,
@@ -420,8 +420,12 @@ const PanelCard = ({
                 ? selectedChars.map((c) => c.name).join(", ")
                 : "None selected"}
               <br />
-              <span className="text-primary font-bold">Style:</span>{" "}
-              {cameraAngle} • {mood}
+              <span className="text-primary font-bold">Art Style:</span>{" "}
+              {useStyleRef && styleReferenceImage
+                ? "Custom Reference"
+                : artStyle}
+              {cameraAngle !== "None" && <> • {cameraAngle}</>}
+              {mood !== "None" && <> • {mood}</>}
             </div>
             {selectedChars.length > 0 && (
               <div className="pt-1 border-t border-primary/5">
@@ -430,6 +434,87 @@ const PanelCard = ({
                   generation.
                 </p>
               </div>
+            )}
+          </div>
+
+          {/* Art Style */}
+          <div className="space-y-2">
+            <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+              Art Style
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Cartoon",
+                "Manga",
+                "Comic Book",
+                "Realistic",
+                "Watercolor",
+                "Pixel Art",
+              ].map((style) => (
+                <button
+                  key={style}
+                  type="button"
+                  onClick={() => {
+                    setArtStyle(style);
+                    setUseStyleRef(false);
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                    artStyle === style && !useStyleRef
+                      ? "bg-primary text-background border-primary"
+                      : "bg-background text-accent/50 border-outline/20 hover:border-primary/50"
+                  }`}
+                >
+                  {style}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border transition-all ${
+                  useStyleRef && styleReferenceImage
+                    ? "bg-primary text-background border-primary"
+                    : "bg-background text-accent/50 border-outline/20 hover:border-primary/50"
+                }`}
+              >
+                {useStyleRef && styleReferenceImage
+                  ? "Custom Ref ✓"
+                  : "+ Custom Image"}
+              </button>
+            </div>
+            {useStyleRef && styleReferenceImage && (
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-10 h-10 rounded-md overflow-hidden border border-primary">
+                  <img
+                    src={styleReferenceImage}
+                    alt="Style ref"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    setUseStyleRef(false);
+                    setStyleReferenceImage(null);
+                  }}
+                  className="text-[9px] text-red-500 font-bold uppercase tracking-widest hover:opacity-80"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+            {image && (
+              <button
+                onClick={() => {
+                  setStyleReferenceImage(
+                    styleReferenceImage === image ? null : image,
+                  );
+                  setUseStyleRef(styleReferenceImage !== image);
+                }}
+                className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded transition-colors ${styleReferenceImage === image ? "bg-primary text-background" : "text-primary hover:bg-primary/10"}`}
+              >
+                {styleReferenceImage === image
+                  ? "Panel is Style Ref ✓"
+                  : "Use This Panel as Style Ref"}
+              </button>
             )}
           </div>
 
@@ -443,6 +528,7 @@ const PanelCard = ({
                 onChange={(e) => updateCameraAngle(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
+                <option>None</option>
                 <option>Ultra Wide 14mm</option>
                 <option>Cinematic 35mm</option>
                 <option>Portrait 85mm</option>
@@ -459,6 +545,7 @@ const PanelCard = ({
                 onChange={(e) => updateMood(e.target.value)}
                 className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
               >
+                <option>None</option>
                 <option>Cyberpunk Neon</option>
                 <option>High Contrast Noir</option>
                 <option>Amber Glow</option>
@@ -482,44 +569,6 @@ const PanelCard = ({
                 <option value="3:4">3:4 Tall</option>
               </select>
             </div>
-          </div>
-
-          {/* Style Reference Toggle */}
-          <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg border border-outline/5">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id={`style-ref-${panel.id}`}
-                checked={useStyleRef}
-                onChange={(e) => setUseStyleRef(e.target.checked)}
-                disabled={!styleReferenceImage && finalCharRefs.length === 0}
-                className="accent-primary"
-              />
-              <label
-                htmlFor={`style-ref-${panel.id}`}
-                className={`text-[10px] font-bold uppercase tracking-widest ${!styleReferenceImage && finalCharRefs.length === 0 ? "text-accent/20" : "text-accent/60"}`}
-              >
-                {styleReferenceImage
-                  ? "Same style as reference"
-                  : finalCharRefs.length > 0
-                    ? "Style from characters"
-                    : "Same style as reference"}
-              </label>
-            </div>
-            {image && (
-              <button
-                onClick={() =>
-                  setStyleReferenceImage(
-                    styleReferenceImage === image ? null : image,
-                  )
-                }
-                className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded transition-colors ${styleReferenceImage === image ? "bg-primary text-background" : "text-primary hover:bg-primary/10"}`}
-              >
-                {styleReferenceImage === image
-                  ? "Reference Set"
-                  : "Set as Reference"}
-              </button>
-            )}
           </div>
 
           {/* Character Reference Selection */}
@@ -728,14 +777,32 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join(". ");
 
+        const artStyleStr = panelSnapshot.artStyle || "Cartoon";
+        const cameraStr =
+          panelSnapshot.cameraAngle && panelSnapshot.cameraAngle !== "None"
+            ? panelSnapshot.cameraAngle
+            : "";
+        const moodStr =
+          panelSnapshot.mood && panelSnapshot.mood !== "None"
+            ? panelSnapshot.mood
+            : "";
+
         const finalPrompt = `
+          Art Style: ${artStyleStr}.
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
-          Camera Angle: ${panelSnapshot.cameraAngle || "Cinematic 35mm"}.
-          Mood: ${panelSnapshot.mood || "Cyberpunk Neon"}.
+          ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+          ${moodStr ? `Mood: ${moodStr}.` : ""}
         `.trim();
 
-        const style = `${panelSnapshot.cameraAngle || "Cinematic 35mm"}, ${panelSnapshot.mood || "Cyberpunk Neon"}, Heavy Inks, High Contrast`;
+        const styleParts = [
+          artStyleStr,
+          cameraStr,
+          moodStr,
+          "Heavy Inks",
+          "High Contrast",
+        ].filter(Boolean);
+        const style = styleParts.join(", ");
         const effectiveStyleRef =
           panelSnapshot.useStyleRef !== false
             ? styleReferenceImage || charRefs[0] || undefined

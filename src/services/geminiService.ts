@@ -32,6 +32,7 @@ export interface PanelPrompt {
   cameraAngle?: string;
   mood?: string;
   aspectRatio?: string;
+  artStyle?: string;
   image?: string;
   selectedCharacterIds?: string[];
   customReferenceImages?: string[];
