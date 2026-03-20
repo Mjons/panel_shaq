@@ -352,7 +352,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-1 left-1 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
