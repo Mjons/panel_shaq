@@ -279,25 +279,49 @@ export const generatePanelImage = async (
     if (error?.message === "proxy-unavailable") {
       try {
         const ai = await getDirectAI();
+
+        // Convert URL images to base64 for inline data
+        const toBase64 = async (
+          src: string,
+        ): Promise<{ mimeType: string; data: string } | null> => {
+          // Already base64
+          const b64Match = src.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (b64Match) return { mimeType: b64Match[1], data: b64Match[2] };
+          // URL — fetch and convert
+          try {
+            const resp = await fetch(src);
+            const blob = await resp.blob();
+            return new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const result = (reader.result as string).match(
+                  /^data:(image\/\w+);base64,(.+)$/,
+                );
+                resolve(
+                  result ? { mimeType: result[1], data: result[2] } : null,
+                );
+              };
+              reader.readAsDataURL(blob);
+            });
+          } catch {
+            return null;
+          }
+        };
+
+        const hasCharRefs = referenceImages && referenceImages.length > 0;
         const parts: any[] = [
           {
-            text: `A cinematic comic book panel.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: Replicate the exact artistic style of the provided reference." : `Style: ${style}.`}\n${prompt}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
+            text: `A cinematic comic book panel.\n${styleReferenceImage ? "MANDATORY STYLE ADHERENCE: Replicate the exact artistic style of the provided reference." : `Style: ${style}.`}\n${prompt}\n${hasCharRefs ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}\nCRITICAL: Do NOT include any speech bubbles or text in the image.`,
           },
         ];
         if (styleReferenceImage) {
-          const match = styleReferenceImage.match(
-            /^data:(image\/\w+);base64,(.+)$/,
-          );
-          if (match)
-            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          const imgData = await toBase64(styleReferenceImage);
+          if (imgData) parts.push({ inlineData: imgData });
         }
         if (referenceImages) {
           for (const ref of referenceImages) {
-            const match = ref.match(/^data:(image\/\w+);base64,(.+)$/);
-            if (match)
-              parts.push({
-                inlineData: { mimeType: match[1], data: match[2] },
-              });
+            const imgData = await toBase64(ref);
+            if (imgData) parts.push({ inlineData: imgData });
           }
         }
         const response = await ai.models.generateContent({
