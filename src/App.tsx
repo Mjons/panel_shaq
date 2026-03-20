@@ -129,13 +129,6 @@ function AppInner() {
   const setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>> =
     setRawPanels;
   const [pages, setPages] = usePersistedState<Page[]>("panelshaq_pages", []);
-  const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
-    string | null
-  >("panelshaq_style_ref", "Cartoon");
-  const [styleNotes, setStyleNotes] = usePersistedState(
-    "panelshaq_style_notes",
-    "",
-  );
 
   // One-time migration: merge old vault (localStorage) into unified vault entries
   useEffect(() => {
@@ -284,19 +277,8 @@ function AppInner() {
       vaultEntries,
       panels,
       pages,
-      styleReferenceImage,
-      styleNotes,
     });
-  }, [
-    currentProjectId,
-    projectName,
-    story,
-    vaultEntries,
-    panels,
-    pages,
-    styleReferenceImage,
-    styleNotes,
-  ]);
+  }, [currentProjectId, projectName, story, vaultEntries, panels, pages]);
 
   // Auto-save on interval
   useEffect(() => {
@@ -354,8 +336,6 @@ function AppInner() {
     }
     setPanels(project.panels);
     setPages(project.pages);
-    setStyleReferenceImage(project.styleReferenceImage);
-    setStyleNotes(project.styleNotes || "");
     setActiveTab("workshop");
   };
 
@@ -375,8 +355,6 @@ function AppInner() {
     setStory("");
     setPanels([]);
     setPages([]);
-    setStyleReferenceImage("Cartoon");
-    setStyleNotes("");
     setActiveTab("workshop");
     setVaultEntries(DEFAULT_VAULT_ENTRIES);
   };
@@ -394,10 +372,6 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            styleReferenceImage={styleReferenceImage}
-            setStyleReferenceImage={setStyleReferenceImage}
-            styleNotes={styleNotes}
-            setStyleNotes={setStyleNotes}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );
@@ -408,9 +382,6 @@ function AppInner() {
             setPanels={setPanels}
             characters={characters}
             story={story}
-            styleReferenceImage={styleReferenceImage}
-            setStyleReferenceImage={setStyleReferenceImage}
-            styleNotes={styleNotes}
             onContinue={() => setActiveTab("layout")}
           />
         );
@@ -446,10 +417,6 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            styleReferenceImage={styleReferenceImage}
-            setStyleReferenceImage={setStyleReferenceImage}
-            styleNotes={styleNotes}
-            setStyleNotes={setStyleNotes}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );

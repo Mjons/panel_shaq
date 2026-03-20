@@ -7,7 +7,6 @@ import {
   Loader2,
   Upload,
   X,
-  Palette,
   Plus,
   Check,
   ChevronDown,
@@ -29,9 +28,6 @@ interface DirectorProps {
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   characters: Character[];
   story: string;
-  styleReferenceImage: string | null;
-  setStyleReferenceImage: (img: string | null) => void;
-  styleNotes?: string;
   onContinue: () => void;
 }
 
@@ -178,8 +174,6 @@ const PanelCard = ({
   characters,
   index,
   onUpdatePanel,
-  styleReferenceImage,
-  setStyleReferenceImage,
   isQueued,
   isQueueGenerating,
   isFailed,
@@ -190,8 +184,6 @@ const PanelCard = ({
   characters: Character[];
   index: number;
   onUpdatePanel: (updated: PanelPrompt) => void;
-  styleReferenceImage: string | null;
-  setStyleReferenceImage: (img: string | null) => void;
   isQueued?: boolean;
   isQueueGenerating?: boolean;
   isFailed?: boolean;
@@ -204,18 +196,8 @@ const PanelCard = ({
   const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
   const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
-  const [artStyle, setArtStyle] = useState(panel.artStyle || "Cartoon");
-  const [stylePriority, setStylePriority] = useState<"reference" | "artStyle">(
-    panel.stylePriority || "reference",
-  );
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds ?? characters.map((c) => c.id),
-  );
-  const [useStyleRef, setUseStyleRef] = useState(
-    panel.useStyleRef !== undefined ? panel.useStyleRef : !!styleReferenceImage,
-  );
-  const [matchCharStyle, setMatchCharStyle] = useState(
-    panel.matchCharStyle ?? false,
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [customCharRefs, setCustomCharRefs] = useState<string[]>(
@@ -230,18 +212,6 @@ const PanelCard = ({
     ...customCharRefs,
     ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
   ];
-
-  useEffect(() => {
-    // If a style reference or character reference becomes available,
-    // and the user hasn't explicitly disabled it, enable it.
-    if (
-      (styleReferenceImage || finalCharRefs.length > 0) &&
-      !useStyleRef &&
-      panel.useStyleRef === undefined
-    ) {
-      setUseStyleRef(true);
-    }
-  }, [styleReferenceImage, finalCharRefs.length]);
 
   const getRegenWarning = () => {
     try {
@@ -269,12 +239,8 @@ const PanelCard = ({
       cameraLens,
       mood,
       aspectRatio,
-      artStyle,
       selectedCharacterIds: selectedCharIds,
       customReferenceImages: customCharRefs,
-      useStyleRef,
-      matchCharStyle,
-      stylePriority,
     });
     // Add to the shared generation queue
     onQueueGenerate(panel.id);
@@ -454,14 +420,6 @@ const PanelCard = ({
                 Panel {String(index + 1).padStart(2, "0")}
               </span>
             </div>
-            {styleReferenceImage === image && image && (
-              <div className="bg-primary/90 backdrop-blur-md px-2 py-0.5 rounded-md border border-primary/20 flex items-center gap-1">
-                <Sparkles size={8} className="text-background" />
-                <span className="font-label text-[8px] text-background uppercase font-bold tracking-widest">
-                  Style Ref
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Queue status badges */}
@@ -499,7 +457,7 @@ const PanelCard = ({
             </button>
           )}
 
-          <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-30 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+          <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
             <button
               onClick={handleGenerate}
               disabled={isQueued || isQueueGenerating}
@@ -546,14 +504,6 @@ const PanelCard = ({
               {selectedChars.length > 0
                 ? selectedChars.map((c) => c.name).join(", ")
                 : "None selected"}
-              <br />
-              <span className="text-primary font-bold">Art Style:</span>{" "}
-              {matchCharStyle &&
-              (selectedCharIds.length > 0 || customCharRefs.length > 0)
-                ? "From Character Refs"
-                : useStyleRef && styleReferenceImage
-                  ? "Custom Reference"
-                  : artStyle}
               {cameraAngle !== "None" && <> • {cameraAngle}</>}
               {mood !== "None" && <> • {mood}</>}
             </div>
@@ -670,40 +620,6 @@ const PanelCard = ({
             </div>
           </div>
 
-          {/* Style Priority Toggle */}
-          <div className="p-3 bg-background/30 rounded-lg border border-outline/5 space-y-2">
-            <p className="text-[9px] font-label text-accent/40 uppercase tracking-widest font-bold">
-              Generation Priority
-            </p>
-            <div className="flex rounded-lg overflow-hidden border border-outline/20">
-              <button
-                onClick={() => setStylePriority("reference")}
-                className={`flex-1 py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  stylePriority === "reference"
-                    ? "bg-primary text-background"
-                    : "bg-background text-accent/50 hover:text-accent"
-                }`}
-              >
-                Character Look
-              </button>
-              <button
-                onClick={() => setStylePriority("artStyle")}
-                className={`flex-1 py-2 px-3 text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  stylePriority === "artStyle"
-                    ? "bg-primary text-background"
-                    : "bg-background text-accent/50 hover:text-accent"
-                }`}
-              >
-                Art Style
-              </button>
-            </div>
-            <p className="text-[8px] text-accent/30 leading-relaxed">
-              {stylePriority === "reference"
-                ? "Reference images will guide character appearance and art style. The art style dropdown is used as a hint."
-                : "The art style dropdown fully controls the visual style. Characters are described by text only — no reference images sent."}
-            </p>
-          </div>
-
           {/* Character Reference Selection */}
           <div className="space-y-3 p-3 bg-background/30 rounded-lg border border-outline/5">
             <div className="flex items-center justify-between">
@@ -759,18 +675,6 @@ const PanelCard = ({
                   >
                     {c.name}
                   </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setStyleReferenceImage(
-                        styleReferenceImage === c.image ? null : c.image,
-                      );
-                    }}
-                    className={`absolute top-0 -left-1 p-1 rounded-full border border-outline/20 transition-all opacity-0 group-hover/char:opacity-100 ${styleReferenceImage === c.image ? "bg-primary text-background scale-110" : "bg-background text-accent hover:text-primary"}`}
-                    title="Set as Style Reference"
-                  >
-                    <Palette size={8} />
-                  </button>
                 </div>
               ))}
 
@@ -799,32 +703,6 @@ const PanelCard = ({
                 </div>
               )}
             </div>
-
-            {(selectedCharIds.length > 0 || customCharRefs.length > 0) && (
-              <button
-                onClick={() => setMatchCharStyle(!matchCharStyle)}
-                className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-widest transition-all ${
-                  matchCharStyle
-                    ? "bg-primary/15 border-primary/40 text-primary"
-                    : "bg-transparent border-outline/15 text-accent/35 hover:border-primary/20 hover:text-accent/50"
-                }`}
-              >
-                <div
-                  className={`w-3 h-3 rounded-sm border transition-all flex items-center justify-center ${
-                    matchCharStyle
-                      ? "bg-primary border-primary"
-                      : "border-accent/30"
-                  }`}
-                >
-                  {matchCharStyle && (
-                    <span className="text-background text-[8px] leading-none">
-                      ✓
-                    </span>
-                  )}
-                </div>
-                Match character art style
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -837,9 +715,6 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   setPanels,
   characters,
   story,
-  styleReferenceImage,
-  setStyleReferenceImage,
-  styleNotes,
   onContinue,
 }) => {
   const { confirm } = useConfirm();
@@ -1003,7 +878,6 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join(". ");
 
-        const artStyleStr = panelSnapshot.artStyle || "Cartoon";
         const cameraStr =
           panelSnapshot.cameraAngle && panelSnapshot.cameraAngle !== "None"
             ? panelSnapshot.cameraAngle
@@ -1017,107 +891,22 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             ? panelSnapshot.mood
             : "";
 
-        const isBase64Image = (s: string) => s.startsWith("data:image/");
-        const prioritizesArtStyle = panelSnapshot.stylePriority === "artStyle";
-        const notesStr = styleNotes?.trim() || "";
-
-        // When "Art Style" priority: no reference images, text descriptions only
-        // When "Character Look" priority: send reference images, style follows them
-        let effectiveCharRefs = charRefs;
-        let effectiveStyleRef: string | undefined;
-        let finalPrompt: string;
-
-        // Rich art style enforcement descriptions
-        const ART_STYLE_ENFORCE: Record<string, string> = {
-          Cartoon:
-            "Bold black outlines, flat bright colors, simplified shapes, exaggerated proportions, clean vector-like rendering. Think Cartoon Network / adult swim style.",
-          Manga:
-            "Japanese manga style with screentone shading, speed lines, large expressive eyes, sharp angular features, black and white with high contrast ink work.",
-          "Comic Book":
-            "Western comic book style with heavy ink outlines, halftone dot shading, dynamic poses, bold shadows, cel-shaded coloring like Marvel/DC comics.",
-          Realistic:
-            "Photorealistic rendering with accurate proportions, detailed textures, natural lighting, film-quality cinematography, no stylization.",
-          Watercolor:
-            "Soft watercolor washes with visible brush strokes, bleeding edges, translucent color layers, paper texture, painterly and organic feel.",
-          "Pixel Art":
-            "Retro pixel art with visible blocky pixels, extremely limited color palette (max 16 colors), no anti-aliasing, sharp pixel edges, 8-bit / 16-bit video game aesthetic. Every element must be clearly pixelated.",
-          Noir: "Film noir style with extreme high contrast black and white, dramatic shadows, venetian blind lighting, grain texture, 1940s detective aesthetic.",
-          Anime:
-            "Modern anime style with large detailed eyes, soft shading gradients, vibrant hair colors, clean line art, dynamic action poses, Japanese animation aesthetic.",
-          Chibi:
-            "Super-deformed chibi style with oversized heads (3:1 head-to-body ratio), tiny bodies, minimal detail, extremely cute and round proportions.",
-          Sketch:
-            "Rough pencil sketch style with visible construction lines, crosshatching for shadows, unfinished edges, graphite texture on paper.",
-        };
-
-        const styleEnforce =
-          ART_STYLE_ENFORCE[artStyleStr] ||
-          `${artStyleStr} art style applied consistently to every element.`;
-
-        if (prioritizesArtStyle) {
-          // Art Style mode: NO images sent, full text control, aggressive style enforcement
-          effectiveCharRefs = [];
-          effectiveStyleRef = undefined;
-
-          finalPrompt = `
-            MANDATORY ART STYLE — THIS OVERRIDES EVERYTHING:
-            Render this ENTIRELY in ${artStyleStr} style: ${styleEnforce}
-            Every single element — characters, backgrounds, props — MUST be rendered in this style. Do NOT use any other art style.
-
-            ${notesStr ? `Style notes: ${notesStr}.` : ""}
-            Subject: ${panelSnapshot.description}.
-            Characters (render from description, in ${artStyleStr} style): ${characterContext}.
-            ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
-            ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
-            ${moodStr ? `Mood: ${moodStr}.` : ""}
-            ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
-            CRITICAL: Do NOT include any speech bubbles or text. Do NOT deviate from ${artStyleStr} style.
-          `.trim();
-        } else {
-          // Character Look mode: send reference images, style follows references
-          const wantsCharStyle = panelSnapshot.matchCharStyle === true;
-          effectiveStyleRef =
-            panelSnapshot.useStyleRef !== false
-              ? (wantsCharStyle && charRefs.find(isBase64Image)) ||
-                (styleReferenceImage && isBase64Image(styleReferenceImage)
-                  ? styleReferenceImage
-                  : undefined) ||
-                charRefs.find(isBase64Image) ||
-                undefined
-              : undefined;
-
-          const hasCustomStyleRef = !!effectiveStyleRef;
-
-          finalPrompt = `
-            ${hasCustomStyleRef ? `Art style hint: ${artStyleStr}. But primarily match the visual style of the attached reference image.` : `Art Style: ${styleEnforce}`}
-            ${notesStr ? `Style notes: ${notesStr}.` : ""}
-            Subject: ${panelSnapshot.description}.
-            Characters present: ${characterContext}.
-            ${hasCustomStyleRef ? "IMPORTANT: The attached reference image defines the art style. Match its line work, coloring, and aesthetic." : ""}
-            ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
-            ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
-            ${moodStr ? `Mood: ${moodStr}.` : ""}
-            ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
-            CRITICAL: Do NOT include any speech bubbles or text in the image.
-          `.trim();
-        }
-
-        const styleParts = [
-          artStyleStr,
-          cameraStr,
-          lensStr,
-          moodStr,
-          notesStr,
-        ].filter(Boolean);
-        const style = styleParts.join(", ");
+        const finalPrompt = `
+          A cinematic comic book panel.
+          Subject: ${panelSnapshot.description}.
+          Characters present: ${characterContext}.
+          ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
+          ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
+          ${moodStr ? `Mood: ${moodStr}.` : ""}
+          ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
+          ${charRefs.length > 0 ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached character reference images. The output must look like it belongs in the same comic as the references." : ""}
+          CRITICAL: Do NOT include any speech bubbles or text in the image.
+        `.trim();
 
         const imageUrl = await generatePanelImage(
           finalPrompt,
-          style,
-          effectiveCharRefs,
-          effectiveStyleRef,
+          charRefs,
           panelSnapshot.aspectRatio || "16:9",
-          notesStr,
         );
 
         if (imageUrl) {
@@ -1258,8 +1047,6 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 characters={characters}
                 index={index}
                 onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
-                styleReferenceImage={styleReferenceImage}
-                setStyleReferenceImage={setStyleReferenceImage}
                 isQueued={generationQueue.includes(panel.id)}
                 isQueueGenerating={currentlyGenerating === panel.id}
                 isFailed={failedPanels.has(panel.id)}

@@ -32,13 +32,9 @@ export interface PanelPrompt {
   cameraLens?: string;
   mood?: string;
   aspectRatio?: string;
-  artStyle?: string;
   image?: string;
   selectedCharacterIds?: string[];
   customReferenceImages?: string[];
-  useStyleRef?: boolean;
-  matchCharStyle?: boolean;
-  stylePriority?: "reference" | "artStyle";
   notes?: string;
   bubbles: Bubble[];
   imageTransform?: { x: number; y: number; scale: number };
@@ -181,25 +177,15 @@ export const polishStory = async (
 
 export const generatePanelImage = async (
   prompt: string,
-  style: string,
   referenceImages?: string[],
-  styleReferenceImage?: string,
   aspectRatio: string = "16:9",
-  styleNotes?: string,
 ): Promise<string | null> => {
   if (!prompt.trim()) return null;
 
   try {
     const result = await apiPost<{ image: string }>(
       "generate-image",
-      {
-        prompt,
-        style,
-        referenceImages,
-        styleReferenceImage,
-        aspectRatio,
-        styleNotes,
-      },
+      { prompt, referenceImages, aspectRatio },
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;

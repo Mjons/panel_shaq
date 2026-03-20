@@ -3,7 +3,6 @@ import {
   Edit3,
   PlusCircle,
   UserPlus,
-  Palette,
   ArrowRight,
   Sparkles,
   Loader2,
@@ -29,10 +28,6 @@ interface WorkshopProps {
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
   panels: PanelPrompt[];
   setPanels: (panels: PanelPrompt[]) => void;
-  styleReferenceImage: string | null;
-  setStyleReferenceImage: (img: string | null) => void;
-  styleNotes: string;
-  setStyleNotes: (notes: string) => void;
   onGenerateSuccess: () => void;
 }
 
@@ -45,10 +40,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   setCharacters,
   panels,
   setPanels,
-  styleReferenceImage,
-  setStyleReferenceImage,
-  styleNotes,
-  setStyleNotes,
   onGenerateSuccess,
 }) => {
   const { confirm } = useConfirm();
@@ -59,7 +50,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     null,
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const styleInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Check which characters are mentioned in the story
@@ -187,23 +177,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     if (e.target) e.target.value = "";
   };
 
-  const handleAddStyleRef = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert("Image too large. Please use an image under 5MB.");
-        if (e.target) e.target.value = "";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setStyleReferenceImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-    if (e.target) e.target.value = "";
-  };
-
   const removeCharacter = (id: string) => {
     setCharacters(characters.filter((c) => c.id !== id));
   };
@@ -254,33 +227,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   >
                     <div className="aspect-square rounded-lg overflow-hidden bg-surface border border-outline/30 group-hover:border-primary transition-all">
                       <img
-                        className={`w-full h-full object-cover transition-all duration-500 ${styleReferenceImage === char.image ? "grayscale-0 opacity-100" : "grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100"}`}
+                        className="w-full h-full object-cover transition-all duration-500 group-hover:opacity-100 opacity-90"
                         src={char.image}
                         alt={char.name}
                       />
-                      {styleReferenceImage === char.image && (
-                        <div className="absolute inset-0 border-2 border-primary rounded-lg pointer-events-none">
-                          <div className="absolute top-2 left-2 bg-primary text-background p-1 rounded-md">
-                            <Palette size={12} />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute top-1 left-1 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setStyleReferenceImage(
-                            styleReferenceImage === char.image
-                              ? null
-                              : char.image,
-                          );
-                        }}
-                        className={`p-1.5 rounded-full border border-outline/20 transition-colors ${styleReferenceImage === char.image ? "bg-primary text-background" : "bg-background text-accent hover:text-primary"}`}
-                        title="Set as Style Reference"
-                      >
-                        <Palette size={12} />
-                      </button>
                     </div>
                     <button
                       onClick={(e) => {
@@ -318,129 +268,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             />
           </div>
 
-          {/* STEP 2: Art Style */}
+          {/* Style info */}
           <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
-                <span className="text-primary">2.</span> Art Style
-              </h3>
-            </div>
-            <p className="text-[10px] text-accent/40 mb-3">
-              Pick a preset or upload a reference image. Add style notes to
-              fine-tune.
+            <p className="text-[10px] text-accent/40 leading-relaxed">
+              The art style of your comic is determined by your character
+              reference images. Upload characters in the style you want your
+              comic to be.
             </p>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {[
-                { name: "Cartoon", desc: "Bold outlines • Bright colors" },
-                { name: "Manga", desc: "Japanese style • Dynamic lines" },
-                { name: "Comic Book", desc: "Western comics • Heavy inks" },
-                { name: "Realistic", desc: "Photo-real • Detailed" },
-                { name: "Watercolor", desc: "Soft washes • Painterly" },
-                { name: "Pixel Art", desc: "Retro • 8-bit style" },
-              ].map((style) => (
-                <button
-                  key={style.name}
-                  onClick={() => setStyleReferenceImage(style.name)}
-                  className={`min-h-[48px] px-3 py-3 rounded-xl text-left border transition-all active:scale-95 ${
-                    styleReferenceImage === style.name
-                      ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
-                      : !styleReferenceImage ||
-                          [
-                            "Cartoon",
-                            "Manga",
-                            "Comic Book",
-                            "Realistic",
-                            "Watercolor",
-                            "Pixel Art",
-                          ].includes(styleReferenceImage)
-                        ? "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
-                        : "bg-background text-accent/40 border-outline/10"
-                  }`}
-                >
-                  <span className="text-sm font-bold block">{style.name}</span>
-                  <span className="text-[9px] opacity-60">{style.desc}</span>
-                </button>
-              ))}
-              <button
-                onClick={() => styleInputRef.current?.click()}
-                className={`min-h-[48px] px-3 py-3 rounded-xl text-left border transition-all active:scale-95 col-span-2 ${
-                  styleReferenceImage &&
-                  ![
-                    "Cartoon",
-                    "Manga",
-                    "Comic Book",
-                    "Realistic",
-                    "Watercolor",
-                    "Pixel Art",
-                  ].includes(styleReferenceImage)
-                    ? "bg-primary text-background border-primary shadow-[0_2px_10px_rgba(255,145,0,0.3)]"
-                    : "bg-background text-accent/60 border-outline/20 hover:border-primary/50"
-                }`}
-              >
-                <span className="text-sm font-bold block flex items-center gap-1.5">
-                  <Upload size={14} /> Custom Upload
-                </span>
-                <span className="text-[9px] opacity-60">
-                  Use your own reference image
-                </span>
-              </button>
-            </div>
-            {styleReferenceImage &&
-              ![
-                "Cartoon",
-                "Manga",
-                "Comic Book",
-                "Realistic",
-                "Watercolor",
-                "Pixel Art",
-              ].includes(styleReferenceImage) && (
-                <div className="flex items-center gap-3 bg-background p-3 rounded-lg border border-primary/20 relative group">
-                  <div className="w-10 h-10 rounded overflow-hidden border border-primary">
-                    <img
-                      src={styleReferenceImage}
-                      className="w-full h-full object-cover"
-                      alt="Custom Style"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-accent">
-                      Custom Reference
-                    </p>
-                    <p className="text-[8px] text-accent/40">Uploaded image</p>
-                  </div>
-                  <button
-                    onClick={() => setStyleReferenceImage("Cartoon")}
-                    className="p-1 text-accent/30 hover:text-red-500 transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              )}
-            <div className="mt-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent/40 mb-1.5 block">
-                Style Notes{" "}
-                <span className="normal-case tracking-normal text-accent/25">
-                  (optional)
-                </span>
-              </label>
-              <textarea
-                value={styleNotes}
-                onChange={(e) => setStyleNotes(e.target.value)}
-                className="w-full bg-background border border-outline/20 rounded-lg px-3 py-2 text-sm text-accent focus:border-primary outline-none transition-colors resize-none h-16 placeholder:text-accent/20"
-                placeholder="e.g. cute, round shapes, soft pastel colors, thick outlines..."
-                maxLength={200}
-              />
-              <p className="text-[8px] text-accent/30 mt-1">
-                Describe the visual style to reinforce during generation
-              </p>
-            </div>
-            <input
-              type="file"
-              ref={styleInputRef}
-              onChange={handleAddStyleRef}
-              className="hidden"
-              accept="image/*"
-            />
           </div>
         </aside>
 

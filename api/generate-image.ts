@@ -102,36 +102,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const usageError = await checkUsage(req, "image");
   if (usageError) return res.status(429).json({ error: usageError });
 
-  const {
-    prompt,
-    style,
-    referenceImages,
-    styleReferenceImage,
-    aspectRatio = "16:9",
-    styleNotes,
-  } = req.body;
+  const { prompt, referenceImages, aspectRatio = "16:9" } = req.body;
   if (!prompt?.trim())
     return res.status(400).json({ error: "Prompt is required" });
 
   try {
     const parts: any[] = [
       {
-        text: `${styleReferenceImage ? "A comic panel. MANDATORY STYLE ADHERENCE: The FIRST attached image is a style reference. You MUST strictly replicate its exact artistic style — line work, coloring, shading, proportions, level of detail, and overall aesthetic. If the reference is cartoony, the output MUST be cartoony. If it is realistic, the output MUST be realistic. Do NOT default to any other style. The output MUST look like it was drawn by the same artist as the reference." : `A cinematic comic book panel. Style: ${style}.`}
-        ${styleNotes ? `Style notes: ${styleNotes}.` : ""}
-        ${prompt.includes("Subject:") ? prompt : `Subject: ${prompt}.`}
-        CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image. The image should be pure artwork.
-        ${referenceImages && referenceImages.length > 0 ? "CRITICAL: The character(s) in this panel MUST closely match the appearance shown in the provided character reference image(s). Match their face, body type, clothing, and distinguishing features exactly." : ""}`,
+        text: `${prompt}
+        ${referenceImages && referenceImages.length > 0 ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached character reference images. The output must look like it belongs in the same comic as the references." : ""}`,
       },
     ];
-
-    if (styleReferenceImage) {
-      const match = styleReferenceImage.match(
-        /^data:(image\/\w+);base64,(.+)$/,
-      );
-      if (match) {
-        parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-      }
-    }
 
     if (referenceImages && referenceImages.length > 0) {
       for (const ref of referenceImages) {

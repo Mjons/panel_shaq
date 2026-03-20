@@ -13,7 +13,7 @@ export interface SavedProject {
   characters: Character[];
   panels: PanelPrompt[];
   pages: Page[];
-  styleReferenceImage: string | null;
+  styleReferenceImage?: string | null;
   styleNotes?: string;
   vaultEntries?: VaultEntry[];
 }
