@@ -249,16 +249,6 @@ const DraggableBubble: React.FC<{
             {bubble.text}
           </p>
         )}
-        {bubble.style === "speech" && bubble.tailPos && (
-          <div
-            className="absolute w-2 h-2 bg-white border-r-2 border-b-2 border-background rotate-45"
-            style={{
-              left: `${bubble.tailPos.x - bubble.pos.x + 50}%`,
-              top: `${bubble.tailPos.y - bubble.pos.y + 50}%`,
-              transform: "translate(-50%, -50%) rotate(45deg)",
-            }}
-          />
-        )}
       </div>
 
       {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}

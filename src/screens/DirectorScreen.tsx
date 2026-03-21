@@ -137,8 +137,8 @@ function AspectRatioPicker({
             className="fixed inset-0 bg-black/50 z-[80]"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-0 z-[81] flex items-end sm:items-center justify-center pointer-events-none p-0 sm:p-4">
-            <div className="bg-surface border border-outline/20 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 w-full sm:max-w-md max-h-[85vh] overflow-y-auto pointer-events-auto">
+          <div className="fixed inset-0 z-[81] flex items-start justify-center pointer-events-none pt-16 sm:pt-20 px-4">
+            <div className="bg-surface border border-outline/20 rounded-2xl shadow-2xl p-5 w-full sm:max-w-md max-h-[75vh] overflow-y-auto pointer-events-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-headline font-bold text-accent text-base">
                   Aspect Ratio
