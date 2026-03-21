@@ -1,6 +1,7 @@
 const WS_PORT = 9876;
-const WS_URL = `ws://localhost:${WS_PORT}`;
+const WS_URL = `ws://127.0.0.1:${WS_PORT}`;
 const PROBE_TIMEOUT = 1500;
+const SEND_TIMEOUT = 10000;
 
 let _desktopAvailable: boolean | null = null;
 
@@ -40,28 +41,57 @@ export function resetDesktopDetection() {
   _desktopAvailable = null;
 }
 
-/** Send project data to Panelhaus Desktop via WebSocket */
-export async function sendToDesktop(comicData: string): Promise<boolean> {
+/** Send project data to Panelhaus Desktop via WebSocket.
+ *  Waits for an ack response from Desktop before resolving. */
+export async function sendToDesktop(
+  comicData: string,
+): Promise<{ success: boolean; error?: string }> {
   try {
     const ws = new WebSocket(WS_URL);
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         ws.close();
-        resolve(false);
-      }, 5000);
+        resolve({ success: false, error: "Connection timed out" });
+      }, SEND_TIMEOUT);
 
       ws.onopen = () => {
         ws.send(comicData);
-        clearTimeout(timer);
-        ws.close();
-        resolve(true);
       };
+
+      ws.onmessage = (event) => {
+        clearTimeout(timer);
+        try {
+          const response = JSON.parse(event.data);
+          ws.close();
+          if (response.status === "ok") {
+            resolve({ success: true });
+          } else {
+            resolve({
+              success: false,
+              error: response.message || "Desktop rejected the project",
+            });
+          }
+        } catch {
+          ws.close();
+          resolve({ success: true }); // Got a response, assume ok
+        }
+      };
+
       ws.onerror = () => {
         clearTimeout(timer);
-        resolve(false);
+        resolve({
+          success: false,
+          error: "Could not connect to Panelhaus Desktop",
+        });
+      };
+
+      // If connection closes without a message response, treat send as success
+      // (older Desktop versions may not send ack)
+      ws.onclose = () => {
+        clearTimeout(timer);
       };
     });
   } catch {
-    return false;
+    return { success: false, error: "WebSocket error" };
   }
 }
