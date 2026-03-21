@@ -538,7 +538,12 @@ function AppInner() {
         );
       case "editor":
         return (
-          <EditorScreen panels={panels} pages={pages} setPanels={setPanels} />
+          <EditorScreen
+            panels={panels}
+            pages={pages}
+            setPanels={setPanels}
+            onNavigate={setActiveTab}
+          />
         );
       case "settings":
         return <SettingsScreen />;

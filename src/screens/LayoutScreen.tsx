@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import { PanelPrompt } from "../services/geminiService";
 
 // ── Layout Template System ──
@@ -29,6 +29,16 @@ export interface Page {
 // ── Templates ──
 
 export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
+  // 1-Panel
+  {
+    id: "1-full",
+    name: "Full Page",
+    panelCount: 1,
+    cols: 1,
+    rows: 1,
+    slots: [{ colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 }],
+  },
+
   // 2-Panel
   {
     id: "2-split",
@@ -418,6 +428,7 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
 // ── Helpers ──
 
 const DEFAULT_LAYOUTS: Record<number, string> = {
+  1: "1-full",
   2: "2-split",
   3: "3-top-heavy",
   4: "4-grid",
@@ -510,6 +521,9 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
   onContinue,
 }) => {
   const [panelsPerPage, setPanelsPerPage] = useState(4);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("panelshaq_layout_onboarding_dismissed"),
+  );
 
   // Migrate old pages on mount
   useEffect(() => {
@@ -617,7 +631,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         </div>
         <div className="flex items-center gap-4">
           <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
-            {[2, 3, 4, 5, 6].map((num) => (
+            {[1, 2, 3, 4, 5, 6].map((num) => (
               <button
                 key={num}
                 onClick={() => repartitionPages(num)}
@@ -636,6 +650,41 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
           </button>
         </div>
       </div>
+
+      {pages.length > 0 && showOnboarding && (
+        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
+          <button
+            onClick={() => {
+              setShowOnboarding(false);
+              localStorage.setItem(
+                "panelshaq_layout_onboarding_dismissed",
+                "1",
+              );
+            }}
+            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
+            Step 3 of 4 — Arrange Your Pages
+          </p>
+          <p className="text-accent/70 text-sm leading-relaxed mb-3">
+            Your panels have been grouped into pages. Pick a layout for each
+            page, or change how many panels each page gets.
+            <span className="text-accent/50">
+              {" "}
+              Speech bubbles & finishing come next.
+            </span>
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
+            <span>• Tap a layout thumbnail to change the arrangement</span>
+            <span>
+              • Use the number buttons on each page to adjust panel count
+            </span>
+            <span>• Use the top bar to repartition all pages at once</span>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-12">
         {pages.map((page, pageIdx) => {

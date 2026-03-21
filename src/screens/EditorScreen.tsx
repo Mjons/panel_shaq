@@ -20,6 +20,8 @@ import {
   Italic,
   Lock,
   Unlock,
+  X,
+  RotateCcw,
 } from "lucide-react";
 import {
   PanelPrompt,
@@ -358,15 +360,20 @@ interface EditorProps {
   panels: PanelPrompt[];
   pages: Page[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
+  onNavigate?: (tab: string) => void;
 }
 
 export const EditorScreen: React.FC<EditorProps> = ({
   panels,
   pages,
   setPanels,
+  onNavigate,
 }) => {
   const [selectedPageIdx, setSelectedPageIdx] = useState(0);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("panelshaq_editor_onboarding_dismissed"),
+  );
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
   const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
   const [isRendering, setIsRendering] = useState(false);
@@ -678,134 +685,67 @@ export const EditorScreen: React.FC<EditorProps> = ({
     <main className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* Left Sidebar: Tools & Assets */}
       <aside className="lg:col-span-3 space-y-6">
-        {/* Image Transform Tools */}
-        <div className="bg-surface-container rounded-lg p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
-              <ZoomIn size={18} />
-              PANEL TRANSFORM
-            </h3>
-            {selectedPanelId && (
-              <span className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest bg-primary/10 text-primary">
-                Active
-              </span>
+        {/* Editor Instructions */}
+        {showOnboarding && (
+          <div className="p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
+            <button
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem(
+                  "panelshaq_editor_onboarding_dismissed",
+                  "1",
+                );
+              }}
+              className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
+              Step 4 of 4 — Final Touches
+            </p>
+            <p className="text-accent/70 text-sm leading-relaxed mb-3">
+              Position your panels and add dialogue before exporting your comic.
+            </p>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
+              <span>• Drag & pinch panels to reposition and scale</span>
+              <span>• Tap a panel, then add speech or thought bubbles</span>
+              <span>• Drag bubbles to position them in the panel</span>
+              <span>• Use "Bake" to burn dialogue into the image</span>
+              <span>• Export or share when you're done</span>
+            </div>
+          </div>
+        )}
+
+        {/* Panel Actions */}
+        {selectedPanelId && (
+          <div className="bg-surface-container rounded-lg p-4 flex gap-2">
+            <button
+              onClick={() =>
+                updatePanel(selectedPanelId, {
+                  imageTransform: { x: 0, y: 0, scale: 1 },
+                })
+              }
+              className="flex-1 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw size={12} />
+              Reset Position
+            </button>
+            {selectedPanel?.image && (
+              <button
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.download = `panel-${panels.findIndex((p) => p.id === selectedPanelId) + 1}.png`;
+                  link.href = selectedPanel.image!;
+                  link.click();
+                }}
+                className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <Download size={12} />
+                Save
+              </button>
             )}
           </div>
-          {selectedPanelId ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-label uppercase tracking-widest text-accent/50 flex justify-between">
-                  Scale{" "}
-                  <span>
-                    {(
-                      (selectedPanel?.imageTransform?.scale || 1) * 100
-                    ).toFixed(0)}
-                    %
-                  </span>
-                </label>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="4.2"
-                  step="0.1"
-                  value={selectedPanel?.imageTransform?.scale || 1}
-                  onChange={(e) =>
-                    updatePanel(selectedPanelId, {
-                      imageTransform: {
-                        ...(selectedPanel?.imageTransform || {
-                          x: 0,
-                          y: 0,
-                          scale: 1,
-                        }),
-                        scale: parseFloat(e.target.value),
-                      },
-                    })
-                  }
-                  className="w-full accent-primary"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() =>
-                    updatePanel(selectedPanelId, {
-                      imageTransform: { x: 0, y: 0, scale: 1 },
-                    })
-                  }
-                  className="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors"
-                >
-                  Reset Transform
-                </button>
-                {selectedPanel?.image && (
-                  <button
-                    onClick={() => {
-                      const link = document.createElement("a");
-                      link.download = `panel-${panels.findIndex((p) => p.id === selectedPanelId) + 1}.png`;
-                      link.href = selectedPanel.image!;
-                      link.click();
-                    }}
-                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center gap-1"
-                  >
-                    <Download size={12} />
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                    Offset X
-                  </label>
-                  <input
-                    type="range"
-                    min="-100"
-                    max="100"
-                    value={selectedPanel?.imageTransform?.x || 0}
-                    onChange={(e) =>
-                      updatePanel(selectedPanelId, {
-                        imageTransform: {
-                          ...(selectedPanel?.imageTransform || {
-                            x: 0,
-                            y: 0,
-                            scale: 1,
-                          }),
-                          x: parseInt(e.target.value),
-                        },
-                      })
-                    }
-                    className="w-full accent-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                    Offset Y
-                  </label>
-                  <input
-                    type="range"
-                    min="-100"
-                    max="100"
-                    value={selectedPanel?.imageTransform?.y || 0}
-                    onChange={(e) =>
-                      updatePanel(selectedPanelId, {
-                        imageTransform: {
-                          ...(selectedPanel?.imageTransform || {
-                            x: 0,
-                            y: 0,
-                            scale: 1,
-                          }),
-                          y: parseInt(e.target.value),
-                        },
-                      })
-                    }
-                    className="w-full accent-primary"
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="py-4 text-center text-accent/30 italic text-xs">
-              Select a panel to transform
-            </div>
-          )}
-        </div>
+        )}
 
         <div className="bg-surface-container rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -1198,6 +1138,17 @@ export const EditorScreen: React.FC<EditorProps> = ({
             </div>
           </div>
         </div>
+
+        {/* Share */}
+        {onNavigate && (
+          <button
+            onClick={() => onNavigate("share")}
+            className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-secondary/20 active:scale-95 transition-all"
+          >
+            <Share2 size={16} />
+            Share Your Comic
+          </button>
+        )}
 
         {/* Recent Exports */}
         <div className="bg-surface-container rounded-lg p-6">

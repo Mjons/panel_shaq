@@ -49,6 +49,9 @@ export const ShareScreen: React.FC<ShareProps> = ({
     if (saved) setExportHistory(JSON.parse(saved));
   }, []);
 
+  const [sharing, setSharing] = useState(false);
+  const panelsWithImages = panels.filter((p) => p.image);
+
   const handleDelete = (id: string) => {
     const updated = exportHistory.filter((item) => item.id !== id);
     setExportHistory(updated);
@@ -108,34 +111,110 @@ export const ShareScreen: React.FC<ShareProps> = ({
       </header>
 
       <div className="space-y-8">
-        {/* Quick Share */}
+        {/* Quick Share — share panel images */}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
             <Share2 size={18} />
-            Quick Share
+            Share Comic
           </h3>
           <p className="text-sm text-accent/50">
-            Share your comic via your device's native share sheet, or copy a
-            link to this app.
+            Share your panel images via your device's native share sheet.
           </p>
-          <button
-            onClick={handleCopyLink}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg font-bold text-sm hover:bg-primary hover:text-background transition-all"
-          >
-            {copied ? (
-              <>
-                <Check size={16} /> Copied!
-              </>
-            ) : (
-              <>
-                <Copy size={16} /> Copy App Link
-              </>
-            )}
-          </button>
-          <p className="text-[10px] text-accent/30 text-center">
-            To share a comic, export it first from the Editor, then share from
-            the history below.
-          </p>
+
+          {panelsWithImages.length > 0 ? (
+            <div className="space-y-3">
+              {/* Share all as a batch */}
+              <button
+                onClick={async () => {
+                  setSharing(true);
+                  try {
+                    const files = await Promise.all(
+                      panelsWithImages.map(async (p, i) => {
+                        const res = await fetch(p.image!);
+                        const blob = await res.blob();
+                        return new File([blob], `panel-${i + 1}.png`, {
+                          type: "image/png",
+                        });
+                      }),
+                    );
+                    if (navigator.canShare?.({ files })) {
+                      await navigator.share({
+                        title: projectName || "My Comic",
+                        text: "Made with Panelhaus",
+                        files,
+                      });
+                    } else {
+                      // Fallback: download each
+                      panelsWithImages.forEach((p, i) => {
+                        const link = document.createElement("a");
+                        link.download = `panel-${i + 1}.png`;
+                        link.href = p.image!;
+                        link.click();
+                      });
+                    }
+                  } catch (e) {
+                    // User cancelled share — that's fine
+                  }
+                  setSharing(false);
+                }}
+                disabled={sharing}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+              >
+                <Share2 size={18} />
+                {sharing
+                  ? "PREPARING..."
+                  : `SHARE ALL ${panelsWithImages.length} PANELS`}
+              </button>
+
+              {/* Individual panel thumbnails */}
+              <div className="grid grid-cols-3 gap-2">
+                {panelsWithImages.map((p, i) => (
+                  <button
+                    key={p.id}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(p.image!);
+                        const blob = await res.blob();
+                        const file = new File([blob], `panel-${i + 1}.png`, {
+                          type: "image/png",
+                        });
+                        if (navigator.canShare?.({ files: [file] })) {
+                          await navigator.share({
+                            title: `Panel ${i + 1}`,
+                            files: [file],
+                          });
+                        } else {
+                          const link = document.createElement("a");
+                          link.download = file.name;
+                          link.href = p.image!;
+                          link.click();
+                        }
+                      } catch {
+                        /* cancelled */
+                      }
+                    }}
+                    className="aspect-video rounded-lg overflow-hidden border border-outline/20 hover:border-primary transition-all relative group"
+                  >
+                    <img
+                      src={p.image}
+                      alt={`Panel ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                      <Share2
+                        size={14}
+                        className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="text-[10px] text-accent/30 text-center py-4">
+              Generate some panels first to share
+            </p>
+          )}
         </section>
 
         {/* Export for Panelhaus */}

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Search,
   Plus,
@@ -9,6 +9,7 @@ import {
   Upload,
   Trash2,
   Edit2,
+  X,
 } from "lucide-react";
 
 import { BottomSheet } from "../components/BottomSheet";
@@ -37,6 +38,9 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<VaultEntry | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("panelshaq_vault_onboarding_dismissed"),
+  );
 
   // Form State
   const [formData, setFormData] = useState<Partial<VaultEntry>>({
@@ -169,6 +173,34 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
           </button>
         ))}
       </div>
+
+      {showOnboarding && (
+        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
+          <button
+            onClick={() => {
+              setShowOnboarding(false);
+              localStorage.setItem("panelshaq_vault_onboarding_dismissed", "1");
+            }}
+            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
+            Your World Bible
+          </p>
+          <p className="text-accent/70 text-sm leading-relaxed mb-3">
+            The World Vault stores everything in your comic's universe. Add
+            characters, environments, props, and vehicles with reference images
+            so the AI can keep them consistent across panels.
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
+            <span>• Upload reference images for visual consistency</span>
+            <span>• Add descriptions, personality traits & visual details</span>
+            <span>• Assets are auto-matched to panels during generation</span>
+            <span>• Use the + button to create new entries</span>
+          </div>
+        </div>
+      )}
 
       {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
