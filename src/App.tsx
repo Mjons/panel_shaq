@@ -87,7 +87,7 @@ function useIsDesktop() {
 }
 
 function DesktopRedirectGate({ onStay }: { onStay: () => void }) {
-  const [seconds, setSeconds] = useState(10);
+  const [seconds, setSeconds] = useState(16);
 
   useEffect(() => {
     const timer = setInterval(() => {

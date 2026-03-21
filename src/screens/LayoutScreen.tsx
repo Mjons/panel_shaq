@@ -74,6 +74,17 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 3, colEnd: 4, rowStart: 1, rowEnd: 2 },
     ],
   },
+  {
+    id: "2-top-heavy",
+    name: "Top Heavy",
+    panelCount: 2,
+    cols: 1,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+    ],
+  },
 
   // 3-Panel
   {
@@ -148,6 +159,18 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
     ],
   },
+  {
+    id: "3-t-shape",
+    name: "T-Shape",
+    panelCount: 3,
+    cols: 2,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 4 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 4 },
+    ],
+  },
 
   // 4-Panel
   {
@@ -215,6 +238,32 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 1, colEnd: 2, rowStart: 4, rowEnd: 5 },
     ],
   },
+  {
+    id: "4-1plus3",
+    name: "1+3 Top",
+    panelCount: 4,
+    cols: 3,
+    rows: 2,
+    slots: [
+      { colStart: 1, colEnd: 4, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
+      { colStart: 3, colEnd: 4, rowStart: 2, rowEnd: 3 },
+    ],
+  },
+  {
+    id: "4-z-shape",
+    name: "Z-Shape",
+    panelCount: 4,
+    cols: 3,
+    rows: 2,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 3, colEnd: 4, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 4, rowStart: 2, rowEnd: 3 },
+    ],
+  },
 
   // 5-Panel
   {
@@ -257,6 +306,34 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 3, colEnd: 4, rowStart: 1, rowEnd: 2 },
       { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
       { colStart: 2, colEnd: 4, rowStart: 2, rowEnd: 3 },
+    ],
+  },
+  {
+    id: "5-feature-top",
+    name: "Feature Top",
+    panelCount: 5,
+    cols: 4,
+    rows: 2,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 3, colEnd: 5, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
+      { colStart: 3, colEnd: 5, rowStart: 2, rowEnd: 3 },
+    ],
+  },
+  {
+    id: "5-cross",
+    name: "Cross",
+    panelCount: 5,
+    cols: 3,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 2, colEnd: 4, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 4, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 3, rowStart: 3, rowEnd: 4 },
+      { colStart: 3, colEnd: 4, rowStart: 3, rowEnd: 4 },
     ],
   },
 
@@ -319,6 +396,21 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
       { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
       { colStart: 2, colEnd: 3, rowStart: 3, rowEnd: 4 },
+    ],
+  },
+  {
+    id: "6-feature-hero",
+    name: "Hero + 5",
+    panelCount: 6,
+    cols: 4,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 3 },
+      { colStart: 3, colEnd: 5, rowStart: 1, rowEnd: 2 },
+      { colStart: 3, colEnd: 5, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+      { colStart: 2, colEnd: 3, rowStart: 3, rowEnd: 4 },
+      { colStart: 3, colEnd: 5, rowStart: 3, rowEnd: 4 },
     ],
   },
 ];
@@ -448,6 +540,50 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
     );
   };
 
+  // Change panel count for a single page — redistributes panels from the flat list
+  const changePagePanelCount = (pageIdx: number, newCount: number) => {
+    setPages((prev) => {
+      // Collect all panel IDs in order across all pages
+      const allPanelIds = prev.flatMap((p) => p.panelIds);
+      // Find where this page's panels start
+      let startIdx = 0;
+      for (let i = 0; i < pageIdx; i++) startIdx += prev[i].panelIds.length;
+      const oldCount = prev[pageIdx].panelIds.length;
+      const diff = newCount - oldCount;
+
+      if (diff === 0) return prev;
+
+      // Rebuild pages: this page gets newCount panels, subsequent pages shift
+      const newPages: Page[] = [];
+      let cursor = 0;
+      for (let i = 0; i < prev.length; i++) {
+        const count = i === pageIdx ? newCount : prev[i].panelIds.length;
+        const ids = allPanelIds.slice(cursor, cursor + count);
+        if (ids.length === 0) continue; // skip empty pages
+        newPages.push({
+          id: prev[i].id || `page-${Math.random().toString(36).substr(2, 9)}`,
+          panelIds: ids,
+          layoutId:
+            ids.length === prev[i].panelIds.length
+              ? prev[i].layoutId
+              : getDefaultLayoutId(ids.length),
+        });
+        cursor += count;
+      }
+      // If there are leftover panels, add them as new pages
+      while (cursor < allPanelIds.length) {
+        const remaining = allPanelIds.slice(cursor, cursor + panelsPerPage);
+        newPages.push({
+          id: `page-${Math.random().toString(36).substr(2, 9)}`,
+          panelIds: remaining,
+          layoutId: getDefaultLayoutId(remaining.length),
+        });
+        cursor += remaining.length;
+      }
+      return newPages;
+    });
+  };
+
   const repartitionPages = (count: number) => {
     if (
       pages.length > 0 &&
@@ -481,7 +617,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         </div>
         <div className="flex items-center gap-4">
           <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
-            {[2, 3, 4, 6].map((num) => (
+            {[2, 3, 4, 5, 6].map((num) => (
               <button
                 key={num}
                 onClick={() => repartitionPages(num)}
@@ -520,9 +656,17 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
                   <h3 className="font-headline text-xl font-bold text-accent">
                     Page {pageIdx + 1}
                   </h3>
-                  <span className="text-[10px] font-label text-accent/30 uppercase tracking-widest">
-                    {page.panelIds.length} Panels
-                  </span>
+                  <div className="flex items-center gap-1 bg-background rounded-md p-0.5 border border-outline/10">
+                    {[2, 3, 4, 5, 6].map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => changePagePanelCount(pageIdx, n)}
+                        className={`px-2 py-1 rounded text-[9px] font-bold transition-all ${page.panelIds.length === n ? "bg-primary text-background" : "text-accent/40 hover:text-accent/70"}`}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {template && (
                   <span className="text-[10px] font-label text-primary uppercase tracking-widest font-bold">
