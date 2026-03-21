@@ -931,6 +931,9 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     insertIndex: number;
   } | null>(null);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("panelshaq_director_onboarding_dismissed"),
+  );
 
   const handleInsertPanel = async (insertIndex: number) => {
     setInsertingAt(insertIndex);
@@ -1256,6 +1259,37 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           </button>
         </div>
       </div>
+
+      {panels.length > 0 && showOnboarding && !panels.some((p) => p.image) && (
+        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
+          <button
+            onClick={() => {
+              setShowOnboarding(false);
+              localStorage.setItem(
+                "panelshaq_director_onboarding_dismissed",
+                "1",
+              );
+            }}
+            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
+            Step 2 of 4 — Plan Your Panels
+          </p>
+          <p className="text-accent/70 text-sm leading-relaxed mb-3">
+            This is your storyboard. Review and tweak each panel's description,
+            then generate images when you're happy with the plan.
+            <span className="text-accent/50"> Page layout comes next.</span>
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
+            <span>• Edit descriptions & camera settings</span>
+            <span>• Insert or remove panels</span>
+            <span>• Generate one-by-one or all at once</span>
+            <span>• Regenerate any image</span>
+          </div>
+        </div>
+      )}
 
       {panels.length === 0 ? (
         <div className="py-32 flex flex-col items-center justify-center text-center bg-surface-container/30 rounded-2xl border-2 border-dashed border-outline/10">

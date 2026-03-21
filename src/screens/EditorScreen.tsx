@@ -244,6 +244,55 @@ const DraggableBubble: React.FC<{
             placeholder="Type text..."
           />
 
+          {/* Tail direction — speech bubbles only */}
+          {bubble.style === "speech" && (
+            <div className="flex items-center gap-2">
+              <p className="text-[8px] text-accent/40 shrink-0">Tail</p>
+              <div className="grid grid-cols-3 gap-0.5 w-[54px]">
+                {[
+                  { label: "↖", dx: -15, dy: -15 },
+                  { label: "↑", dx: 0, dy: -15 },
+                  { label: "↗", dx: 15, dy: -15 },
+                  { label: "←", dx: -15, dy: 0 },
+                  { label: "×", dx: 0, dy: 0 },
+                  { label: "→", dx: 15, dy: 0 },
+                  { label: "↙", dx: -15, dy: 15 },
+                  { label: "↓", dx: 0, dy: 15 },
+                  { label: "↘", dx: 15, dy: 15 },
+                ].map(({ label, dx, dy }) => {
+                  const isActive =
+                    dx === 0 && dy === 0
+                      ? !bubble.tailPos
+                      : bubble.tailPos &&
+                        Math.sign(bubble.tailPos.x - bubble.pos.x) ===
+                          Math.sign(dx) &&
+                        Math.sign(bubble.tailPos.y - bubble.pos.y) ===
+                          Math.sign(dy);
+                  return (
+                    <button
+                      key={label}
+                      onClick={() =>
+                        onUpdateBubble({
+                          tailPos:
+                            dx === 0 && dy === 0
+                              ? undefined
+                              : { x: bubble.pos.x + dx, y: bubble.pos.y + dy },
+                        })
+                      }
+                      className={`w-[16px] h-[16px] flex items-center justify-center rounded text-[9px] transition-colors ${
+                        isActive
+                          ? "bg-primary text-background"
+                          : "bg-background border border-outline/20 text-accent/40 hover:bg-primary/20"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Font size + delete */}
           <div className="flex items-center gap-1">
             <button
@@ -741,8 +790,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
         <div className="bg-surface-container rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-headline text-primary text-lg font-bold">
-              INK TOOLS
+            <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
+              <MessageSquare size={18} />
+              DIALOGUE
             </h3>
             {selectedPanelId && (
               <button
@@ -756,234 +806,53 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </div>
 
           {selectedPanelId ? (
-            <div className="space-y-4">
-              {/* Bubble List */}
-              <div className="flex flex-wrap gap-2">
-                {selectedPanel?.bubbles.map((b, idx) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setSelectedBubbleId(b.id)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${selectedBubbleId === b.id ? "bg-primary border-primary text-background" : "bg-surface-container-highest border-outline/20 text-accent/50 hover:border-primary/50"}`}
-                  >
-                    Bubble {idx + 1}
-                  </button>
-                ))}
-              </div>
-
-              {selectedBubbleId && (
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-outline/10">
-                  {(["speech", "thought", "action", "effect"] as const).map(
-                    (style) => (
-                      <button
-                        key={style}
-                        onClick={() =>
-                          updateBubble(selectedBubbleId, { style })
-                        }
-                        className={`p-3 rounded-lg flex flex-col items-center justify-center gap-1 border transition-colors ${selectedBubble?.style === style ? "bg-primary/20 border-primary" : "bg-surface-container-highest border-outline/20 hover:bg-surface"}`}
-                      >
-                        {style === "action" ? (
-                          <Zap size={18} className="text-primary" />
-                        ) : style === "effect" ? (
-                          <Paintbrush size={18} className="text-secondary" />
-                        ) : (
-                          <MessageSquare size={18} className="text-secondary" />
-                        )}
-                        <span className="text-[9px] font-label uppercase tracking-widest text-accent/50">
-                          {style}
-                        </span>
-                      </button>
-                    ),
-                  )}
+            <div className="space-y-3">
+              {/* Step hints */}
+              {(!selectedPanel?.bubbles ||
+                selectedPanel.bubbles.length === 0) && (
+                <div className="space-y-1.5 text-[10px] text-accent/30">
+                  <p>
+                    <span className="text-primary font-bold">1.</span> Tap{" "}
+                    <span className="text-primary">+</span> above to add a
+                    bubble
+                  </p>
+                  <p>
+                    <span className="text-primary font-bold">2.</span> Tap the
+                    bubble to edit text & type
+                  </p>
+                  <p>
+                    <span className="text-primary font-bold">3.</span> Drag it
+                    into position
+                  </p>
+                  <p>
+                    <span className="text-primary font-bold">4.</span> Hit "Bake
+                    Dialogue" when done
+                  </p>
                 </div>
               )}
+
+              {/* Bubble List */}
+              {selectedPanel?.bubbles && selectedPanel.bubbles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedPanel.bubbles.map((b, idx) => (
+                    <button
+                      key={b.id}
+                      onClick={() => setSelectedBubbleId(b.id)}
+                      className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${selectedBubbleId === b.id ? "bg-primary border-primary text-background" : "bg-surface-container-highest border-outline/20 text-accent/50 hover:border-primary/50"}`}
+                    >
+                      {b.style === "effect" ? "SFX" : b.style} {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-[9px] text-accent/25 italic">
+                Tap bubbles on the panel to edit. Drag to reposition.
+              </p>
             </div>
           ) : (
             <div className="py-4 text-center text-accent/30 italic text-xs">
-              Select a panel first
-            </div>
-          )}
-        </div>
-
-        <div className="bg-surface-container rounded-lg p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline text-accent text-lg font-bold">
-              EDIT BUBBLE
-            </h3>
-            {selectedBubbleId && (
-              <button
-                onClick={() => removeBubble(selectedBubbleId)}
-                className="text-accent/30 hover:text-red-500 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
-          </div>
-
-          {selectedBubbleId ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                  Dialog Text
-                </label>
-                <textarea
-                  className="w-full bg-background border-outline/20 border rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary outline-none min-h-[80px] text-accent resize-none font-headline"
-                  placeholder="Type character dialogue here..."
-                  value={selectedBubble?.text || ""}
-                  onChange={(e) =>
-                    updateBubble(selectedBubbleId, { text: e.target.value })
-                  }
-                />
-              </div>
-
-              {/* Text Formatting */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                  Formatting
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() =>
-                      updateBubble(selectedBubbleId, {
-                        fontWeight:
-                          selectedBubble?.fontWeight === "bold"
-                            ? "normal"
-                            : "bold",
-                      })
-                    }
-                    className={`p-2 rounded border transition-colors ${selectedBubble?.fontWeight === "bold" ? "bg-primary/20 border-primary text-primary" : "bg-background border-outline/20 text-accent/50"}`}
-                  >
-                    <Bold size={14} />
-                  </button>
-                  <button
-                    onClick={() =>
-                      updateBubble(selectedBubbleId, {
-                        fontStyle:
-                          selectedBubble?.fontStyle === "italic"
-                            ? "normal"
-                            : "italic",
-                      })
-                    }
-                    className={`p-2 rounded border transition-colors ${selectedBubble?.fontStyle === "italic" ? "bg-primary/20 border-primary text-primary" : "bg-background border-outline/20 text-accent/50"}`}
-                  >
-                    <Italic size={14} />
-                  </button>
-                  <div className="flex-1 flex items-center gap-2 bg-background border border-outline/20 rounded px-2">
-                    <TypeIcon size={14} className="text-accent/50" />
-                    <input
-                      type="number"
-                      min="8"
-                      max="24"
-                      value={selectedBubble?.fontSize || 12}
-                      onChange={(e) =>
-                        updateBubble(selectedBubbleId, {
-                          fontSize: parseInt(e.target.value),
-                        })
-                      }
-                      className="w-full bg-transparent text-xs text-accent outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                  Bubble Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <span className="text-[8px] text-accent/30 uppercase">
-                      X: {selectedBubble?.pos.x}%
-                    </span>
-                    <input
-                      className="accent-primary w-full"
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={selectedBubble?.pos.x || 50}
-                      onChange={(e) =>
-                        updateBubble(selectedBubbleId, {
-                          pos: {
-                            ...(selectedBubble?.pos || { x: 50, y: 50 }),
-                            x: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[8px] text-accent/30 uppercase">
-                      Y: {selectedBubble?.pos.y}%
-                    </span>
-                    <input
-                      className="accent-primary w-full"
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={selectedBubble?.pos.y || 50}
-                      onChange={(e) =>
-                        updateBubble(selectedBubbleId, {
-                          pos: {
-                            ...(selectedBubble?.pos || { x: 50, y: 50 }),
-                            y: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                  Tail Direction
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <span className="text-[8px] text-accent/30 uppercase">
-                      X: {selectedBubble?.tailPos?.x}%
-                    </span>
-                    <input
-                      className="accent-primary w-full"
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={selectedBubble?.tailPos?.x || 50}
-                      onChange={(e) =>
-                        updateBubble(selectedBubbleId, {
-                          tailPos: {
-                            ...(selectedBubble?.tailPos || { x: 50, y: 60 }),
-                            x: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-[8px] text-accent/30 uppercase">
-                      Y: {selectedBubble?.tailPos?.y}%
-                    </span>
-                    <input
-                      className="accent-primary w-full"
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={selectedBubble?.tailPos?.y || 60}
-                      onChange={(e) =>
-                        updateBubble(selectedBubbleId, {
-                          tailPos: {
-                            ...(selectedBubble?.tailPos || { x: 50, y: 60 }),
-                            y: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="py-8 text-center text-accent/30 italic text-xs">
-              Select a bubble to edit
+              Select a panel to add dialogue
             </div>
           )}
         </div>
@@ -1164,12 +1033,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
         <div className="bg-surface-container rounded-lg p-6 space-y-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 text-primary/5 halftone-bg -mr-16 -mt-16 rotate-12"></div>
           <h3 className="font-headline text-accent text-lg font-bold">
-            FINISH LINE
+            EXPORT
           </h3>
           <div className="space-y-4 relative z-10">
             <button
               onClick={handleFinalRender}
-              disabled={!selectedPanelId || isRendering}
+              disabled={
+                !selectedPanelId ||
+                isRendering ||
+                !selectedPanel?.bubbles?.length
+              }
               className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
             >
               <div className="flex items-center gap-2">
@@ -1178,12 +1051,19 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 ) : (
                   <Wand2 size={20} />
                 )}
-                <span>Final Natural Render</span>
+                <span>Bake Dialogue Into Image</span>
               </div>
               <span className="text-[8px] opacity-70 uppercase tracking-widest">
-                Bake dialogue into scene
+                Permanently renders bubbles into artwork
               </span>
             </button>
+            {selectedPanelId && selectedPanel?.bubbles?.length ? (
+              <p className="text-[9px] text-accent/30 leading-relaxed">
+                This will permanently draw your speech bubbles into the panel
+                image. The original clean image will be replaced. Download first
+                if you want to keep it.
+              </p>
+            ) : null}
 
             <div className="space-y-2">
               <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
