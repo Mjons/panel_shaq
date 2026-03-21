@@ -123,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const hasRefs = referenceImages && referenceImages.length > 0;
     parts.push({
       text: `A cinematic comic book panel.
-${hasRefs ? "STYLE & CHARACTER ADHERENCE: Replicate the artistic style, color palette, line work, and character appearance from the attached reference images. The output should look like it belongs in the same comic series." : ""}
+${hasRefs ? "STYLE & CHARACTER ADHERENCE: Replicate the artistic style, color palette, line work, and character appearance from the attached reference images. The output should look like it belongs in the same comic series. Use a NEW UNIQUE POSE and composition — do NOT copy the pose or framing from the reference images." : ""}
 ${prompt}
 CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image.`,
     });
