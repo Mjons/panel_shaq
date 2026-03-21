@@ -116,6 +116,8 @@ const DraggableBubble: React.FC<{
   onMove: (pos: { x: number; y: number }) => void;
   onUpdateBubble: (updates: Partial<Bubble>) => void;
   onRemove: () => void;
+  onBakeAll?: () => void;
+  isRendering?: boolean;
 }> = ({
   bubble,
   isSelected,
@@ -124,6 +126,8 @@ const DraggableBubble: React.FC<{
   onMove,
   onUpdateBubble,
   onRemove,
+  onBakeAll,
+  isRendering,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -324,6 +328,20 @@ const DraggableBubble: React.FC<{
               ✓
             </button>
           </div>
+
+          {/* Bake all dialogue on this panel */}
+          {onBakeAll && (
+            <button
+              onClick={() => {
+                onBakeAll();
+                setIsEditing(false);
+              }}
+              disabled={isRendering}
+              className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              {isRendering ? "Baking..." : "Bake All Dialogue"}
+            </button>
+          )}
         </div>
       )}
     </>
@@ -999,6 +1017,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               updateBubble(bubble.id, updates)
                             }
                             onRemove={() => removeBubble(bubble.id)}
+                            onBakeAll={handleFinalRender}
+                            isRendering={isRendering}
                           />
                         ))}
 
