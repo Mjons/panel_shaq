@@ -48,7 +48,7 @@ function slotsToPixels(
 // ── Bubble Mapper ──
 
 const BUBBLE_TYPE_MAP: Record<string, string> = {
-  speech: "oblong-wide",
+  speech: "speech-bubble",
   thought: "thought-bubble",
   action: "shout-bubble",
   effect: "caption-box",
@@ -68,8 +68,8 @@ function mapBubble(bubble: Bubble, panelRect: PanelRect) {
   }
 
   return {
-    id: bubble.id,
-    bubbleType: BUBBLE_TYPE_MAP[bubble.style] || "oblong-wide",
+    id: `bubble-${bubble.id}`,
+    bubbleType: BUBBLE_TYPE_MAP[bubble.style] || "speech-bubble",
     text: bubble.text,
     x,
     y,
@@ -97,6 +97,8 @@ function mapBubble(bubble: Bubble, panelRect: PanelRect) {
     tailAngle,
     tailLength: 1.5,
     tailWidth: 1,
+    rotation: 0,
+    globalZIndex: 0,
     isVisible: true,
   };
 }
@@ -166,7 +168,7 @@ export function exportAsComic(
       const transform = panel?.imageTransform || { x: 0, y: 0, scale: 1 };
 
       return {
-        id: pid,
+        id: `panel-${pid}`,
         x: rect.x,
         y: rect.y,
         width: rect.width,
@@ -181,10 +183,12 @@ export function exportAsComic(
           flipH: false,
           flipV: false,
         },
-        borderWidth: 2,
-        borderColor: "#000000",
-        borderRadius: 0,
-        backgroundColor: "#FFFFFF",
+        strokeWidth: 2,
+        strokeColor: "#000000",
+        showOutline: true,
+        visible: true,
+        locked: false,
+        zIndex: i,
       };
     });
 
@@ -196,12 +200,14 @@ export function exportAsComic(
     });
 
     return {
-      id: page.id,
+      id: `page-${page.id}`,
       dimension: { width: PAGE_WIDTH, height: PAGE_HEIGHT },
-      panels: desktopPanels,
-      textBubbles,
-      background: null,
-      stickers: [],
+      layers: {
+        panels: desktopPanels,
+        textBubbles,
+        stickers: [],
+        background: null,
+      },
     };
   });
 
