@@ -155,10 +155,20 @@ ${neighborSection}
 AVAILABLE CHARACTERS:
 ${charContext}
 
-Create a panel that bridges the narrative gap. Vary the camera angle from the neighbors for visual rhythm. Return JSON with: description, characterFocus, cameraAngle, mood.`,
+Create a panel that bridges the narrative gap between the previous and next panels. This inserted panel should typically be one of these types (pick the most appropriate):
+1. REACTION SHOT — a character's face or body reacting to what just happened or is about to happen
+2. DETAIL INSERT — a close-up on a hand, object, weapon, clock, or environmental detail that adds tension or context
+3. ATMOSPHERIC FILLER — a wide establishing shot, weather, skyline, or environment that sets mood and pacing
+4. TRANSITION BEAT — a visual that implies time passing, location change, or gives the reader a moment to breathe
+
+Do NOT just create another action panel. The purpose of an inserted panel is to add cinematic pacing — the kind of shots that make comics feel like films. Focus on what the reader NEEDS to see between these two moments.
+
+Vary the camera angle from the neighboring panels for visual rhythm. If the neighbors are both medium shots, use an extreme close-up or wide shot.
+
+Return JSON with: description (detailed visual description), characterFocus (who is in focus, or "None" for environmental shots), cameraAngle, mood.`,
       {
         systemInstruction:
-          "You are an expert comic book storyboard artist. You create compelling single panels that bridge narrative gaps seamlessly.",
+          "You are an expert comic book storyboard artist specializing in cinematic pacing. You create compelling filler panels — reaction shots, detail inserts, atmospheric beats — that make comic sequences feel like films. You never repeat the same shot type as neighboring panels.",
         responseMimeType: "application/json",
         responseSchema: {
           type: "OBJECT",
