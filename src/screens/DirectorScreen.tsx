@@ -913,8 +913,8 @@ const PanelCard = React.memo(
                       className="fixed inset-0 bg-black/50 z-[80]"
                       onClick={() => setShowLensDropdown(false)}
                     />
-                    <div className="fixed inset-4 z-[81] flex items-center justify-center pointer-events-none">
-                      <div className="bg-surface border border-outline/20 rounded-2xl shadow-2xl p-5 max-w-sm w-full max-h-[80vh] overflow-y-auto pointer-events-auto">
+                    <div className="fixed inset-0 z-[81] flex items-end sm:items-center justify-center pointer-events-none p-0 sm:p-4">
+                      <div className="bg-surface border border-outline/20 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 w-full sm:max-w-lg max-h-[85vh] overflow-y-auto pointer-events-auto">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="font-headline font-bold text-accent text-base">
                             Camera Lens
