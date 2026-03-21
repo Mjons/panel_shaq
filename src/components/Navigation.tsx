@@ -46,16 +46,9 @@ export const TopNav = ({
             >
               <Menu size={28} />
             </button>
-            <a
-              href="https://panelhaus.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-baseline gap-0.5 group"
-            >
-              <h1 className="font-headline font-bold tracking-tighter text-3xl text-primary italic uppercase group-hover:opacity-80 transition-opacity">
-                PANEL SHAQ
-              </h1>
-            </a>
+            <h1 className="font-headline font-bold tracking-tighter text-xl text-primary italic uppercase">
+              PANEL SHAQ
+            </h1>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -155,6 +148,17 @@ export const TopNav = ({
                   <HelpCircle size={20} />
                   <span className="text-sm font-bold uppercase tracking-widest">
                     Help
+                  </span>
+                </a>
+                <a
+                  href="https://panelhaus.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 hover:text-primary transition-all"
+                >
+                  <Globe size={20} />
+                  <span className="text-sm font-bold uppercase tracking-widest">
+                    Panelhaus.app
                   </span>
                 </a>
               </div>

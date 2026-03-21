@@ -1364,9 +1364,29 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         </div>
       )}
 
-      {/* Bottom continue button */}
+      {/* Bottom actions */}
       {panels.length > 0 && (
-        <div className="flex justify-center pt-8">
+        <div className="flex flex-col items-center gap-3 pt-8">
+          <div className="flex items-center gap-3">
+            {panels.some((p) => p.image) && (
+              <>
+                <button
+                  onClick={() => setPreviewIndex(0)}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                >
+                  <Eye size={14} />
+                  Preview
+                </button>
+                <button
+                  onClick={handleDownloadAll}
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                >
+                  <Download size={14} />
+                  Download All
+                </button>
+              </>
+            )}
+          </div>
           <button
             onClick={onContinue}
             className="flex items-center justify-center gap-3 bg-secondary text-background px-10 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"

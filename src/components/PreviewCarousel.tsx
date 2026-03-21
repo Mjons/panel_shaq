@@ -128,8 +128,8 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
 
       {/* Bottom controls */}
       <div
-        className="shrink-0 px-6 pb-6 pt-3 max-w-3xl mx-auto w-full space-y-3 -mt-6"
-        style={{ paddingBottom: "calc(1.5rem + var(--sab, 0px))" }}
+        className="shrink-0 px-6 pt-3 max-w-3xl mx-auto w-full space-y-3 -mt-6"
+        style={{ paddingBottom: "calc(5rem + var(--sab, 0px))" }}
       >
         {/* Description summary */}
         <p className="text-accent/50 text-xs line-clamp-2 leading-relaxed">
@@ -187,6 +187,15 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
             />
           ))}
         </div>
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="w-full py-3 border border-accent/20 text-accent/50 font-bold uppercase tracking-widest rounded-xl hover:bg-white/5 hover:text-accent/70 transition-all text-sm flex items-center justify-center gap-2"
+        >
+          <X size={16} />
+          Close Preview
+        </button>
       </div>
     </div>
   );
