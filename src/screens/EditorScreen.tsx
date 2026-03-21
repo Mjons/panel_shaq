@@ -1122,6 +1122,56 @@ export const EditorScreen: React.FC<EditorProps> = ({
               </div>
             </div>
           </div>
+          <div className="space-y-2">
+            <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
+              Share
+            </p>
+            <button
+              onClick={async () => {
+                if (!comicRef.current || isExporting) return;
+                setIsExporting(true);
+                setSelectedPanelId(null);
+                setSelectedBubbleId(null);
+                await waitForPaint();
+                try {
+                  const imgData = await captureRef(comicRef, "png");
+                  const res = await fetch(imgData);
+                  const blob = await res.blob();
+                  const file = new File(
+                    [blob],
+                    `Comic_Page_${selectedPageIdx + 1}.png`,
+                    { type: "image/png" },
+                  );
+                  if (navigator.canShare?.({ files: [file] })) {
+                    await navigator.share({
+                      title: "My Comic",
+                      text: "Made with Panelhaus",
+                      files: [file],
+                    });
+                  } else {
+                    // Fallback: download
+                    const link = document.createElement("a");
+                    link.download = file.name;
+                    link.href = imgData;
+                    link.click();
+                  }
+                } catch {
+                  /* user cancelled or share failed */
+                }
+                setIsExporting(false);
+              }}
+              disabled={isExporting}
+              className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/30 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {isExporting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Share2 size={14} />
+              )}
+              SHARE THIS PAGE
+            </button>
+          </div>
+
           <div className="pt-6 border-t border-outline/10">
             <h4 className="text-[10px] font-label uppercase tracking-widest text-accent/50 mb-4">
               Export Settings
