@@ -77,13 +77,12 @@ export type Character = VaultEntry;
 
 // --- Desktop Redirect Gate ---
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
+  // Synchronous init — no useEffect delay so the gate shows on first paint
+  const [isDesktop] = useState(() => {
     const wide = window.innerWidth >= 1024;
-    // Use pointer media query — "fine" means mouse/trackpad, "coarse" means touch
     const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
-    setIsDesktop(wide && hasFinePointer);
-  }, []);
+    return wide && hasFinePointer;
+  });
   return isDesktop;
 }
 
@@ -630,10 +629,10 @@ export default function App() {
   return (
     <ConfirmProvider>
       <ToastProvider>
+        <AppInner />
         {isDesktop && gateOpen && (
           <DesktopRedirectGate onStay={() => setGateOpen(false)} />
         )}
-        <AppInner />
       </ToastProvider>
     </ConfirmProvider>
   );
