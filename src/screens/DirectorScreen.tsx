@@ -20,6 +20,7 @@ import {
   InsertionContext,
 } from "../services/geminiService";
 import { Character } from "../App";
+import { VaultEntry } from "./VaultScreen";
 import { useConfirm } from "../components/ConfirmDialog";
 import { PreviewCarousel } from "../components/PreviewCarousel";
 
@@ -27,6 +28,7 @@ interface DirectorProps {
   panels: PanelPrompt[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   characters: Character[];
+  backgrounds: VaultEntry[];
   story: string;
   onContinue: () => void;
 }
@@ -174,6 +176,7 @@ const PanelCard = ({
   characters,
   index,
   onUpdatePanel,
+  backgrounds,
   isQueued,
   isQueueGenerating,
   isFailed,
@@ -184,6 +187,7 @@ const PanelCard = ({
   characters: Character[];
   index: number;
   onUpdatePanel: (updated: PanelPrompt) => void;
+  backgrounds: VaultEntry[];
   isQueued?: boolean;
   isQueueGenerating?: boolean;
   isFailed?: boolean;
@@ -196,6 +200,10 @@ const PanelCard = ({
   const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
   const [mood, setMood] = useState(panel.mood || "None");
   const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
+  const [selectedBgId, setSelectedBgId] = useState<string | null>(
+    panel.selectedBackgroundId || null,
+  );
+  const [showBackgrounds, setShowBackgrounds] = useState(false);
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds ?? characters.map((c) => c.id).slice(0, 5),
   );
@@ -240,6 +248,7 @@ const PanelCard = ({
       mood,
       aspectRatio,
       selectedCharacterIds: selectedCharIds,
+      selectedBackgroundId: selectedBgId || undefined,
       customReferenceImages: customCharRefs,
     });
     // Add to the shared generation queue
@@ -552,6 +561,72 @@ const PanelCard = ({
             </div>
           </div>
 
+          {/* Backgrounds — collapsible */}
+          {backgrounds.length > 0 && (
+            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+              <button
+                onClick={() => setShowBackgrounds(!showBackgrounds)}
+                className="flex items-center justify-between w-full"
+              >
+                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                  Background
+                  {selectedBgId && (
+                    <span className="text-primary ml-1">
+                      (
+                      {backgrounds.find((b) => b.id === selectedBgId)?.name ||
+                        "Selected"}
+                      )
+                    </span>
+                  )}
+                </p>
+                <ChevronDown
+                  size={12}
+                  className={`text-accent/30 transition-transform ${showBackgrounds ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showBackgrounds && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <button
+                    onClick={() => setSelectedBgId(null)}
+                    className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase border transition-all ${
+                      !selectedBgId
+                        ? "border-primary text-primary bg-primary/10"
+                        : "border-outline/20 text-accent/40 hover:text-accent"
+                    }`}
+                  >
+                    None
+                  </button>
+                  {backgrounds.map((bg) => (
+                    <button
+                      key={bg.id}
+                      onClick={() =>
+                        setSelectedBgId(bg.id === selectedBgId ? null : bg.id)
+                      }
+                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                        selectedBgId === bg.id
+                          ? "border-primary"
+                          : "border-outline/20 opacity-50 hover:opacity-100"
+                      }`}
+                      title={bg.name}
+                    >
+                      {bg.image ? (
+                        <img
+                          src={bg.image}
+                          className="w-full h-full object-cover"
+                          alt={bg.name}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                          {bg.name.substring(0, 3)}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-start justify-between border-b border-outline/10 pb-3">
             <div className="w-full space-y-2">
               <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
@@ -707,6 +782,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   panels,
   setPanels,
   characters,
+  backgrounds,
   story,
   onContinue,
 }) => {
@@ -874,6 +950,18 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           .map((c) => `${c.name}: ${c.description || ""}`)
           .join(". ");
 
+        // Background reference
+        const selectedBg = panelSnapshot.selectedBackgroundId
+          ? backgrounds.find((b) => b.id === panelSnapshot.selectedBackgroundId)
+          : null;
+        const bgRef =
+          selectedBg?.image && selectedBg.image.startsWith("data:image/")
+            ? selectedBg.image
+            : null;
+        const bgContext = selectedBg
+          ? `Background/Setting: ${selectedBg.name}${selectedBg.description ? ` — ${selectedBg.description}` : ""}. Use this environment consistently.`
+          : "";
+
         const cameraStr =
           panelSnapshot.cameraAngle && panelSnapshot.cameraAngle !== "None"
             ? panelSnapshot.cameraAngle
@@ -891,17 +979,22 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           A cinematic comic book panel.
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
+          ${bgContext}
           ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
           ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
           ${moodStr ? `Mood: ${moodStr}.` : ""}
           ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
-          ${charRefs.length > 0 ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached character reference images. The output must look like it belongs in the same comic as the references." : ""}
+          ${charRefs.length > 0 || bgRef ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached reference images. The output must look like it belongs in the same comic as the references." : ""}
           CRITICAL: Do NOT include any speech bubbles or text in the image.
         `.trim();
 
+        // Combine character refs + background ref
+        const allImageRefs = [...charRefs];
+        if (bgRef) allImageRefs.push(bgRef);
+
         const imageUrl = await generatePanelImage(
           finalPrompt,
-          charRefs,
+          allImageRefs,
           panelSnapshot.aspectRatio || "16:9",
         );
 
@@ -1043,6 +1136,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 characters={characters}
                 index={index}
                 onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
+                backgrounds={backgrounds}
                 isQueued={generationQueue.includes(panel.id)}
                 isQueueGenerating={currentlyGenerating === panel.id}
                 isFailed={failedPanels.has(panel.id)}

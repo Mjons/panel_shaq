@@ -34,6 +34,7 @@ export interface PanelPrompt {
   aspectRatio?: string;
   image?: string;
   selectedCharacterIds?: string[];
+  selectedBackgroundId?: string;
   customReferenceImages?: string[];
   notes?: string;
   bubbles: Bubble[];

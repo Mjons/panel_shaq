@@ -386,6 +386,7 @@ function AppInner() {
             panels={panels}
             setPanels={setPanels}
             characters={characters}
+            backgrounds={vaultEntries.filter((e) => e.type === "Environment")}
             story={story}
             onContinue={() => setActiveTab("layout")}
           />
