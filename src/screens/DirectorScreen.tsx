@@ -376,7 +376,7 @@ const PanelCard = React.memo(
     const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
     const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
     const [mood, setMood] = useState(panel.mood || "None");
-    const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
+    const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "3:4");
     const [selectedBgId, setSelectedBgId] = useState<string | null>(
       panel.selectedBackgroundId || null,
     );
@@ -1436,7 +1436,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         const imageUrl = await generatePanelImage(
           finalPrompt,
           allImageRefs,
-          panelSnapshot.aspectRatio || "16:9",
+          panelSnapshot.aspectRatio || "3:4",
         );
 
         if (imageUrl) {
