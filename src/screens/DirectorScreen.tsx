@@ -110,57 +110,86 @@ function AspectRatioPicker({
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
   const current =
     ASPECT_RATIOS.find((r) => r.value === value) || ASPECT_RATIOS[0];
 
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
   return (
-    <div className="space-y-1 relative" ref={ref}>
+    <div className="space-y-1">
       <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
         Aspect Ratio
       </label>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => setOpen(true)}
         className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary flex items-center gap-2"
       >
         <AspectRatioThumb w={current.w} h={current.h} selected />
         <span className="flex-1 text-left">
           {current.label} ({current.value})
         </span>
-        <ChevronDown
-          size={12}
-          className={`text-accent/40 transition-transform ${open ? "rotate-180" : ""}`}
-        />
+        <ChevronDown size={12} className="text-accent/40" />
       </button>
+
+      {/* Aspect ratio modal */}
       {open && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-surface-container border border-outline/20 rounded-lg shadow-xl overflow-hidden">
-          {ASPECT_RATIOS.map((r) => (
-            <button
-              key={r.value}
-              type="button"
-              onClick={() => {
-                onChange(r.value);
-                setOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs hover:bg-primary/10 transition-colors ${r.value === value ? "bg-primary/15 text-primary" : "text-accent/70"}`}
-            >
-              <AspectRatioThumb w={r.w} h={r.h} selected={r.value === value} />
-              <span>{r.label}</span>
-              <span className="text-accent/30 ml-auto">{r.value}</span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-[80]"
+            onClick={() => setOpen(false)}
+          />
+          <div className="fixed inset-0 z-[81] flex items-end sm:items-center justify-center pointer-events-none p-0 sm:p-4">
+            <div className="bg-surface border border-outline/20 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 w-full sm:max-w-md max-h-[85vh] overflow-y-auto pointer-events-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-headline font-bold text-accent text-base">
+                  Aspect Ratio
+                </h3>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="text-accent/40 hover:text-accent"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {ASPECT_RATIOS.map((r) => {
+                  const selected = r.value === value;
+                  const max = Math.max(r.w, r.h);
+                  const tw = Math.round((r.w / max) * 32);
+                  const th = Math.round((r.h / max) * 32);
+                  return (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => {
+                        onChange(r.value);
+                        setOpen(false);
+                      }}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${
+                        selected
+                          ? "bg-primary/10 border-primary shadow-[0_0_8px_rgba(255,145,0,0.15)]"
+                          : "border-outline/10 hover:border-primary/30"
+                      }`}
+                    >
+                      <span
+                        className={`rounded-[3px] border-2 ${selected ? "border-primary bg-primary/20" : "border-accent/25 bg-accent/5"}`}
+                        style={{ width: tw, height: th }}
+                      />
+                      <span
+                        className={`text-xs font-bold ${selected ? "text-primary" : "text-accent/60"}`}
+                      >
+                        {r.label}
+                      </span>
+                      <span className="text-[10px] text-accent/30">
+                        {r.value}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

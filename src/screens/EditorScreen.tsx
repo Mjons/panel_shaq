@@ -975,10 +975,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     return (
                       <div
                         key={pid}
-                        onClick={() => {
-                          setSelectedPanelId(pid);
-                          setSelectedBubbleId(null);
-                        }}
+                        onClick={() => setSelectedPanelId(pid)}
                         className={`bg-black relative cursor-pointer transition-all overflow-hidden ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
                         style={
                           slot
