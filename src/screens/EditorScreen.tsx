@@ -128,6 +128,10 @@ const DraggableBubble: React.FC<{
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Track position in a ref for live DOM updates during drag
+  const posRef = useRef({ ...bubble.pos });
+  posRef.current = { ...bubble.pos };
+
   const bindDrag = useDrag(
     ({ delta: [dx, dy], tap, last }) => {
       if (isExporting) return;
@@ -141,9 +145,21 @@ const DraggableBubble: React.FC<{
       const rect = parent.getBoundingClientRect();
       const pctX = (dx / rect.width) * 100;
       const pctY = (dy / rect.height) * 100;
-      const newX = Math.max(5, Math.min(95, bubble.pos.x + pctX));
-      const newY = Math.max(5, Math.min(95, bubble.pos.y + pctY));
-      if (last) onMove({ x: Math.round(newX), y: Math.round(newY) });
+      posRef.current.x = Math.max(5, Math.min(95, posRef.current.x + pctX));
+      posRef.current.y = Math.max(5, Math.min(95, posRef.current.y + pctY));
+
+      // Live DOM update for smooth dragging
+      if (containerRef.current) {
+        containerRef.current.style.left = `${posRef.current.x}%`;
+        containerRef.current.style.top = `${posRef.current.y}%`;
+      }
+
+      // Commit to React state on release
+      if (last)
+        onMove({
+          x: Math.round(posRef.current.x),
+          y: Math.round(posRef.current.y),
+        });
     },
     { filterTaps: true, pointer: { touch: true } },
   );
@@ -243,55 +259,6 @@ const DraggableBubble: React.FC<{
             className="w-full bg-background border border-outline/20 rounded-lg px-2 py-1.5 text-xs text-accent outline-none focus:border-primary resize-none h-14 font-headline"
             placeholder="Type text..."
           />
-
-          {/* Tail direction — speech bubbles only */}
-          {bubble.style === "speech" && (
-            <div className="flex items-center gap-2">
-              <p className="text-[8px] text-accent/40 shrink-0">Tail</p>
-              <div className="grid grid-cols-3 gap-0.5 w-[54px]">
-                {[
-                  { label: "↖", dx: -15, dy: -15 },
-                  { label: "↑", dx: 0, dy: -15 },
-                  { label: "↗", dx: 15, dy: -15 },
-                  { label: "←", dx: -15, dy: 0 },
-                  { label: "×", dx: 0, dy: 0 },
-                  { label: "→", dx: 15, dy: 0 },
-                  { label: "↙", dx: -15, dy: 15 },
-                  { label: "↓", dx: 0, dy: 15 },
-                  { label: "↘", dx: 15, dy: 15 },
-                ].map(({ label, dx, dy }) => {
-                  const isActive =
-                    dx === 0 && dy === 0
-                      ? !bubble.tailPos
-                      : bubble.tailPos &&
-                        Math.sign(bubble.tailPos.x - bubble.pos.x) ===
-                          Math.sign(dx) &&
-                        Math.sign(bubble.tailPos.y - bubble.pos.y) ===
-                          Math.sign(dy);
-                  return (
-                    <button
-                      key={label}
-                      onClick={() =>
-                        onUpdateBubble({
-                          tailPos:
-                            dx === 0 && dy === 0
-                              ? undefined
-                              : { x: bubble.pos.x + dx, y: bubble.pos.y + dy },
-                        })
-                      }
-                      className={`w-[16px] h-[16px] flex items-center justify-center rounded text-[9px] transition-colors ${
-                        isActive
-                          ? "bg-primary text-background"
-                          : "bg-background border border-outline/20 text-accent/40 hover:bg-primary/20"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Font size + delete */}
           <div className="flex items-center gap-1">
