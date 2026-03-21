@@ -959,7 +959,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
             ? selectedBg.image
             : null;
         const bgContext = selectedBg
-          ? `Background/Setting: ${selectedBg.name}${selectedBg.description ? ` — ${selectedBg.description}` : ""}. Use this environment consistently.`
+          ? `Background/Setting: ${selectedBg.name}${selectedBg.description ? ` — ${selectedBg.description}` : ""}. Use this environment consistently. IMPORTANT: The background reference image is for the ENVIRONMENT ONLY — ignore any people, characters, or figures visible in it.`
           : "";
 
         const cameraStr =
