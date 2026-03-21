@@ -37,9 +37,18 @@ const PanelImage: React.FC<{
   idx: number;
   isSelected: boolean;
   isExporting: boolean;
+  locked?: boolean;
   onSelect: (id: string) => void;
   onTransform: (id: string, t: { x: number; y: number; scale: number }) => void;
-}> = ({ panel, idx, isSelected, isExporting, onSelect, onTransform }) => {
+}> = ({
+  panel,
+  idx,
+  isSelected,
+  isExporting,
+  locked,
+  onSelect,
+  onTransform,
+}) => {
   const initial = panel.imageTransform || { x: 0, y: 0, scale: 1 };
   const imgRef = useRef<HTMLImageElement>(null);
   const tRef = useRef({ ...initial });
@@ -58,7 +67,7 @@ const PanelImage: React.FC<{
   const bind = useGesture(
     {
       onDrag: ({ delta: [dx, dy], tap, event, last }) => {
-        if (isExporting) return;
+        if (isExporting || locked) return;
         if (tap) {
           onSelect(panel.id);
           return;
@@ -71,7 +80,7 @@ const PanelImage: React.FC<{
         if (last) onTransform(panel.id, { ...t });
       },
       onPinch: ({ offset: [s], event, last }) => {
-        if (isExporting) return;
+        if (isExporting || locked) return;
         event?.preventDefault();
         tRef.current.scale = Math.min(4.2, Math.max(0.5, s));
         applyTransform();
@@ -339,7 +348,7 @@ const DraggableBubble: React.FC<{
               disabled={isRendering}
               className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
-              {isRendering ? "Baking..." : "Bake All Dialogue"}
+              {isRendering ? "Baking..." : "Bake Panel Dialogue"}
             </button>
           )}
         </div>
@@ -978,6 +987,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             idx={idx}
                             isSelected={selectedPanelId === pid}
                             isExporting={isExporting}
+                            locked={!!selectedBubbleId}
                             onSelect={setSelectedPanelId}
                             onTransform={(id, t) =>
                               updatePanel(id, { imageTransform: t })
