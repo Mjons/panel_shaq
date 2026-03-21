@@ -455,7 +455,7 @@ const PanelCard = React.memo(
       setCustomCharRefs((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const isWideRatio = ["16:9", "21:9"].includes(aspectRatio);
+    const isWideRatio = ["16:9", "21:9", "3:2"].includes(aspectRatio);
     const aspectClass =
       {
         "1:1": "aspect-square",
@@ -463,6 +463,9 @@ const PanelCard = React.memo(
         "9:16": "aspect-[9/16]",
         "4:3": "aspect-[4/3]",
         "3:4": "aspect-[3/4]",
+        "2:3": "aspect-[2/3]",
+        "3:2": "aspect-[3/2]",
+        "21:9": "aspect-[21/9]",
       }[aspectRatio] || "aspect-video";
 
     return (
@@ -1021,11 +1024,14 @@ const PanelCard = React.memo(
                   onChange={(e) => setAspectRatio(e.target.value)}
                   className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
                 >
-                  <option value="1:1">1:1 Square</option>
-                  <option value="16:9">16:9 Wide</option>
-                  <option value="9:16">9:16 Portrait</option>
-                  <option value="4:3">4:3 Standard</option>
-                  <option value="3:4">3:4 Tall</option>
+                  <option value="1:1">Square (1:1)</option>
+                  <option value="3:4">Portrait (3:4)</option>
+                  <option value="4:3">Landscape (4:3)</option>
+                  <option value="9:16">Tall (9:16)</option>
+                  <option value="16:9">Wide (16:9)</option>
+                  <option value="2:3">Poster (2:3)</option>
+                  <option value="3:2">Photo (3:2)</option>
+                  <option value="21:9">Ultra Wide (21:9)</option>
                 </select>
               </div>
             </div>
