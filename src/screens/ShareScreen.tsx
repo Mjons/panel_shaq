@@ -16,11 +16,6 @@ import {
   exportAsComic,
   downloadComicFile,
 } from "../services/exportComicService";
-import {
-  isDesktopAvailable,
-  sendToDesktop,
-  resetDesktopDetection,
-} from "../services/desktopBridge";
 
 interface ExportItem {
   id: string;
@@ -47,15 +42,6 @@ export const ShareScreen: React.FC<ShareProps> = ({
   vaultEntries = [],
 }) => {
   const [exportHistory, setExportHistory] = useState<ExportItem[]>([]);
-  const [desktopDetected, setDesktopDetected] = useState<boolean | null>(null);
-  const [sending, setSending] = useState(false);
-  const [sendResult, setSendResult] = useState<"success" | "failed" | null>(
-    null,
-  );
-
-  useEffect(() => {
-    isDesktopAvailable().then(setDesktopDetected);
-  }, []);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -156,11 +142,12 @@ export const ShareScreen: React.FC<ShareProps> = ({
         <section className="bg-surface-container rounded-xl p-6 border border-primary/20 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
             <Upload size={18} />
-            Open in Panelhaus Desktop
+            Export for Panelhaus
           </h3>
           <p className="text-sm text-accent/50">
-            Continue editing with the full Panelhaus canvas — layers, effects,
-            text tools, and more.
+            Download your project as a <strong>.comic</strong> file and open it
+            in Panelhaus for full editing — layers, effects, text tools, and
+            more.
           </p>
           <div className="text-[10px] text-accent/30 space-y-1">
             <p>
@@ -168,87 +155,6 @@ export const ShareScreen: React.FC<ShareProps> = ({
               {vaultEntries.length} vault entries, {pages.length} pages
             </p>
           </div>
-
-          {/* Direct send if desktop detected */}
-          {desktopDetected && (
-            <button
-              onClick={async () => {
-                setSending(true);
-                setSendResult(null);
-                const json = exportAsComic(
-                  projectName,
-                  story,
-                  pages,
-                  panels,
-                  vaultEntries,
-                );
-                const result = await sendToDesktop(json);
-                setSending(false);
-                setSendResult(result.success ? "success" : "failed");
-                if (result.success) setTimeout(() => setSendResult(null), 3000);
-              }}
-              disabled={panels.length === 0 || sending}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
-            >
-              {sending ? (
-                <>
-                  <span className="animate-spin">⟳</span>
-                  SENDING...
-                </>
-              ) : sendResult === "success" ? (
-                <>
-                  <Check size={18} />
-                  SENT TO PANELHAUS
-                </>
-              ) : (
-                <>
-                  <Share2 size={18} />
-                  SEND TO PANELHAUS DESKTOP
-                </>
-              )}
-            </button>
-          )}
-          {sendResult === "failed" && (
-            <p className="text-[10px] text-red-400 text-center">
-              Connection lost. Make sure Panelhaus Desktop is running.
-              <button
-                onClick={() => {
-                  resetDesktopDetection();
-                  isDesktopAvailable().then(setDesktopDetected);
-                  setSendResult(null);
-                }}
-                className="text-primary ml-1 underline"
-              >
-                Retry
-              </button>
-            </p>
-          )}
-
-          {/* Desktop not detected — show download + help */}
-          {desktopDetected === false && (
-            <div className="space-y-3">
-              <div className="bg-background/50 rounded-lg p-4 space-y-2">
-                <p className="text-[10px] text-accent/50 font-bold uppercase tracking-widest">
-                  Panelhaus Desktop not detected
-                </p>
-                <p className="text-[10px] text-accent/30 leading-relaxed">
-                  Make sure Panelhaus Desktop is open, or download the .comic
-                  file to import manually.
-                </p>
-                <button
-                  onClick={() => {
-                    resetDesktopDetection();
-                    isDesktopAvailable().then(setDesktopDetected);
-                  }}
-                  className="text-[10px] text-primary font-bold underline"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Always show download as fallback */}
           <button
             onClick={() => {
               const json = exportAsComic(
@@ -261,18 +167,11 @@ export const ShareScreen: React.FC<ShareProps> = ({
               downloadComicFile(json, projectName);
             }}
             disabled={panels.length === 0}
-            className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-headline font-bold transition-all disabled:opacity-50 active:scale-95 ${
-              desktopDetected
-                ? "border border-accent/20 text-accent/60 text-sm hover:text-primary hover:border-primary/30"
-                : "bg-primary text-background py-4 shadow-lg shadow-primary/20 hover:opacity-90"
-            }`}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
           >
-            <Download size={16} />
-            {desktopDetected
-              ? "DOWNLOAD .COMIC FILE INSTEAD"
-              : "DOWNLOAD .COMIC FILE"}
+            <Download size={18} />
+            DOWNLOAD .COMIC FILE
           </button>
-
           {panels.length === 0 && (
             <p className="text-[10px] text-accent/30 text-center">
               Generate some panels first to export
