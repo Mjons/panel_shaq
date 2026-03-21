@@ -7,7 +7,15 @@ import {
   FileText,
   Copy,
   Check,
+  Upload,
 } from "lucide-react";
+import type { PanelPrompt } from "../services/geminiService";
+import type { Page } from "./LayoutScreen";
+import type { VaultEntry } from "./VaultScreen";
+import {
+  exportAsComic,
+  downloadComicFile,
+} from "../services/exportComicService";
 
 interface ExportItem {
   id: string;
@@ -18,7 +26,21 @@ interface ExportItem {
   type: "pdf" | "png";
 }
 
-export const ShareScreen = () => {
+interface ShareProps {
+  projectName?: string;
+  story?: string;
+  pages?: Page[];
+  panels?: PanelPrompt[];
+  vaultEntries?: VaultEntry[];
+}
+
+export const ShareScreen: React.FC<ShareProps> = ({
+  projectName = "",
+  story = "",
+  pages = [],
+  panels = [],
+  vaultEntries = [],
+}) => {
   const [exportHistory, setExportHistory] = useState<ExportItem[]>([]);
   const [copied, setCopied] = useState(false);
 
@@ -114,6 +136,46 @@ export const ShareScreen = () => {
             To share a comic, export it first from the Editor, then share from
             the history below.
           </p>
+        </section>
+
+        {/* Export for Panel Haus */}
+        <section className="bg-surface-container rounded-xl p-6 border border-primary/20 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <Upload size={18} />
+            Export for Panel Haus
+          </h3>
+          <p className="text-sm text-accent/50">
+            Download your project as a <strong>.comic</strong> file that opens
+            directly in Panel Haus Desktop with full editing capabilities.
+          </p>
+          <div className="text-[10px] text-accent/30 space-y-1">
+            <p>
+              Includes: {panels.filter((p) => p.image).length} panel images,{" "}
+              {vaultEntries.length} vault entries, {pages.length} pages
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const json = exportAsComic(
+                projectName,
+                story,
+                pages,
+                panels,
+                vaultEntries,
+              );
+              downloadComicFile(json, projectName);
+            }}
+            disabled={panels.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+          >
+            <Download size={18} />
+            DOWNLOAD .COMIC FILE
+          </button>
+          {panels.length === 0 && (
+            <p className="text-[10px] text-accent/30 text-center">
+              Generate some panels first to export
+            </p>
+          )}
         </section>
 
         {/* Export History */}

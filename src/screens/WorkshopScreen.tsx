@@ -117,6 +117,25 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   const handleGeneratePanels = async () => {
     if (!story.trim() || isGeneratingPanels) return;
 
+    // First-time tip: remind user to fill out character descriptions
+    const seenDescTip = localStorage.getItem("panelshaq_seen_desc_tip");
+    if (!seenDescTip && characters.length > 0) {
+      const missingDesc = characters.filter(
+        (c) =>
+          !c.description || c.description === "A new character in your story.",
+      );
+      const ok = await confirm({
+        title: "Tip: Add Character Descriptions",
+        message:
+          missingDesc.length > 0
+            ? `${missingDesc.length} of your ${characters.length} character${characters.length > 1 ? "s" : ""} ${missingDesc.length > 1 ? "are" : "is"} missing a description. Tap on each character in step 1 to fill out their appearance — this helps the AI generate more accurate images. You can also use the "Auto-Describe" button to analyze their image automatically.`
+            : 'Make sure your character descriptions are filled out — the AI uses them to generate accurate images. Tap any character in step 1 to edit, or use "Auto-Describe" to fill it in automatically.',
+        confirmText: "Got it, Generate",
+      });
+      localStorage.setItem("panelshaq_seen_desc_tip", "1");
+      if (!ok) return;
+    }
+
     // Warn if panels with images already exist
     const panelsWithImages = panels.filter((p) => p.image).length;
     const shouldWarn = (() => {

@@ -410,7 +410,15 @@ function AppInner() {
       case "settings":
         return <SettingsScreen />;
       case "share":
-        return <ShareScreen />;
+        return (
+          <ShareScreen
+            projectName={projectName}
+            story={story}
+            pages={pages}
+            panels={panels}
+            vaultEntries={vaultEntries}
+          />
+        );
       default:
         return (
           <WorkshopScreen
