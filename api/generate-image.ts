@@ -107,12 +107,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Prompt is required" });
 
   try {
-    const parts: any[] = [
-      {
-        text: `${prompt}
-        ${referenceImages && referenceImages.length > 0 ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached character reference images. The output must look like it belongs in the same comic as the references." : ""}`,
-      },
-    ];
+    // Reference images FIRST — models weight earlier content more heavily
+    const parts: any[] = [];
 
     if (referenceImages && referenceImages.length > 0) {
       for (const ref of referenceImages) {
@@ -123,24 +119,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    // Try gemini-2.0-flash-preview-image-generation first, fall back to other models
-    const models = ["gemini-3-pro-image-preview"];
+    // Text prompt AFTER images
+    const hasRefs = referenceImages && referenceImages.length > 0;
+    parts.push({
+      text: `A cinematic comic book panel.
+${hasRefs ? "STYLE & CHARACTER ADHERENCE: Replicate the artistic style, color palette, line work, and character appearance from the attached reference images. The output should look like it belongs in the same comic series." : ""}
+${prompt}
+CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the image.`,
+    });
 
-    let lastError = "";
-    for (const model of models) {
-      try {
-        const image = await geminiImage(apiKey, model, parts, { aspectRatio });
-        if (image) return res.status(200).json({ image });
-        lastError = `${model}: no image in response`;
-      } catch (e: any) {
-        lastError = `${model}: ${e.message}`;
-        continue;
-      }
-    }
+    const image = await geminiImage(
+      apiKey,
+      "gemini-3.1-flash-image-preview",
+      parts,
+      { aspectRatio, imageSize: "1K" },
+    );
 
-    return res
-      .status(500)
-      .json({ error: `Image generation failed. ${lastError}` });
+    if (image) return res.status(200).json({ image });
+    return res.status(500).json({ error: "No image generated" });
   } catch (error: any) {
     console.error("Generate image error:", error);
     return res.status(500).json({ error: error.message || "Failed" });

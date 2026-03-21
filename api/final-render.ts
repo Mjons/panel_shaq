@@ -135,23 +135,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
     ];
 
-    const models = ["gemini-3-pro-image-preview"];
+    const image = await geminiImage(
+      apiKey,
+      "gemini-3.1-flash-image-preview",
+      parts,
+      { aspectRatio: "16:9", imageSize: "1K" },
+    );
 
-    let lastError = "";
-    for (const model of models) {
-      try {
-        const image = await geminiImage(apiKey, model, parts, {
-          aspectRatio: "16:9",
-        });
-        if (image) return res.status(200).json({ image });
-        lastError = `${model}: no image in response`;
-      } catch (e: any) {
-        lastError = `${model}: ${e.message}`;
-        continue;
-      }
-    }
-
-    return res.status(500).json({ error: `Render failed. ${lastError}` });
+    if (image) return res.status(200).json({ image });
+    return res.status(500).json({ error: "No image generated" });
   } catch (error: any) {
     console.error("Final render error:", error);
     return res.status(500).json({ error: error.message || "Failed" });
