@@ -24,6 +24,52 @@ import { VaultEntry } from "./VaultScreen";
 import { useConfirm } from "../components/ConfirmDialog";
 import { PreviewCarousel } from "../components/PreviewCarousel";
 
+// Lens type reference images
+import lensDefault from "../images/lens_types/Default.webp";
+import lensFisheye from "../images/lens_types/Fish-eye 8mm.webp";
+import lensUltraWide from "../images/lens_types/Ultra Wide 14mm.webp";
+import lensWide from "../images/lens_types/Wide 24mm.webp";
+import lensCinematic from "../images/lens_types/Cinematic 35mm.webp";
+import lensStandard from "../images/lens_types/Standard 50mm.webp";
+import lensPortrait from "../images/lens_types/Portrait 85mm.webp";
+import lensTelephoto from "../images/lens_types/Telephoto 135mm.webp";
+import lensExtremeTele from "../images/lens_types/Extreme Telephoto 200mm.webp";
+import lensMacro from "../images/lens_types/Macro Extreme Closeup.webp";
+import lensTiltShift from "../images/lens_types/til-shift-miniature.webp";
+import lensAnamorphic from "../images/lens_types/anthro-widescreen.webp";
+
+const LENS_IMAGES: Record<string, string> = {
+  None: lensDefault,
+  "Fish-eye 8mm": lensFisheye,
+  "Ultra Wide 14mm": lensUltraWide,
+  "Wide 24mm": lensWide,
+  "Cinematic 35mm": lensCinematic,
+  "Standard 50mm": lensStandard,
+  "Portrait 85mm": lensPortrait,
+  "Telephoto 135mm": lensTelephoto,
+  "Extreme Telephoto 200mm": lensExtremeTele,
+  "Macro / Extreme Close-up": lensMacro,
+  "Tilt-Shift / Miniature": lensTiltShift,
+  "Anamorphic Widescreen": lensAnamorphic,
+};
+
+const LENS_OPTIONS = [
+  { group: "Wide", items: ["Fish-eye 8mm", "Ultra Wide 14mm", "Wide 24mm"] },
+  { group: "Standard", items: ["Cinematic 35mm", "Standard 50mm"] },
+  {
+    group: "Telephoto",
+    items: ["Portrait 85mm", "Telephoto 135mm", "Extreme Telephoto 200mm"],
+  },
+  {
+    group: "Special",
+    items: [
+      "Macro / Extreme Close-up",
+      "Tilt-Shift / Miniature",
+      "Anamorphic Widescreen",
+    ],
+  },
+];
+
 interface DirectorProps {
   panels: PanelPrompt[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
@@ -173,741 +219,804 @@ const PanelDraftCard = ({
   </div>
 );
 
-const PanelCard = ({
-  panel,
-  characters,
-  index,
-  onUpdatePanel,
-  backgrounds,
-  props: vaultProps,
-  vehicles,
-  isQueued,
-  isQueueGenerating,
-  isFailed,
-  onQueueGenerate,
-  onPreview,
-}: {
-  panel: PanelPrompt;
-  characters: Character[];
-  index: number;
-  onUpdatePanel: (updated: PanelPrompt) => void;
-  backgrounds: VaultEntry[];
-  props: VaultEntry[];
-  vehicles: VaultEntry[];
-  isQueued?: boolean;
-  isQueueGenerating?: boolean;
-  isFailed?: boolean;
-  onQueueGenerate: (panelId: string) => void;
-  onPreview?: () => void;
-  key?: string | number;
-}) => {
-  const [prompt, setPrompt] = useState(panel.description);
-  const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
-  const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
-  const [mood, setMood] = useState(panel.mood || "None");
-  const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
-  const [selectedBgId, setSelectedBgId] = useState<string | null>(
-    panel.selectedBackgroundId || null,
-  );
-  const [showBackgrounds, setShowBackgrounds] = useState(false);
-  const [selectedPropIds, setSelectedPropIds] = useState<string[]>(
-    panel.selectedPropIds || [],
-  );
-  const [showProps, setShowProps] = useState(false);
-  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>(
-    panel.selectedVehicleIds || [],
-  );
-  const [showVehicles, setShowVehicles] = useState(false);
-  const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
-    panel.selectedCharacterIds ?? characters.map((c) => c.id).slice(0, 5),
-  );
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [customCharRefs, setCustomCharRefs] = useState<string[]>(
-    panel.customReferenceImages || [],
-  );
-
-  const image = panel.image;
-  const selectedChars = characters.filter((c) =>
-    selectedCharIds.includes(c.id),
-  );
-  const finalCharRefs = [
-    ...customCharRefs,
-    ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
-  ];
-
-  const getRegenWarning = () => {
-    try {
-      const s = localStorage.getItem("panelshaq_settings");
-      return s ? JSON.parse(s).showRegenWarnings !== false : true;
-    } catch {
-      return true;
-    }
-  };
-
-  const handleGenerate = () => {
-    if (
-      panel.image &&
-      getRegenWarning() &&
-      !window.confirm(
-        "Regenerate this panel? The current image will be replaced.",
-      )
-    )
-      return;
-    // Save current settings to the panel before queueing
-    onUpdatePanel({
-      ...panel,
-      description: prompt,
-      cameraAngle,
-      cameraLens,
-      mood,
-      aspectRatio,
-      selectedCharacterIds: selectedCharIds,
-      selectedBackgroundId: selectedBgId || undefined,
-      selectedPropIds: selectedPropIds.length > 0 ? selectedPropIds : undefined,
-      selectedVehicleIds:
-        selectedVehicleIds.length > 0 ? selectedVehicleIds : undefined,
-      customReferenceImages: customCharRefs,
-    });
-    // Add to the shared generation queue
-    onQueueGenerate(panel.id);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image too large. Please use an image under 5MB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomCharRefs((prev) => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Descriptive phrases for each camera/mood option
-  const ANGLE_DESC: Record<string, string> = {
-    "Eye Level": "Shot from eye level, straight-on natural perspective",
-    "Low Angle":
-      "Low angle shot looking upward, making the subject appear powerful and imposing",
-    "High Angle":
-      "High angle shot looking downward, making the subject appear small or vulnerable",
-    "Bird's Eye": "Extreme overhead bird's eye view looking straight down",
-    "Worm's Eye": "Extreme low worm's eye view from ground level looking up",
-    "Over the Shoulder":
-      "Over-the-shoulder framing from behind one character looking at another",
-    "Dutch Angle":
-      "Tilted dutch angle with the horizon askew, creating unease and tension",
-    "POV / First Person": "First-person POV shot from the character's eyes",
-    "Three-Quarter View": "Three-quarter view angled slightly to the side",
-    "Profile / Side View": "Clean profile side view silhouette framing",
-    "Tracking Shot":
-      "Dynamic tracking shot with motion blur suggesting camera movement",
-    "Crane Shot": "Sweeping crane shot from an elevated moving vantage point",
-    "Dolly Zoom":
-      "Dolly zoom vertigo effect with compressed background perspective",
-  };
-
-  const LENS_DESC: Record<string, string> = {
-    "Fish-eye 8mm":
-      "Fish-eye 8mm lens with extreme barrel distortion and exaggerated depth",
-    "Ultra Wide 14mm":
-      "Ultra wide 14mm lens with dramatic perspective and expansive field of view",
-    "Wide 24mm":
-      "Wide 24mm lens capturing broad scenes with slight perspective distortion",
-    "Cinematic 35mm":
-      "Cinematic 35mm lens with natural field of view and shallow depth of field",
-    "Standard 50mm": "Standard 50mm lens mimicking natural human vision",
-    "Portrait 85mm":
-      "Portrait 85mm lens with creamy bokeh background blur and subject isolation",
-    "Telephoto 135mm":
-      "Telephoto 135mm lens compressing depth and flattening perspective",
-    "Extreme Telephoto 200mm":
-      "Extreme telephoto 200mm with heavily compressed planes and intense subject isolation",
-    "Macro / Extreme Close-up":
-      "Macro extreme close-up revealing fine textures and tiny details",
-    "Tilt-Shift / Miniature":
-      "Tilt-shift miniature effect with selective focus making the scene look like a diorama",
-    "Anamorphic Widescreen":
-      "Anamorphic widescreen with horizontal lens flares and oval bokeh",
-  };
-
-  const MOOD_DESC: Record<string, string> = {
-    "Cyberpunk Neon":
-      "Drenched in neon pinks, blues, and purples with rain-slicked reflections",
-    "High Contrast Noir":
-      "High contrast noir with deep blacks, harsh shadows, and single-source dramatic lighting",
-    "Amber Glow":
-      "Warm amber glow with golden hour lighting casting long soft shadows",
-    "Sun-Kissed Tech":
-      "Bright sun-kissed lighting with clean whites and optimistic tech vibes",
-    "Cold Industrial":
-      "Cold industrial blue-grey tones with sterile fluorescent lighting",
-    "Warm Sunset":
-      "Warm sunset palette with rich oranges and deep magentas bleeding across the sky",
-    "Foggy / Atmospheric":
-      "Dense fog and atmospheric haze with diffused light and silhouetted shapes",
-    "Dark & Gritty":
-      "Dark and gritty with muted desaturated colors and grime textures",
-    "Bright & Cheerful":
-      "Bright and cheerful with vivid saturated colors and soft even lighting",
-    "Dramatic Shadows":
-      "Dramatic chiaroscuro with stark contrast between deep shadow and bright highlight",
-  };
-
-  const appendToPrompt = (desc: string) => {
-    if (!desc || prompt.includes(desc)) return;
-    const sep = prompt.trim() ? (prompt.trim().endsWith(".") ? " " : ". ") : "";
-    setPrompt((prev) => `${prev.trim()}${sep}${desc}.`);
-  };
-
-  const handleAngleChange = (val: string) => {
-    setCameraAngle(val);
-    if (val !== "None" && ANGLE_DESC[val]) appendToPrompt(ANGLE_DESC[val]);
-  };
-
-  const handleLensChange = (val: string) => {
-    setCameraLens(val);
-    if (val !== "None" && LENS_DESC[val]) appendToPrompt(LENS_DESC[val]);
-  };
-
-  const handleMoodChange = (val: string) => {
-    setMood(val);
-    if (val !== "None" && MOOD_DESC[val]) appendToPrompt(MOOD_DESC[val]);
-  };
-  const MAX_CHAR_REFS = 5;
-  const toggleChar = (id: string) => {
-    const isSelecting = !selectedCharIds.includes(id);
-    if (isSelecting && selectedCharIds.length >= MAX_CHAR_REFS) return;
-    setSelectedCharIds((prev) =>
-      isSelecting ? [...prev, id] : prev.filter((i) => i !== id),
+const PanelCard = React.memo(
+  ({
+    panel,
+    characters,
+    index,
+    onUpdatePanel,
+    backgrounds,
+    props: vaultProps,
+    vehicles,
+    isQueued,
+    isQueueGenerating,
+    isFailed,
+    onQueueGenerate,
+    onPreview,
+  }: {
+    panel: PanelPrompt;
+    characters: Character[];
+    index: number;
+    onUpdatePanel: (index: number, updated: PanelPrompt) => void;
+    backgrounds: VaultEntry[];
+    props: VaultEntry[];
+    vehicles: VaultEntry[];
+    isQueued?: boolean;
+    isQueueGenerating?: boolean;
+    isFailed?: boolean;
+    onQueueGenerate: (panelId: string) => void;
+    onPreview: (index: number) => void;
+  }) => {
+    const [prompt, setPrompt] = useState(panel.description);
+    const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
+    const [cameraLens, setCameraLens] = useState(panel.cameraLens || "None");
+    const [mood, setMood] = useState(panel.mood || "None");
+    const [aspectRatio, setAspectRatio] = useState(panel.aspectRatio || "16:9");
+    const [selectedBgId, setSelectedBgId] = useState<string | null>(
+      panel.selectedBackgroundId || null,
+    );
+    const [showLensDropdown, setShowLensDropdown] = useState(false);
+    const lensDropdownRef = useRef<HTMLDivElement>(null);
+    const [showBackgrounds, setShowBackgrounds] = useState(false);
+    const [selectedPropIds, setSelectedPropIds] = useState<string[]>(
+      panel.selectedPropIds || [],
+    );
+    const [showProps, setShowProps] = useState(false);
+    const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>(
+      panel.selectedVehicleIds || [],
+    );
+    const [showVehicles, setShowVehicles] = useState(false);
+    const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
+      panel.selectedCharacterIds ?? characters.map((c) => c.id).slice(0, 5),
+    );
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [customCharRefs, setCustomCharRefs] = useState<string[]>(
+      panel.customReferenceImages || [],
     );
 
-    // Auto-append character name to prompt if selecting and not already present
-    if (isSelecting) {
-      const char = characters.find((c) => c.id === id);
-      if (char && !prompt.toLowerCase().includes(char.name.toLowerCase())) {
-        const separator = prompt.trim()
-          ? prompt.trim().endsWith(".")
-            ? " "
-            : ". "
-          : "";
-        setPrompt((prev) => `${prev.trim()}${separator}${char.name}`);
+    useEffect(() => {
+      if (!showLensDropdown) return;
+      const handler = (e: MouseEvent) => {
+        if (
+          lensDropdownRef.current &&
+          !lensDropdownRef.current.contains(e.target as Node)
+        ) {
+          setShowLensDropdown(false);
+        }
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, [showLensDropdown]);
+
+    const image = panel.image;
+    const selectedChars = characters.filter((c) =>
+      selectedCharIds.includes(c.id),
+    );
+    const finalCharRefs = [
+      ...customCharRefs,
+      ...(selectedChars.map((c) => c.image).filter(Boolean) as string[]),
+    ];
+
+    const getRegenWarning = () => {
+      try {
+        const s = localStorage.getItem("panelshaq_settings");
+        return s ? JSON.parse(s).showRegenWarnings !== false : true;
+      } catch {
+        return true;
       }
-    }
-  };
+    };
 
-  const removeCustomRef = (index: number) => {
-    setCustomCharRefs((prev) => prev.filter((_, i) => i !== index));
-  };
+    const handleGenerate = () => {
+      if (
+        panel.image &&
+        getRegenWarning() &&
+        !window.confirm(
+          "Regenerate this panel? The current image will be replaced.",
+        )
+      )
+        return;
+      // Save current settings to the panel before queueing
+      onUpdatePanel(index, {
+        ...panel,
+        description: prompt,
+        cameraAngle,
+        cameraLens,
+        mood,
+        aspectRatio,
+        selectedCharacterIds: selectedCharIds,
+        selectedBackgroundId: selectedBgId || undefined,
+        selectedPropIds:
+          selectedPropIds.length > 0 ? selectedPropIds : undefined,
+        selectedVehicleIds:
+          selectedVehicleIds.length > 0 ? selectedVehicleIds : undefined,
+        customReferenceImages: customCharRefs,
+      });
+      // Add to the shared generation queue
+      onQueueGenerate(panel.id);
+    };
 
-  const isWideRatio = ["16:9", "21:9"].includes(aspectRatio);
-  const aspectClass =
-    {
-      "1:1": "aspect-square",
-      "16:9": "aspect-video",
-      "9:16": "aspect-[9/16]",
-      "4:3": "aspect-[4/3]",
-      "3:4": "aspect-[3/4]",
-    }[aspectRatio] || "aspect-video";
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+          alert("Image too large. Please use an image under 5MB.");
+          return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setCustomCharRefs((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
-  return (
-    <div
-      className={isWideRatio ? "lg:col-span-8 group" : "lg:col-span-4 group"}
-    >
-      <div className="bg-surface rounded-lg overflow-hidden shadow-2xl transition-all duration-300 hover:translate-y-[-4px] border border-outline/10">
-        <div
-          className={`bg-surface-container relative overflow-hidden ${aspectClass}`}
-        >
-          {image ? (
-            <img
-              className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer"
-              src={image}
-              alt={`Panel ${index + 1}`}
-              onClick={onPreview}
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
-              <ImageIcon size={48} className="text-outline opacity-20" />
-              {!isQueueGenerating && !isQueued && (
-                <button
-                  onClick={handleGenerate}
-                  className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
-                >
-                  Ready to Generate
-                </button>
-              )}
-            </div>
-          )}
+    // Descriptive phrases for each camera/mood option
+    const ANGLE_DESC: Record<string, string> = {
+      "Eye Level": "Shot from eye level, straight-on natural perspective",
+      "Low Angle":
+        "Low angle shot looking upward, making the subject appear powerful and imposing",
+      "High Angle":
+        "High angle shot looking downward, making the subject appear small or vulnerable",
+      "Bird's Eye": "Extreme overhead bird's eye view looking straight down",
+      "Worm's Eye": "Extreme low worm's eye view from ground level looking up",
+      "Over the Shoulder":
+        "Over-the-shoulder framing from behind one character looking at another",
+      "Dutch Angle":
+        "Tilted dutch angle with the horizon askew, creating unease and tension",
+      "POV / First Person": "First-person POV shot from the character's eyes",
+      "Three-Quarter View": "Three-quarter view angled slightly to the side",
+      "Profile / Side View": "Clean profile side view silhouette framing",
+      "Tracking Shot":
+        "Dynamic tracking shot with motion blur suggesting camera movement",
+      "Crane Shot": "Sweeping crane shot from an elevated moving vantage point",
+      "Dolly Zoom":
+        "Dolly zoom vertigo effect with compressed background perspective",
+    };
 
-          <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1">
-            <div className="bg-background/80 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-lg border border-outline/20">
-              <span className="font-label text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-widest">
-                Panel {String(index + 1).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
+    const LENS_DESC: Record<string, string> = {
+      "Fish-eye 8mm":
+        "Fish-eye 8mm lens with extreme barrel distortion and exaggerated depth",
+      "Ultra Wide 14mm":
+        "Ultra wide 14mm lens with dramatic perspective and expansive field of view",
+      "Wide 24mm":
+        "Wide 24mm lens capturing broad scenes with slight perspective distortion",
+      "Cinematic 35mm":
+        "Cinematic 35mm lens with natural field of view and shallow depth of field",
+      "Standard 50mm": "Standard 50mm lens mimicking natural human vision",
+      "Portrait 85mm":
+        "Portrait 85mm lens with creamy bokeh background blur and subject isolation",
+      "Telephoto 135mm":
+        "Telephoto 135mm lens compressing depth and flattening perspective",
+      "Extreme Telephoto 200mm":
+        "Extreme telephoto 200mm with heavily compressed planes and intense subject isolation",
+      "Macro / Extreme Close-up":
+        "Macro extreme close-up revealing fine textures and tiny details",
+      "Tilt-Shift / Miniature":
+        "Tilt-shift miniature effect with selective focus making the scene look like a diorama",
+      "Anamorphic Widescreen":
+        "Anamorphic widescreen with horizontal lens flares and oval bokeh",
+    };
 
-          {/* Queue status badges */}
-          {isQueued && !isQueueGenerating && (
-            <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
-              Queued
-            </div>
-          )}
-          {isQueueGenerating && (
-            <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
-              <Loader2 size={10} className="animate-spin" /> Generating...
-            </div>
-          )}
-          {isFailed && !isQueued && !isQueueGenerating && (
-            <button
-              onClick={handleGenerate}
-              className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
-            >
-              <RefreshCw size={10} /> Failed — Retry
-            </button>
-          )}
-          {image && !isQueued && !isQueueGenerating && !isFailed && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const link = document.createElement("a");
-                link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
-                link.href = image;
-                link.click();
-              }}
-              className="absolute top-2 right-2 md:top-4 md:right-4 bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg z-10 hover:text-primary hover:bg-background/90 transition-all"
-              title="Download panel image"
-            >
-              <Download size={14} />
-            </button>
-          )}
+    const MOOD_DESC: Record<string, string> = {
+      "Cyberpunk Neon":
+        "Drenched in neon pinks, blues, and purples with rain-slicked reflections",
+      "High Contrast Noir":
+        "High contrast noir with deep blacks, harsh shadows, and single-source dramatic lighting",
+      "Amber Glow":
+        "Warm amber glow with golden hour lighting casting long soft shadows",
+      "Sun-Kissed Tech":
+        "Bright sun-kissed lighting with clean whites and optimistic tech vibes",
+      "Cold Industrial":
+        "Cold industrial blue-grey tones with sterile fluorescent lighting",
+      "Warm Sunset":
+        "Warm sunset palette with rich oranges and deep magentas bleeding across the sky",
+      "Foggy / Atmospheric":
+        "Dense fog and atmospheric haze with diffused light and silhouetted shapes",
+      "Dark & Gritty":
+        "Dark and gritty with muted desaturated colors and grime textures",
+      "Bright & Cheerful":
+        "Bright and cheerful with vivid saturated colors and soft even lighting",
+      "Dramatic Shadows":
+        "Dramatic chiaroscuro with stark contrast between deep shadow and bright highlight",
+    };
 
-          <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            <button
-              onClick={handleGenerate}
-              disabled={isQueued || isQueueGenerating}
-              className="bg-primary/90 backdrop-blur-sm text-background px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-headline font-bold text-[10px] md:text-xs flex items-center gap-1 disabled:opacity-50 pointer-events-auto shadow-lg"
-            >
-              {isQueueGenerating ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : (
-                <Sparkles size={12} />
-              )}
-              {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
-            </button>
-          </div>
-        </div>
+    const appendToPrompt = (desc: string) => {
+      if (!desc || prompt.includes(desc)) return;
+      const sep = prompt.trim()
+        ? prompt.trim().endsWith(".")
+          ? " "
+          : ". "
+        : "";
+      setPrompt((prev) => `${prev.trim()}${sep}${desc}.`);
+    };
 
-        <div className="p-5 space-y-3">
-          {/* Character References — compact */}
-          <div className="space-y-2 p-2.5 bg-background/30 rounded-lg border border-outline/5">
-            <div className="flex items-center justify-between">
-              <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
-                Characters
-                <span className="text-accent/25 normal-case tracking-normal ml-1">
-                  ({selectedCharIds.length}/{MAX_CHAR_REFS})
-                </span>
-              </p>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
-              >
-                <Upload size={9} />
-                Add
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                className="hidden"
-                accept="image/*"
+    const handleAngleChange = (val: string) => {
+      setCameraAngle(val);
+      if (val !== "None" && ANGLE_DESC[val]) appendToPrompt(ANGLE_DESC[val]);
+    };
+
+    const handleLensChange = (val: string) => {
+      setCameraLens(val);
+      if (val !== "None" && LENS_DESC[val]) appendToPrompt(LENS_DESC[val]);
+    };
+
+    const handleMoodChange = (val: string) => {
+      setMood(val);
+      if (val !== "None" && MOOD_DESC[val]) appendToPrompt(MOOD_DESC[val]);
+    };
+    const MAX_CHAR_REFS = 5;
+    const toggleChar = (id: string) => {
+      const isSelecting = !selectedCharIds.includes(id);
+      if (isSelecting && selectedCharIds.length >= MAX_CHAR_REFS) return;
+      setSelectedCharIds((prev) =>
+        isSelecting ? [...prev, id] : prev.filter((i) => i !== id),
+      );
+
+      // Auto-append character name to prompt if selecting and not already present
+      if (isSelecting) {
+        const char = characters.find((c) => c.id === id);
+        if (char && !prompt.toLowerCase().includes(char.name.toLowerCase())) {
+          const separator = prompt.trim()
+            ? prompt.trim().endsWith(".")
+              ? " "
+              : ". "
+            : "";
+          setPrompt((prev) => `${prev.trim()}${separator}${char.name}`);
+        }
+      }
+    };
+
+    const removeCustomRef = (index: number) => {
+      setCustomCharRefs((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const isWideRatio = ["16:9", "21:9"].includes(aspectRatio);
+    const aspectClass =
+      {
+        "1:1": "aspect-square",
+        "16:9": "aspect-video",
+        "9:16": "aspect-[9/16]",
+        "4:3": "aspect-[4/3]",
+        "3:4": "aspect-[3/4]",
+      }[aspectRatio] || "aspect-video";
+
+    return (
+      <div
+        className={isWideRatio ? "lg:col-span-8 group" : "lg:col-span-4 group"}
+      >
+        <div className="bg-surface rounded-lg overflow-hidden shadow-2xl transition-all duration-300 hover:translate-y-[-4px] border border-outline/10">
+          <div
+            className={`bg-surface-container relative overflow-hidden ${aspectClass}`}
+          >
+            {image ? (
+              <img
+                className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer"
+                src={image}
+                alt={`Panel ${index + 1}`}
+                onClick={() => onPreview(index)}
               />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {characters.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => toggleChar(c.id)}
-                  className={`relative w-10 h-10 rounded-md overflow-hidden border-2 transition-all ${selectedCharIds.includes(c.id) ? "border-primary" : "border-outline/20 opacity-40 hover:opacity-100"}`}
-                  title={c.name}
-                >
-                  {c.image ? (
-                    <img
-                      src={c.image}
-                      className="w-full h-full object-cover"
-                      alt={c.name}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-surface-container text-[7px] font-bold">
-                      {c.name.substring(0, 2)}
-                    </div>
-                  )}
-                  {selectedCharIds.includes(c.id) && (
-                    <div className="absolute top-0 right-0 bg-primary text-background p-0.5 rounded-bl-md">
-                      <Sparkles size={5} />
-                    </div>
-                  )}
-                </button>
-              ))}
-              {customCharRefs.map((ref, idx) => (
-                <div
-                  key={idx}
-                  className="relative w-10 h-10 rounded-md overflow-hidden border-2 border-primary"
-                >
-                  <img
-                    src={ref}
-                    className="w-full h-full object-cover"
-                    alt="Custom Ref"
-                  />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
+                <ImageIcon size={48} className="text-outline opacity-20" />
+                {!isQueueGenerating && !isQueued && (
                   <button
-                    onClick={() => removeCustomRef(idx)}
-                    className="absolute top-0 right-0 bg-background/80 text-accent p-0.5 rounded-bl-md hover:text-primary"
+                    onClick={handleGenerate}
+                    className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
                   >
-                    <X size={7} />
+                    Ready to Generate
                   </button>
-                </div>
-              ))}
-              {selectedCharIds.length === 0 && customCharRefs.length === 0 && (
-                <div className="w-10 h-10 rounded-md bg-surface-container flex items-center justify-center border border-dashed border-outline/30 opacity-30">
-                  <ImageIcon size={12} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Backgrounds — collapsible */}
-          {backgrounds.length > 0 && (
-            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
-              <button
-                onClick={() => setShowBackgrounds(!showBackgrounds)}
-                className="flex items-center justify-between w-full"
-              >
-                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
-                  Background
-                  {selectedBgId && (
-                    <span className="text-primary ml-1">
-                      (
-                      {backgrounds.find((b) => b.id === selectedBgId)?.name ||
-                        "Selected"}
-                      )
-                    </span>
-                  )}
-                </p>
-                <ChevronDown
-                  size={12}
-                  className={`text-accent/30 transition-transform ${showBackgrounds ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showBackgrounds && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <button
-                    onClick={() => setSelectedBgId(null)}
-                    className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase border transition-all ${
-                      !selectedBgId
-                        ? "border-primary text-primary bg-primary/10"
-                        : "border-outline/20 text-accent/40 hover:text-accent"
-                    }`}
-                  >
-                    None
-                  </button>
-                  {backgrounds.map((bg) => (
-                    <button
-                      key={bg.id}
-                      onClick={() =>
-                        setSelectedBgId(bg.id === selectedBgId ? null : bg.id)
-                      }
-                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
-                        selectedBgId === bg.id
-                          ? "border-primary"
-                          : "border-outline/20 opacity-50 hover:opacity-100"
-                      }`}
-                      title={bg.name}
-                    >
-                      {bg.image ? (
-                        <img
-                          src={bg.image}
-                          className="w-full h-full object-cover"
-                          alt={bg.name}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
-                          {bg.name.substring(0, 3)}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Props — collapsible */}
-          {vaultProps.length > 0 && (
-            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
-              <button
-                onClick={() => setShowProps(!showProps)}
-                className="flex items-center justify-between w-full"
-              >
-                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
-                  Props
-                  {selectedPropIds.length > 0 && (
-                    <span className="text-primary ml-1">
-                      ({selectedPropIds.length})
-                    </span>
-                  )}
-                </p>
-                <ChevronDown
-                  size={12}
-                  className={`text-accent/30 transition-transform ${showProps ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showProps && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {vaultProps.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() =>
-                        setSelectedPropIds((prev) =>
-                          prev.includes(p.id)
-                            ? prev.filter((id) => id !== p.id)
-                            : [...prev, p.id],
-                        )
-                      }
-                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
-                        selectedPropIds.includes(p.id)
-                          ? "border-primary"
-                          : "border-outline/20 opacity-50 hover:opacity-100"
-                      }`}
-                      title={p.name}
-                    >
-                      {p.image ? (
-                        <img
-                          src={p.image}
-                          className="w-full h-full object-cover"
-                          alt={p.name}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
-                          {p.name.substring(0, 3)}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Vehicles — collapsible */}
-          {vehicles.length > 0 && (
-            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
-              <button
-                onClick={() => setShowVehicles(!showVehicles)}
-                className="flex items-center justify-between w-full"
-              >
-                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
-                  Vehicles
-                  {selectedVehicleIds.length > 0 && (
-                    <span className="text-primary ml-1">
-                      ({selectedVehicleIds.length})
-                    </span>
-                  )}
-                </p>
-                <ChevronDown
-                  size={12}
-                  className={`text-accent/30 transition-transform ${showVehicles ? "rotate-180" : ""}`}
-                />
-              </button>
-              {showVehicles && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {vehicles.map((v) => (
-                    <button
-                      key={v.id}
-                      onClick={() =>
-                        setSelectedVehicleIds((prev) =>
-                          prev.includes(v.id)
-                            ? prev.filter((id) => id !== v.id)
-                            : [...prev, v.id],
-                        )
-                      }
-                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
-                        selectedVehicleIds.includes(v.id)
-                          ? "border-primary"
-                          : "border-outline/20 opacity-50 hover:opacity-100"
-                      }`}
-                      title={v.name}
-                    >
-                      {v.image ? (
-                        <img
-                          src={v.image}
-                          className="w-full h-full object-cover"
-                          alt={v.name}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
-                          {v.name.substring(0, 3)}
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-start justify-between border-b border-outline/10 pb-3">
-            <div className="w-full space-y-2">
-              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                Panel Description
-              </label>
-              <textarea
-                className="text-accent text-sm bg-background/50 p-3 rounded-lg border border-outline/10 focus:ring-1 focus:ring-primary w-full italic resize-none min-h-[80px] outline-none transition-all"
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe the action in this panel..."
-              />
-            </div>
-          </div>
-
-          {/* Prompt Preview / AI Instruction */}
-          <div className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[8px] font-bold text-primary uppercase tracking-widest">
-                AI Instruction Preview
-              </p>
-              <Sparkles size={10} className="text-primary opacity-50" />
-            </div>
-            <div className="text-[10px] text-accent/60 leading-relaxed font-mono">
-              <span className="text-primary font-bold">Subject:</span>{" "}
-              {prompt || "..."}
-              <br />
-              <span className="text-primary font-bold">Characters:</span>{" "}
-              {selectedChars.length > 0
-                ? selectedChars.map((c) => c.name).join(", ")
-                : "None selected"}
-              {cameraAngle !== "None" && <> • {cameraAngle}</>}
-              {mood !== "None" && <> • {mood}</>}
-            </div>
-            {selectedChars.length > 0 && (
-              <div className="pt-1 border-t border-primary/5">
-                <p className="text-[8px] text-accent/40 italic">
-                  Character details will be automatically reinforced in the
-                  generation.
-                </p>
+                )}
               </div>
             )}
+
+            <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1">
+              <div className="bg-background/80 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-lg border border-outline/20">
+                <span className="font-label text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-widest">
+                  Panel {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+
+            {/* Queue status badges */}
+            {isQueued && !isQueueGenerating && (
+              <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
+                Queued
+              </div>
+            )}
+            {isQueueGenerating && (
+              <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
+                <Loader2 size={10} className="animate-spin" /> Generating...
+              </div>
+            )}
+            {isFailed && !isQueued && !isQueueGenerating && (
+              <button
+                onClick={handleGenerate}
+                className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
+              >
+                <RefreshCw size={10} /> Failed — Retry
+              </button>
+            )}
+            {image && !isQueued && !isQueueGenerating && !isFailed && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const link = document.createElement("a");
+                  link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
+                  link.href = image;
+                  link.click();
+                }}
+                className="absolute top-2 right-2 md:top-4 md:right-4 bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg z-10 hover:text-primary hover:bg-background/90 transition-all"
+                title="Download panel image"
+              >
+                <Download size={14} />
+              </button>
+            )}
+
+            <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+              <button
+                onClick={handleGenerate}
+                disabled={isQueued || isQueueGenerating}
+                className="bg-primary/90 backdrop-blur-sm text-background px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-headline font-bold text-[10px] md:text-xs flex items-center gap-1 disabled:opacity-50 pointer-events-auto shadow-lg"
+              >
+                {isQueueGenerating ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
+              </button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="space-y-1">
-              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                Camera Angle
-              </label>
-              <select
-                value={cameraAngle}
-                onChange={(e) => handleAngleChange(e.target.value)}
-                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
-              >
-                <option>None</option>
-                <optgroup label="Height">
-                  <option>Eye Level</option>
-                  <option>Low Angle</option>
-                  <option>High Angle</option>
-                  <option>Bird's Eye</option>
-                  <option>Worm's Eye</option>
-                </optgroup>
-                <optgroup label="Position">
-                  <option>Over the Shoulder</option>
-                  <option>Dutch Angle</option>
-                  <option>POV / First Person</option>
-                  <option>Three-Quarter View</option>
-                  <option>Profile / Side View</option>
-                </optgroup>
-                <optgroup label="Movement">
-                  <option>Tracking Shot</option>
-                  <option>Crane Shot</option>
-                  <option>Dolly Zoom</option>
-                </optgroup>
-              </select>
+          <div className="p-5 space-y-3">
+            {/* Character References — compact */}
+            <div className="space-y-2 p-2.5 bg-background/30 rounded-lg border border-outline/5">
+              <div className="flex items-center justify-between">
+                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                  Characters
+                  <span className="text-accent/25 normal-case tracking-normal ml-1">
+                    ({selectedCharIds.length}/{MAX_CHAR_REFS})
+                  </span>
+                </p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-colors"
+                >
+                  <Upload size={9} />
+                  Add
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept="image/*"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {characters.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => toggleChar(c.id)}
+                    className={`relative w-10 h-10 rounded-md overflow-hidden border-2 transition-all ${selectedCharIds.includes(c.id) ? "border-primary" : "border-outline/20 opacity-40 hover:opacity-100"}`}
+                    title={c.name}
+                  >
+                    {c.image ? (
+                      <img
+                        src={c.image}
+                        className="w-full h-full object-cover"
+                        alt={c.name}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-surface-container text-[7px] font-bold">
+                        {c.name.substring(0, 2)}
+                      </div>
+                    )}
+                    {selectedCharIds.includes(c.id) && (
+                      <div className="absolute top-0 right-0 bg-primary text-background p-0.5 rounded-bl-md">
+                        <Sparkles size={5} />
+                      </div>
+                    )}
+                  </button>
+                ))}
+                {customCharRefs.map((ref, idx) => (
+                  <div
+                    key={idx}
+                    className="relative w-10 h-10 rounded-md overflow-hidden border-2 border-primary"
+                  >
+                    <img
+                      src={ref}
+                      className="w-full h-full object-cover"
+                      alt="Custom Ref"
+                    />
+                    <button
+                      onClick={() => removeCustomRef(idx)}
+                      className="absolute top-0 right-0 bg-background/80 text-accent p-0.5 rounded-bl-md hover:text-primary"
+                    >
+                      <X size={7} />
+                    </button>
+                  </div>
+                ))}
+                {selectedCharIds.length === 0 &&
+                  customCharRefs.length === 0 && (
+                    <div className="w-10 h-10 rounded-md bg-surface-container flex items-center justify-center border border-dashed border-outline/30 opacity-30">
+                      <ImageIcon size={12} />
+                    </div>
+                  )}
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                Camera Lens
-              </label>
-              <select
-                value={cameraLens}
-                onChange={(e) => handleLensChange(e.target.value)}
-                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
-              >
-                <option>None</option>
-                <optgroup label="Wide">
-                  <option>Fish-eye 8mm</option>
-                  <option>Ultra Wide 14mm</option>
-                  <option>Wide 24mm</option>
-                </optgroup>
-                <optgroup label="Standard">
-                  <option>Cinematic 35mm</option>
-                  <option>Standard 50mm</option>
-                </optgroup>
-                <optgroup label="Telephoto">
-                  <option>Portrait 85mm</option>
-                  <option>Telephoto 135mm</option>
-                  <option>Extreme Telephoto 200mm</option>
-                </optgroup>
-                <optgroup label="Special">
-                  <option>Macro / Extreme Close-up</option>
-                  <option>Tilt-Shift / Miniature</option>
-                  <option>Anamorphic Widescreen</option>
-                </optgroup>
-              </select>
+
+            {/* Backgrounds — collapsible */}
+            {backgrounds.length > 0 && (
+              <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+                <button
+                  onClick={() => setShowBackgrounds(!showBackgrounds)}
+                  className="flex items-center justify-between w-full"
+                >
+                  <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                    Background
+                    {selectedBgId && (
+                      <span className="text-primary ml-1">
+                        (
+                        {backgrounds.find((b) => b.id === selectedBgId)?.name ||
+                          "Selected"}
+                        )
+                      </span>
+                    )}
+                  </p>
+                  <ChevronDown
+                    size={12}
+                    className={`text-accent/30 transition-transform ${showBackgrounds ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {showBackgrounds && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <button
+                      onClick={() => setSelectedBgId(null)}
+                      className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase border transition-all ${
+                        !selectedBgId
+                          ? "border-primary text-primary bg-primary/10"
+                          : "border-outline/20 text-accent/40 hover:text-accent"
+                      }`}
+                    >
+                      None
+                    </button>
+                    {backgrounds.map((bg) => (
+                      <button
+                        key={bg.id}
+                        onClick={() =>
+                          setSelectedBgId(bg.id === selectedBgId ? null : bg.id)
+                        }
+                        className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                          selectedBgId === bg.id
+                            ? "border-primary"
+                            : "border-outline/20 opacity-50 hover:opacity-100"
+                        }`}
+                        title={bg.name}
+                      >
+                        {bg.image ? (
+                          <img
+                            src={bg.image}
+                            className="w-full h-full object-cover"
+                            alt={bg.name}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                            {bg.name.substring(0, 3)}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Props — collapsible */}
+            {vaultProps.length > 0 && (
+              <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+                <button
+                  onClick={() => setShowProps(!showProps)}
+                  className="flex items-center justify-between w-full"
+                >
+                  <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                    Props
+                    {selectedPropIds.length > 0 && (
+                      <span className="text-primary ml-1">
+                        ({selectedPropIds.length})
+                      </span>
+                    )}
+                  </p>
+                  <ChevronDown
+                    size={12}
+                    className={`text-accent/30 transition-transform ${showProps ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {showProps && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {vaultProps.map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() =>
+                          setSelectedPropIds((prev) =>
+                            prev.includes(p.id)
+                              ? prev.filter((id) => id !== p.id)
+                              : [...prev, p.id],
+                          )
+                        }
+                        className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                          selectedPropIds.includes(p.id)
+                            ? "border-primary"
+                            : "border-outline/20 opacity-50 hover:opacity-100"
+                        }`}
+                        title={p.name}
+                      >
+                        {p.image ? (
+                          <img
+                            src={p.image}
+                            className="w-full h-full object-cover"
+                            alt={p.name}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                            {p.name.substring(0, 3)}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Vehicles — collapsible */}
+            {vehicles.length > 0 && (
+              <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+                <button
+                  onClick={() => setShowVehicles(!showVehicles)}
+                  className="flex items-center justify-between w-full"
+                >
+                  <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                    Vehicles
+                    {selectedVehicleIds.length > 0 && (
+                      <span className="text-primary ml-1">
+                        ({selectedVehicleIds.length})
+                      </span>
+                    )}
+                  </p>
+                  <ChevronDown
+                    size={12}
+                    className={`text-accent/30 transition-transform ${showVehicles ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {showVehicles && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {vehicles.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() =>
+                          setSelectedVehicleIds((prev) =>
+                            prev.includes(v.id)
+                              ? prev.filter((id) => id !== v.id)
+                              : [...prev, v.id],
+                          )
+                        }
+                        className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                          selectedVehicleIds.includes(v.id)
+                            ? "border-primary"
+                            : "border-outline/20 opacity-50 hover:opacity-100"
+                        }`}
+                        title={v.name}
+                      >
+                        {v.image ? (
+                          <img
+                            src={v.image}
+                            className="w-full h-full object-cover"
+                            alt={v.name}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                            {v.name.substring(0, 3)}
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-start justify-between border-b border-outline/10 pb-3">
+              <div className="w-full space-y-2">
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Panel Description
+                </label>
+                <textarea
+                  className="text-accent text-sm bg-background/50 p-3 rounded-lg border border-outline/10 focus:ring-1 focus:ring-primary w-full italic resize-none min-h-[80px] outline-none transition-all"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Describe the action in this panel..."
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                Mood
-              </label>
-              <select
-                value={mood}
-                onChange={(e) => handleMoodChange(e.target.value)}
-                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
-              >
-                <option>None</option>
-                <option>Cyberpunk Neon</option>
-                <option>High Contrast Noir</option>
-                <option>Amber Glow</option>
-                <option>Sun-Kissed Tech</option>
-                <option>Cold Industrial</option>
-                <option>Warm Sunset</option>
-                <option>Foggy / Atmospheric</option>
-                <option>Dark & Gritty</option>
-                <option>Bright & Cheerful</option>
-                <option>Dramatic Shadows</option>
-              </select>
+
+            {/* Prompt Preview / AI Instruction */}
+            <div className="bg-primary/5 rounded-lg p-3 border border-primary/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[8px] font-bold text-primary uppercase tracking-widest">
+                  AI Instruction Preview
+                </p>
+                <Sparkles size={10} className="text-primary opacity-50" />
+              </div>
+              <div className="text-[10px] text-accent/60 leading-relaxed font-mono">
+                <span className="text-primary font-bold">Subject:</span>{" "}
+                {prompt || "..."}
+                <br />
+                <span className="text-primary font-bold">Characters:</span>{" "}
+                {selectedChars.length > 0
+                  ? selectedChars.map((c) => c.name).join(", ")
+                  : "None selected"}
+                {cameraAngle !== "None" && <> • {cameraAngle}</>}
+                {mood !== "None" && <> • {mood}</>}
+              </div>
+              {selectedChars.length > 0 && (
+                <div className="pt-1 border-t border-primary/5">
+                  <p className="text-[8px] text-accent/40 italic">
+                    Character details will be automatically reinforced in the
+                    generation.
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="space-y-1">
-              <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                Aspect Ratio
-              </label>
-              <select
-                value={aspectRatio}
-                onChange={(e) => setAspectRatio(e.target.value)}
-                className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
-              >
-                <option value="1:1">1:1 Square</option>
-                <option value="16:9">16:9 Wide</option>
-                <option value="9:16">9:16 Portrait</option>
-                <option value="4:3">4:3 Standard</option>
-                <option value="3:4">3:4 Tall</option>
-              </select>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Camera Angle
+                </label>
+                <select
+                  value={cameraAngle}
+                  onChange={(e) => handleAngleChange(e.target.value)}
+                  className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+                >
+                  <option>None</option>
+                  <optgroup label="Height">
+                    <option>Eye Level</option>
+                    <option>Low Angle</option>
+                    <option>High Angle</option>
+                    <option>Bird's Eye</option>
+                    <option>Worm's Eye</option>
+                  </optgroup>
+                  <optgroup label="Position">
+                    <option>Over the Shoulder</option>
+                    <option>Dutch Angle</option>
+                    <option>POV / First Person</option>
+                    <option>Three-Quarter View</option>
+                    <option>Profile / Side View</option>
+                  </optgroup>
+                  <optgroup label="Movement">
+                    <option>Tracking Shot</option>
+                    <option>Crane Shot</option>
+                    <option>Dolly Zoom</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div className="space-y-1 relative" ref={lensDropdownRef}>
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Camera Lens
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowLensDropdown((v) => !v)}
+                  className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary flex items-center gap-2 text-left"
+                >
+                  {LENS_IMAGES[cameraLens] && (
+                    <img
+                      src={LENS_IMAGES[cameraLens]}
+                      alt=""
+                      className="w-6 h-6 rounded object-cover shrink-0"
+                    />
+                  )}
+                  <span className="flex-1 truncate">{cameraLens}</span>
+                  <ChevronDown
+                    size={12}
+                    className={`text-accent/30 transition-transform shrink-0 ${showLensDropdown ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {showLensDropdown && (
+                  <div className="absolute z-30 top-full mt-1 left-0 w-full max-h-64 overflow-y-auto bg-background border border-outline/20 rounded-lg shadow-xl">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleLensChange("None");
+                        setShowLensDropdown(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-primary/10 transition-colors ${cameraLens === "None" ? "text-primary" : "text-accent"}`}
+                    >
+                      {LENS_IMAGES["None"] && (
+                        <img
+                          src={LENS_IMAGES["None"]}
+                          alt=""
+                          className="w-6 h-6 rounded object-cover shrink-0"
+                        />
+                      )}
+                      None
+                    </button>
+                    {LENS_OPTIONS.map((group) => (
+                      <div key={group.group}>
+                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-accent/30">
+                          {group.group}
+                        </div>
+                        {group.items.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => {
+                              handleLensChange(item);
+                              setShowLensDropdown(false);
+                            }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-primary/10 transition-colors ${cameraLens === item ? "text-primary" : "text-accent"}`}
+                          >
+                            {LENS_IMAGES[item] && (
+                              <img
+                                src={LENS_IMAGES[item]}
+                                alt=""
+                                className="w-6 h-6 rounded object-cover shrink-0"
+                              />
+                            )}
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Mood
+                </label>
+                <select
+                  value={mood}
+                  onChange={(e) => handleMoodChange(e.target.value)}
+                  className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+                >
+                  <option>None</option>
+                  <option>Cyberpunk Neon</option>
+                  <option>High Contrast Noir</option>
+                  <option>Amber Glow</option>
+                  <option>Sun-Kissed Tech</option>
+                  <option>Cold Industrial</option>
+                  <option>Warm Sunset</option>
+                  <option>Foggy / Atmospheric</option>
+                  <option>Dark & Gritty</option>
+                  <option>Bright & Cheerful</option>
+                  <option>Dramatic Shadows</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Aspect Ratio
+                </label>
+                <select
+                  value={aspectRatio}
+                  onChange={(e) => setAspectRatio(e.target.value)}
+                  className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
+                >
+                  <option value="1:1">1:1 Square</option>
+                  <option value="16:9">16:9 Wide</option>
+                  <option value="9:16">9:16 Portrait</option>
+                  <option value="4:3">4:3 Standard</option>
+                  <option value="3:4">3:4 Tall</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
 
 export const DirectorScreen: React.FC<DirectorProps> = ({
   panels,
@@ -968,13 +1077,14 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     setDraftPanel(null);
   };
 
-  const handleUpdatePanel = (index: number, updated: PanelPrompt) => {
-    setPanels((prev) => prev.map((p, i) => (i === index ? updated : p)));
-  };
+  const handleUpdatePanel = useCallback(
+    (index: number, updated: PanelPrompt) => {
+      setPanels((prev) => prev.map((p, i) => (i === index ? updated : p)));
+    },
+    [],
+  );
 
-  const handleQueueGenerate = (panelId: string) => {
-    // Add to queue if not already queued or currently generating
-    if (panelId === currentlyGenerating) return;
+  const handleQueueGenerate = useCallback((panelId: string) => {
     // Clear failed state if retrying
     setFailedPanels((prev) => {
       if (!prev.has(panelId)) return prev;
@@ -985,7 +1095,11 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     setGenerationQueue((prev) =>
       prev.includes(panelId) ? prev : [...prev, panelId],
     );
-  };
+  }, []);
+
+  const handlePreview = useCallback((idx: number) => {
+    setPreviewIndex(idx);
+  }, []);
 
   const handleRetryFailed = () => {
     const ids = Array.from(failedPanels);
@@ -1328,7 +1442,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 panel={panel}
                 characters={characters}
                 index={index}
-                onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
+                onUpdatePanel={handleUpdatePanel}
                 backgrounds={backgrounds}
                 props={props}
                 vehicles={vehicles}
@@ -1336,7 +1450,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 isQueueGenerating={currentlyGenerating === panel.id}
                 isFailed={failedPanels.has(panel.id)}
                 onQueueGenerate={handleQueueGenerate}
-                onPreview={() => setPreviewIndex(index)}
+                onPreview={handlePreview}
               />
               {/* Insert button / draft card after this panel */}
               {draftPanel && draftPanel.insertIndex === index + 1 ? (
