@@ -164,7 +164,11 @@ const DraggableBubble: React.FC<{
     { filterTaps: true, pointer: { touch: true } },
   );
 
-  const isSFX = bubble.style === "effect" || bubble.style === "action";
+  const isSFX =
+    bubble.style === "effect" ||
+    bubble.style === "action" ||
+    bubble.style === "sfx-impact" ||
+    bubble.style === "sfx-ambient";
 
   return (
     <>
@@ -195,11 +199,32 @@ const DraggableBubble: React.FC<{
           <p
             className="leading-tight uppercase font-headline text-center font-black"
             style={{
-              color: "#FFD600",
+              color:
+                bubble.style === "sfx-impact"
+                  ? "#FF3333"
+                  : bubble.style === "sfx-ambient"
+                    ? "#88CCFF"
+                    : "#FFD600",
               textShadow:
-                "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
-              transform: "rotate(-3deg)",
-              fontSize: `${bubble.fontSize + 4}px`,
+                bubble.style === "sfx-impact"
+                  ? "3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 10px rgba(255,0,0,0.5)"
+                  : bubble.style === "sfx-ambient"
+                    ? "1px 1px 4px rgba(0,0,0,0.6)"
+                    : "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+              transform:
+                bubble.style === "sfx-impact"
+                  ? "rotate(-8deg) scale(1.1)"
+                  : bubble.style === "sfx-ambient"
+                    ? "rotate(0deg)"
+                    : "rotate(-3deg)",
+              fontSize: `${bubble.fontSize + (bubble.style === "sfx-impact" ? 6 : bubble.style === "sfx-ambient" ? 2 : 4)}px`,
+              fontStyle: bubble.style === "sfx-ambient" ? "italic" : "normal",
+              letterSpacing:
+                bubble.style === "sfx-impact"
+                  ? "0.1em"
+                  : bubble.style === "sfx-ambient"
+                    ? "0.2em"
+                    : "normal",
             }}
           >
             {bubble.text}
@@ -221,36 +246,38 @@ const DraggableBubble: React.FC<{
         )}
       </div>
 
-      {/* Floating toolbar on tap */}
+      {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}
       {isSelected && isEditing && !isExporting && (
         <div
-          className="absolute z-30 flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[200px]"
+          className="fixed z-[60] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]"
           style={{
-            left: `${Math.min(75, Math.max(25, bubble.pos.x))}%`,
-            top: `${Math.max(0, bubble.pos.y - 5)}%`,
-            transform: "translate(-50%, -105%)",
+            left: "50%",
+            bottom: "calc(6rem + var(--sab, 0px))",
+            transform: "translateX(-50%)",
           }}
         >
-          {/* Type pills */}
-          <div className="flex gap-1">
-            {[
-              { label: "Speech", value: "speech" as const },
-              { label: "Thought", value: "thought" as const },
-              { label: "SFX", value: "effect" as const },
-            ].map((t) => (
+          {/* Type toggle — tap to cycle */}
+          {(() => {
+            const types: { value: Bubble["style"]; label: string }[] = [
+              { value: "speech", label: "Speech" },
+              { value: "thought", label: "Thought" },
+              { value: "effect", label: "SFX" },
+              { value: "sfx-impact", label: "SFX Impact" },
+              { value: "sfx-ambient", label: "SFX Ambient" },
+            ];
+            const currentIdx = types.findIndex((t) => t.value === bubble.style);
+            const current = types[currentIdx >= 0 ? currentIdx : 0];
+            const next = types[(currentIdx + 1) % types.length];
+            return (
               <button
-                key={t.value}
-                onClick={() => onUpdateBubble({ style: t.value })}
-                className={`flex-1 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all ${
-                  bubble.style === t.value
-                    ? "bg-primary text-background"
-                    : "bg-background text-accent/50 border border-outline/20"
-                }`}
+                onClick={() => onUpdateBubble({ style: next.value })}
+                className="w-full py-2 rounded-lg bg-primary text-background text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
               >
-                {t.label}
+                {current.label}{" "}
+                <span className="opacity-50">→ tap to change</span>
               </button>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Text input */}
           <textarea

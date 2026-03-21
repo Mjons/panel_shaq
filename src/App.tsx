@@ -3,6 +3,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   Suspense,
 } from "react";
 import { useDrag } from "@use-gesture/react";
@@ -73,6 +74,107 @@ const ShareScreen = lazyWithReload(() =>
 
 // Character is now a VaultEntry with type "Character" — single source of truth
 export type Character = VaultEntry;
+
+// --- Desktop Redirect Gate ---
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const wide = window.innerWidth >= 1024;
+    const noTouch = !navigator.maxTouchPoints;
+    setIsDesktop(wide && noTouch);
+  }, []);
+  return isDesktop;
+}
+
+function DesktopRedirectGate({ onStay }: { onStay: () => void }) {
+  const [seconds, setSeconds] = useState(10);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds((s) => {
+        if (s <= 1) {
+          window.location.href = "https://panelhaus.app";
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleStay = () => {
+    localStorage.setItem("panelshaq_desktop_gate_dismissed", "1");
+    onStay();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-surface/95 flex items-center justify-center animate-in fade-in duration-300">
+      <div className="max-w-lg mx-auto px-8 text-center">
+        <h1 className="text-3xl font-headline font-bold text-accent mb-2">
+          PANELHAUS
+        </h1>
+        <div className="w-16 h-px bg-primary/40 mx-auto mb-8" />
+
+        <p className="text-accent/80 text-lg mb-2">
+          Looks like you're on a desktop.
+        </p>
+        <p className="text-accent/50 text-sm leading-relaxed mb-8">
+          This is our mobile-first comic creator — built for phones and tablets.
+          For the full desktop experience with advanced layout tools, layer
+          editing, and export options:
+        </p>
+
+        <a
+          href="https://panelhaus.app"
+          className="inline-block w-full py-4 bg-primary text-surface font-label uppercase tracking-[0.15em] text-sm rounded-xl mb-4 hover:bg-primary/90 transition-colors"
+        >
+          Open Panel Haus Desktop →
+          <span className="block text-xs opacity-60 mt-1 normal-case tracking-normal">
+            panelhaus.app
+          </span>
+        </a>
+
+        <p className="text-accent/30 text-xs mb-6">
+          Redirecting in {seconds} second{seconds !== 1 ? "s" : ""}…
+        </p>
+
+        <button
+          onClick={handleStay}
+          className="text-accent/40 hover:text-accent/70 text-sm underline underline-offset-4 transition-colors"
+        >
+          Stay on the mobile version anyway
+        </button>
+
+        <div className="mt-12 grid grid-cols-2 gap-8 text-left text-xs text-accent/40">
+          <div>
+            <p className="font-label uppercase tracking-[0.15em] text-accent/60 mb-2">
+              Mobile App
+            </p>
+            <ul className="space-y-1">
+              <li>✦ AI story generation</li>
+              <li>✦ Quick panel creation</li>
+              <li>✦ Touch-friendly editing</li>
+              <li>✦ Speech bubbles & text</li>
+              <li>✦ On-the-go workflows</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-label uppercase tracking-[0.15em] text-accent/60 mb-2">
+              Desktop App
+            </p>
+            <ul className="space-y-1">
+              <li>✦ Full layer editor</li>
+              <li>✦ Advanced layout tools</li>
+              <li>✦ High-res export</li>
+              <li>✦ Import .panelhaus packages</li>
+              <li>✦ Professional finishing</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
   {
@@ -257,6 +359,7 @@ function AppInner() {
     "panelshaq_project_name",
     "Untitled Project",
   );
+  const projectCreatedAtRef = useRef<string | null>(null);
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false);
 
   // Auto-save to IndexedDB
@@ -266,14 +369,39 @@ function AppInner() {
     const id = currentProjectId || crypto.randomUUID();
     if (!currentProjectId) setCurrentProjectId(id);
 
-    const thumbnail = panels.find((p) => p.image)?.image || "";
-    const smallThumb = thumbnail ? thumbnail.substring(0, 200) + "..." : "";
+    const fullImage = panels.find((p) => p.image)?.image || "";
+    let smallThumb = "";
+    if (fullImage) {
+      try {
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = reject;
+          img.src = fullImage;
+        });
+        const canvas = document.createElement("canvas");
+        const maxW = 120;
+        const scale = maxW / img.width;
+        canvas.width = maxW;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        smallThumb = canvas.toDataURL("image/jpeg", 0.6);
+      } catch {
+        smallThumb = "";
+      }
+    }
+
+    // Preserve original createdAt if project already exists
+    const now = new Date().toISOString();
+    const existingCreatedAt = projectCreatedAtRef.current || now;
+    if (!projectCreatedAtRef.current) projectCreatedAtRef.current = now;
 
     await saveProject({
       id,
       name: projectName,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: existingCreatedAt,
+      updatedAt: now,
       thumbnail: smallThumb,
       story,
       characters,
@@ -324,6 +452,7 @@ function AppInner() {
     }
     saveCurrentProject();
     setCurrentProjectId(project.id);
+    projectCreatedAtRef.current = project.createdAt;
     setProjectName(project.name);
     setStory(project.story);
     // Restore vault entries — backward compat: convert old characters-only projects
@@ -354,6 +483,7 @@ function AppInner() {
     }
     saveCurrentProject();
     setCurrentProjectId(null);
+    projectCreatedAtRef.current = null;
     setProjectName("Untitled Project");
     setStory("");
     setPanels([]);
@@ -491,9 +621,17 @@ function AppInner() {
 }
 
 export default function App() {
+  const isDesktop = useIsDesktop();
+  const [gateOpen, setGateOpen] = useState(
+    () => !localStorage.getItem("panelshaq_desktop_gate_dismissed"),
+  );
+
   return (
     <ConfirmProvider>
       <ToastProvider>
+        {isDesktop && gateOpen && (
+          <DesktopRedirectGate onStay={() => setGateOpen(false)} />
+        )}
         <AppInner />
       </ToastProvider>
     </ConfirmProvider>

@@ -17,7 +17,13 @@ export interface Bubble {
   id: string;
   text: string;
   pos: { x: number; y: number };
-  style: "speech" | "thought" | "action" | "effect";
+  style:
+    | "speech"
+    | "thought"
+    | "action"
+    | "effect"
+    | "sfx-impact"
+    | "sfx-ambient";
   fontSize: number;
   fontWeight: string;
   fontStyle: string;

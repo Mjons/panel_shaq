@@ -256,7 +256,6 @@ const PanelCard = React.memo(
       panel.selectedBackgroundId || null,
     );
     const [showLensDropdown, setShowLensDropdown] = useState(false);
-    const lensDropdownRef = useRef<HTMLDivElement>(null);
     const [showBackgrounds, setShowBackgrounds] = useState(false);
     const [selectedPropIds, setSelectedPropIds] = useState<string[]>(
       panel.selectedPropIds || [],
@@ -273,20 +272,6 @@ const PanelCard = React.memo(
     const [customCharRefs, setCustomCharRefs] = useState<string[]>(
       panel.customReferenceImages || [],
     );
-
-    useEffect(() => {
-      if (!showLensDropdown) return;
-      const handler = (e: MouseEvent) => {
-        if (
-          lensDropdownRef.current &&
-          !lensDropdownRef.current.contains(e.target as Node)
-        ) {
-          setShowLensDropdown(false);
-        }
-      };
-      document.addEventListener("mousedown", handler);
-      return () => document.removeEventListener("mousedown", handler);
-    }, [showLensDropdown]);
 
     const image = panel.image;
     const selectedChars = characters.filter((c) =>
@@ -901,13 +886,13 @@ const PanelCard = React.memo(
                   </optgroup>
                 </select>
               </div>
-              <div className="space-y-1 relative" ref={lensDropdownRef}>
+              <div className="space-y-1">
                 <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
                   Camera Lens
                 </label>
                 <button
                   type="button"
-                  onClick={() => setShowLensDropdown((v) => !v)}
+                  onClick={() => setShowLensDropdown(true)}
                   className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary flex items-center gap-2 text-left"
                 >
                   {LENS_IMAGES[cameraLens] && (
@@ -918,58 +903,91 @@ const PanelCard = React.memo(
                     />
                   )}
                   <span className="flex-1 truncate">{cameraLens}</span>
-                  <ChevronDown
-                    size={12}
-                    className={`text-accent/30 transition-transform shrink-0 ${showLensDropdown ? "rotate-180" : ""}`}
-                  />
+                  <ChevronDown size={12} className="text-accent/30 shrink-0" />
                 </button>
+
+                {/* Lens modal */}
                 {showLensDropdown && (
-                  <div className="absolute z-30 top-full mt-1 left-0 w-full max-h-64 overflow-y-auto bg-background border border-outline/20 rounded-lg shadow-xl">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleLensChange("None");
-                        setShowLensDropdown(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-primary/10 transition-colors ${cameraLens === "None" ? "text-primary" : "text-accent"}`}
-                    >
-                      {LENS_IMAGES["None"] && (
-                        <img
-                          src={LENS_IMAGES["None"]}
-                          alt=""
-                          className="w-6 h-6 rounded object-cover shrink-0"
-                        />
-                      )}
-                      None
-                    </button>
-                    {LENS_OPTIONS.map((group) => (
-                      <div key={group.group}>
-                        <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-accent/30">
-                          {group.group}
-                        </div>
-                        {group.items.map((item) => (
+                  <>
+                    <div
+                      className="fixed inset-0 bg-black/50 z-[80]"
+                      onClick={() => setShowLensDropdown(false)}
+                    />
+                    <div className="fixed inset-4 z-[81] flex items-center justify-center pointer-events-none">
+                      <div className="bg-surface border border-outline/20 rounded-2xl shadow-2xl p-5 max-w-sm w-full max-h-[80vh] overflow-y-auto pointer-events-auto">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-headline font-bold text-accent text-base">
+                            Camera Lens
+                          </h3>
                           <button
-                            key={item}
-                            type="button"
-                            onClick={() => {
-                              handleLensChange(item);
-                              setShowLensDropdown(false);
-                            }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-left hover:bg-primary/10 transition-colors ${cameraLens === item ? "text-primary" : "text-accent"}`}
+                            onClick={() => setShowLensDropdown(false)}
+                            className="text-accent/40 hover:text-accent"
                           >
-                            {LENS_IMAGES[item] && (
-                              <img
-                                src={LENS_IMAGES[item]}
-                                alt=""
-                                className="w-6 h-6 rounded object-cover shrink-0"
-                              />
-                            )}
-                            {item}
+                            <X size={18} />
                           </button>
+                        </div>
+
+                        {/* None option */}
+                        <button
+                          onClick={() => {
+                            handleLensChange("None");
+                            setShowLensDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-2 transition-all ${cameraLens === "None" ? "bg-primary/10 border border-primary/30" : "hover:bg-background"}`}
+                        >
+                          {LENS_IMAGES["None"] && (
+                            <img
+                              src={LENS_IMAGES["None"]}
+                              alt=""
+                              className="w-10 h-10 rounded-lg object-cover"
+                            />
+                          )}
+                          <span
+                            className={`text-sm font-bold ${cameraLens === "None" ? "text-primary" : "text-accent/60"}`}
+                          >
+                            None
+                          </span>
+                        </button>
+
+                        {LENS_OPTIONS.map((group) => (
+                          <div key={group.group} className="mb-3">
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-accent/30 mb-1.5 px-1">
+                              {group.group}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {group.items.map((item) => (
+                                <button
+                                  key={item}
+                                  onClick={() => {
+                                    handleLensChange(item);
+                                    setShowLensDropdown(false);
+                                  }}
+                                  className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${
+                                    cameraLens === item
+                                      ? "bg-primary/10 border-primary shadow-[0_0_8px_rgba(255,145,0,0.15)]"
+                                      : "border-outline/10 hover:border-primary/30"
+                                  }`}
+                                >
+                                  {LENS_IMAGES[item] && (
+                                    <img
+                                      src={LENS_IMAGES[item]}
+                                      alt=""
+                                      className="w-full aspect-video rounded-lg object-cover"
+                                    />
+                                  )}
+                                  <span
+                                    className={`text-[10px] font-bold text-center ${cameraLens === item ? "text-primary" : "text-accent/60"}`}
+                                  >
+                                    {item}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  </>
                 )}
               </div>
               <div className="space-y-1">
