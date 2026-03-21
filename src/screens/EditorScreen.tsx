@@ -1146,7 +1146,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
             className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-secondary/20 active:scale-95 transition-all"
           >
             <Share2 size={16} />
-            Export & Share
+            Share Your Comic
           </button>
         )}
 
