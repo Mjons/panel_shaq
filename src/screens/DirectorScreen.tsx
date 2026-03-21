@@ -448,6 +448,12 @@ const PanelCard = React.memo(
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
+        if (atRefLimit) {
+          alert(
+            `Maximum ${MAX_TOTAL_REFS} references per panel. Remove one first.`,
+          );
+          return;
+        }
         if (file.size > 5 * 1024 * 1024) {
           alert("Image too large. Please use an image under 5MB.");
           return;
@@ -554,10 +560,18 @@ const PanelCard = React.memo(
       setMood(val);
       if (val !== "None" && MOOD_DESC[val]) appendToPrompt(MOOD_DESC[val]);
     };
-    const MAX_CHAR_REFS = 5;
+    const MAX_TOTAL_REFS = 5;
+    const totalRefs =
+      selectedCharIds.length +
+      customCharRefs.length +
+      (selectedBgId ? 1 : 0) +
+      selectedPropIds.length +
+      selectedVehicleIds.length;
+    const atRefLimit = totalRefs >= MAX_TOTAL_REFS;
+
     const toggleChar = (id: string) => {
       const isSelecting = !selectedCharIds.includes(id);
-      if (isSelecting && selectedCharIds.length >= MAX_CHAR_REFS) return;
+      if (isSelecting && atRefLimit) return;
       setSelectedCharIds((prev) =>
         isSelecting ? [...prev, id] : prev.filter((i) => i !== id),
       );
@@ -682,13 +696,20 @@ const PanelCard = React.memo(
           </div>
 
           <div className="p-5 space-y-3">
+            {/* Reference count */}
+            <div
+              className={`text-[8px] font-label uppercase tracking-widest font-bold px-1 ${atRefLimit ? "text-primary" : "text-accent/30"}`}
+            >
+              References: {totalRefs}/{MAX_TOTAL_REFS}
+            </div>
+
             {/* Character References — compact */}
             <div className="space-y-2 p-2.5 bg-background/30 rounded-lg border border-outline/5">
               <div className="flex items-center justify-between">
                 <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
                   Characters
                   <span className="text-accent/25 normal-case tracking-normal ml-1">
-                    ({selectedCharIds.length}/{MAX_CHAR_REFS})
+                    ({selectedCharIds.length})
                   </span>
                 </p>
                 <button
@@ -798,7 +819,13 @@ const PanelCard = React.memo(
                       <button
                         key={bg.id}
                         onClick={() =>
-                          setSelectedBgId(bg.id === selectedBgId ? null : bg.id)
+                          setSelectedBgId(
+                            bg.id === selectedBgId
+                              ? null
+                              : atRefLimit && !selectedBgId
+                                ? selectedBgId
+                                : bg.id,
+                          )
                         }
                         className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
                           selectedBgId === bg.id
@@ -851,11 +878,13 @@ const PanelCard = React.memo(
                       <button
                         key={p.id}
                         onClick={() =>
-                          setSelectedPropIds((prev) =>
-                            prev.includes(p.id)
+                          setSelectedPropIds((prev) => {
+                            const removing = prev.includes(p.id);
+                            if (!removing && atRefLimit) return prev;
+                            return removing
                               ? prev.filter((id) => id !== p.id)
-                              : [...prev, p.id],
-                          )
+                              : [...prev, p.id];
+                          })
                         }
                         className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
                           selectedPropIds.includes(p.id)
@@ -908,11 +937,13 @@ const PanelCard = React.memo(
                       <button
                         key={v.id}
                         onClick={() =>
-                          setSelectedVehicleIds((prev) =>
-                            prev.includes(v.id)
+                          setSelectedVehicleIds((prev) => {
+                            const removing = prev.includes(v.id);
+                            if (!removing && atRefLimit) return prev;
+                            return removing
                               ? prev.filter((id) => id !== v.id)
-                              : [...prev, v.id],
-                          )
+                              : [...prev, v.id];
+                          })
                         }
                         className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
                           selectedVehicleIds.includes(v.id)
