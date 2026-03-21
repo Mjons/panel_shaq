@@ -80,8 +80,9 @@ function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const wide = window.innerWidth >= 1024;
-    const noTouch = !navigator.maxTouchPoints;
-    setIsDesktop(wide && noTouch);
+    // Use pointer media query — "fine" means mouse/trackpad, "coarse" means touch
+    const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
+    setIsDesktop(wide && hasFinePointer);
   }, []);
   return isDesktop;
 }

@@ -18,6 +18,8 @@ import {
   Type as TypeIcon,
   Bold,
   Italic,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import {
   PanelPrompt,
@@ -366,6 +368,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [selectedPageIdx, setSelectedPageIdx] = useState(0);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
+  const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -982,7 +985,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             idx={idx}
                             isSelected={selectedPanelId === pid}
                             isExporting={isExporting}
-                            locked={!!selectedBubbleId}
+                            locked={
+                              !!selectedBubbleId || lockedPanelIds.has(pid)
+                            }
                             onSelect={setSelectedPanelId}
                             onTransform={(id, t) =>
                               updatePanel(id, { imageTransform: t })
@@ -998,6 +1003,34 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               No Image
                             </span>
                           </div>
+                        )}
+
+                        {/* Position lock toggle */}
+                        {!isExporting && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLockedPanelIds((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(pid)) next.delete(pid);
+                                else next.add(pid);
+                                return next;
+                              });
+                            }}
+                            className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
+                          >
+                            {lockedPanelIds.has(pid) ? (
+                              <Lock
+                                size={12}
+                                className="text-primary opacity-80"
+                              />
+                            ) : (
+                              <Unlock
+                                size={12}
+                                className="text-accent opacity-40"
+                              />
+                            )}
+                          </button>
                         )}
 
                         {/* Bubble Overlay */}

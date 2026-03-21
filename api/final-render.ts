@@ -119,6 +119,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         action: "a jagged, explosive action bubble with bold, dynamic text",
         effect:
           "a stylized sound effect bubble integrated into the environment",
+        "sfx-impact":
+          "a large, bold, explosive impact sound effect with jagged edges and intense coloring — like CRASH, BOOM, WHAM — integrated dramatically into the scene",
+        "sfx-ambient":
+          "a soft, subtle ambient sound effect with gentle lettering — like drip, hummm, tick — blending naturally into the environment",
       };
       return `Bubble ${i + 1}: ${styleDesc[b.style] || styleDesc.speech} containing the text: "${b.text}". Positioned at approximately ${b.pos.x}% from the left and ${b.pos.y}% from the top. Font size: ${b.fontSize}px, Style: ${b.fontWeight} ${b.fontStyle}.`;
     })
