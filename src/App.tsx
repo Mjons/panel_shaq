@@ -387,6 +387,8 @@ function AppInner() {
             setPanels={setPanels}
             characters={characters}
             backgrounds={vaultEntries.filter((e) => e.type === "Environment")}
+            props={vaultEntries.filter((e) => e.type === "Prop")}
+            vehicles={vaultEntries.filter((e) => e.type === "Vehicle")}
             story={story}
             onContinue={() => setActiveTab("layout")}
           />

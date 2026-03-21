@@ -35,6 +35,8 @@ export interface PanelPrompt {
   image?: string;
   selectedCharacterIds?: string[];
   selectedBackgroundId?: string;
+  selectedPropIds?: string[];
+  selectedVehicleIds?: string[];
   customReferenceImages?: string[];
   notes?: string;
   bubbles: Bubble[];

@@ -29,6 +29,8 @@ interface DirectorProps {
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   characters: Character[];
   backgrounds: VaultEntry[];
+  props: VaultEntry[];
+  vehicles: VaultEntry[];
   story: string;
   onContinue: () => void;
 }
@@ -177,6 +179,8 @@ const PanelCard = ({
   index,
   onUpdatePanel,
   backgrounds,
+  props: vaultProps,
+  vehicles,
   isQueued,
   isQueueGenerating,
   isFailed,
@@ -188,6 +192,8 @@ const PanelCard = ({
   index: number;
   onUpdatePanel: (updated: PanelPrompt) => void;
   backgrounds: VaultEntry[];
+  props: VaultEntry[];
+  vehicles: VaultEntry[];
   isQueued?: boolean;
   isQueueGenerating?: boolean;
   isFailed?: boolean;
@@ -204,6 +210,14 @@ const PanelCard = ({
     panel.selectedBackgroundId || null,
   );
   const [showBackgrounds, setShowBackgrounds] = useState(false);
+  const [selectedPropIds, setSelectedPropIds] = useState<string[]>(
+    panel.selectedPropIds || [],
+  );
+  const [showProps, setShowProps] = useState(false);
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>(
+    panel.selectedVehicleIds || [],
+  );
+  const [showVehicles, setShowVehicles] = useState(false);
   const [selectedCharIds, setSelectedCharIds] = useState<string[]>(
     panel.selectedCharacterIds ?? characters.map((c) => c.id).slice(0, 5),
   );
@@ -249,6 +263,9 @@ const PanelCard = ({
       aspectRatio,
       selectedCharacterIds: selectedCharIds,
       selectedBackgroundId: selectedBgId || undefined,
+      selectedPropIds: selectedPropIds.length > 0 ? selectedPropIds : undefined,
+      selectedVehicleIds:
+        selectedVehicleIds.length > 0 ? selectedVehicleIds : undefined,
       customReferenceImages: customCharRefs,
     });
     // Add to the shared generation queue
@@ -627,6 +644,120 @@ const PanelCard = ({
             </div>
           )}
 
+          {/* Props — collapsible */}
+          {vaultProps.length > 0 && (
+            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+              <button
+                onClick={() => setShowProps(!showProps)}
+                className="flex items-center justify-between w-full"
+              >
+                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                  Props
+                  {selectedPropIds.length > 0 && (
+                    <span className="text-primary ml-1">
+                      ({selectedPropIds.length})
+                    </span>
+                  )}
+                </p>
+                <ChevronDown
+                  size={12}
+                  className={`text-accent/30 transition-transform ${showProps ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showProps && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {vaultProps.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() =>
+                        setSelectedPropIds((prev) =>
+                          prev.includes(p.id)
+                            ? prev.filter((id) => id !== p.id)
+                            : [...prev, p.id],
+                        )
+                      }
+                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                        selectedPropIds.includes(p.id)
+                          ? "border-primary"
+                          : "border-outline/20 opacity-50 hover:opacity-100"
+                      }`}
+                      title={p.name}
+                    >
+                      {p.image ? (
+                        <img
+                          src={p.image}
+                          className="w-full h-full object-cover"
+                          alt={p.name}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                          {p.name.substring(0, 3)}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Vehicles — collapsible */}
+          {vehicles.length > 0 && (
+            <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+              <button
+                onClick={() => setShowVehicles(!showVehicles)}
+                className="flex items-center justify-between w-full"
+              >
+                <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
+                  Vehicles
+                  {selectedVehicleIds.length > 0 && (
+                    <span className="text-primary ml-1">
+                      ({selectedVehicleIds.length})
+                    </span>
+                  )}
+                </p>
+                <ChevronDown
+                  size={12}
+                  className={`text-accent/30 transition-transform ${showVehicles ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showVehicles && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {vehicles.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() =>
+                        setSelectedVehicleIds((prev) =>
+                          prev.includes(v.id)
+                            ? prev.filter((id) => id !== v.id)
+                            : [...prev, v.id],
+                        )
+                      }
+                      className={`relative w-14 h-10 rounded-md overflow-hidden border-2 transition-all ${
+                        selectedVehicleIds.includes(v.id)
+                          ? "border-primary"
+                          : "border-outline/20 opacity-50 hover:opacity-100"
+                      }`}
+                      title={v.name}
+                    >
+                      {v.image ? (
+                        <img
+                          src={v.image}
+                          className="w-full h-full object-cover"
+                          alt={v.name}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-[6px] font-bold">
+                          {v.name.substring(0, 3)}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-start justify-between border-b border-outline/10 pb-3">
             <div className="w-full space-y-2">
               <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
@@ -783,6 +914,8 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   setPanels,
   characters,
   backgrounds,
+  props,
+  vehicles,
   story,
   onContinue,
 }) => {
@@ -962,6 +1095,30 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           ? `Background/Setting: ${selectedBg.name}${selectedBg.description ? ` — ${selectedBg.description}` : ""}. Use this environment consistently. IMPORTANT: The background reference image is for the ENVIRONMENT ONLY — ignore any people, characters, or figures visible in it.`
           : "";
 
+        // Props
+        const selectedProps = (panelSnapshot.selectedPropIds || [])
+          .map((id) => props.find((p) => p.id === id))
+          .filter(Boolean) as VaultEntry[];
+        const propRefs = selectedProps
+          .map((p) => p.image)
+          .filter((img) => img?.startsWith("data:image/")) as string[];
+        const propContext =
+          selectedProps.length > 0
+            ? `Props in scene: ${selectedProps.map((p) => `${p.name}${p.description ? ` (${p.description})` : ""}`).join(", ")}. Include these objects as shown in their reference images.`
+            : "";
+
+        // Vehicles
+        const selectedVehicles = (panelSnapshot.selectedVehicleIds || [])
+          .map((id) => vehicles.find((v) => v.id === id))
+          .filter(Boolean) as VaultEntry[];
+        const vehicleRefs = selectedVehicles
+          .map((v) => v.image)
+          .filter((img) => img?.startsWith("data:image/")) as string[];
+        const vehicleContext =
+          selectedVehicles.length > 0
+            ? `Vehicles in scene: ${selectedVehicles.map((v) => `${v.name}${v.description ? ` (${v.description})` : ""}`).join(", ")}. Include these vehicles as shown in their reference images.`
+            : "";
+
         const cameraStr =
           panelSnapshot.cameraAngle && panelSnapshot.cameraAngle !== "None"
             ? panelSnapshot.cameraAngle
@@ -980,16 +1137,18 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           Subject: ${panelSnapshot.description}.
           Characters present: ${characterContext}.
           ${bgContext}
+          ${propContext}
+          ${vehicleContext}
           ${cameraStr ? `Camera Angle: ${cameraStr}.` : ""}
           ${lensStr ? `Camera Lens: ${lensStr}.` : ""}
           ${moodStr ? `Mood: ${moodStr}.` : ""}
           ${panelSnapshot.notes?.trim() ? `User feedback: ${panelSnapshot.notes.trim()}.` : ""}
-          ${charRefs.length > 0 || bgRef ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached reference images. The output must look like it belongs in the same comic as the references." : ""}
+          ${charRefs.length > 0 || bgRef || propRefs.length > 0 || vehicleRefs.length > 0 ? "CRITICAL: Match the exact visual style, line work, and coloring of the attached reference images. The output must look like it belongs in the same comic as the references." : ""}
           CRITICAL: Do NOT include any speech bubbles or text in the image.
         `.trim();
 
-        // Combine character refs + background ref
-        const allImageRefs = [...charRefs];
+        // Combine all reference images
+        const allImageRefs = [...charRefs, ...propRefs, ...vehicleRefs];
         if (bgRef) allImageRefs.push(bgRef);
 
         const imageUrl = await generatePanelImage(
@@ -1137,6 +1296,8 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 index={index}
                 onUpdatePanel={(updated) => handleUpdatePanel(index, updated)}
                 backgrounds={backgrounds}
+                props={props}
+                vehicles={vehicles}
                 isQueued={generationQueue.includes(panel.id)}
                 isQueueGenerating={currentlyGenerating === panel.id}
                 isFailed={failedPanels.has(panel.id)}
