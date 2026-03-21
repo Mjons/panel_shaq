@@ -98,8 +98,8 @@ const PanelImage: React.FC<{
 
   return (
     <div
-      {...(!isExporting ? bind() : {})}
-      className="w-full h-full relative overflow-hidden touch-none"
+      {...(!isExporting && !locked ? bind() : {})}
+      className={`w-full h-full relative overflow-hidden ${locked ? "" : "touch-none"}`}
     >
       <img
         ref={imgRef}
@@ -122,6 +122,7 @@ const DraggableBubble: React.FC<{
   isSelected: boolean;
   isExporting: boolean;
   onSelect: () => void;
+  onDeselect: () => void;
   onMove: (pos: { x: number; y: number }) => void;
   onUpdateBubble: (updates: Partial<Bubble>) => void;
   onRemove: () => void;
@@ -132,6 +133,7 @@ const DraggableBubble: React.FC<{
   isSelected,
   isExporting,
   onSelect,
+  onDeselect,
   onMove,
   onUpdateBubble,
   onRemove,
@@ -331,8 +333,11 @@ const DraggableBubble: React.FC<{
               <Trash2 size={12} />
             </button>
             <button
-              onClick={() => setIsEditing(false)}
-              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/40 text-[10px] font-bold"
+              onClick={() => {
+                setIsEditing(false);
+                onDeselect();
+              }}
+              className="w-9 h-7 flex items-center justify-center bg-green-500/15 border border-green-500/30 rounded text-green-400 text-sm font-bold hover:bg-green-500/25 transition-colors"
             >
               ✓
             </button>
@@ -970,7 +975,10 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     return (
                       <div
                         key={pid}
-                        onClick={() => setSelectedPanelId(pid)}
+                        onClick={() => {
+                          setSelectedPanelId(pid);
+                          setSelectedBubbleId(null);
+                        }}
                         className={`bg-black relative cursor-pointer transition-all overflow-hidden ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
                         style={
                           slot
@@ -1018,6 +1026,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               setSelectedPanelId(pid);
                               setSelectedBubbleId(bubble.id);
                             }}
+                            onDeselect={() => setSelectedBubbleId(null)}
                             onMove={(pos) => {
                               if (selectedPanelId !== pid)
                                 setSelectedPanelId(pid);

@@ -70,6 +70,102 @@ const LENS_OPTIONS = [
   },
 ];
 
+const ASPECT_RATIOS = [
+  { value: "1:1", label: "Square", w: 1, h: 1 },
+  { value: "3:4", label: "Portrait", w: 3, h: 4 },
+  { value: "4:3", label: "Landscape", w: 4, h: 3 },
+  { value: "9:16", label: "Tall", w: 9, h: 16 },
+  { value: "16:9", label: "Wide", w: 16, h: 9 },
+  { value: "2:3", label: "Poster", w: 2, h: 3 },
+  { value: "3:2", label: "Photo", w: 3, h: 2 },
+  { value: "21:9", label: "Ultra Wide", w: 21, h: 9 },
+];
+
+function AspectRatioThumb({
+  w,
+  h,
+  selected,
+}: {
+  w: number;
+  h: number;
+  selected?: boolean;
+}) {
+  // Normalize so the largest dimension is 18px
+  const max = Math.max(w, h);
+  const pw = Math.round((w / max) * 18);
+  const ph = Math.round((h / max) * 18);
+  return (
+    <span
+      className={`inline-block rounded-[2px] border ${selected ? "border-primary bg-primary/20" : "border-accent/30 bg-accent/10"}`}
+      style={{ width: pw, height: ph }}
+    />
+  );
+}
+
+function AspectRatioPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current =
+    ASPECT_RATIOS.find((r) => r.value === value) || ASPECT_RATIOS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div className="space-y-1 relative" ref={ref}>
+      <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+        Aspect Ratio
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary flex items-center gap-2"
+      >
+        <AspectRatioThumb w={current.w} h={current.h} selected />
+        <span className="flex-1 text-left">
+          {current.label} ({current.value})
+        </span>
+        <ChevronDown
+          size={12}
+          className={`text-accent/40 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-surface-container border border-outline/20 rounded-lg shadow-xl overflow-hidden">
+          {ASPECT_RATIOS.map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => {
+                onChange(r.value);
+                setOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs hover:bg-primary/10 transition-colors ${r.value === value ? "bg-primary/15 text-primary" : "text-accent/70"}`}
+            >
+              <AspectRatioThumb w={r.w} h={r.h} selected={r.value === value} />
+              <span>{r.label}</span>
+              <span className="text-accent/30 ml-auto">{r.value}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface DirectorProps {
   panels: PanelPrompt[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
@@ -1015,25 +1111,10 @@ const PanelCard = React.memo(
                   <option>Dramatic Shadows</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                  Aspect Ratio
-                </label>
-                <select
-                  value={aspectRatio}
-                  onChange={(e) => setAspectRatio(e.target.value)}
-                  className="w-full bg-background text-accent text-xs py-2 px-3 rounded-lg border border-outline/20 outline-none focus:border-primary appearance-none"
-                >
-                  <option value="1:1">Square (1:1)</option>
-                  <option value="3:4">Portrait (3:4)</option>
-                  <option value="4:3">Landscape (4:3)</option>
-                  <option value="9:16">Tall (9:16)</option>
-                  <option value="16:9">Wide (16:9)</option>
-                  <option value="2:3">Poster (2:3)</option>
-                  <option value="3:2">Photo (3:2)</option>
-                  <option value="21:9">Ultra Wide (21:9)</option>
-                </select>
-              </div>
+              <AspectRatioPicker
+                value={aspectRatio}
+                onChange={setAspectRatio}
+              />
             </div>
           </div>
         </div>
