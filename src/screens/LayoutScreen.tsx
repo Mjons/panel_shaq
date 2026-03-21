@@ -706,7 +706,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
                     Page {pageIdx + 1}
                   </h3>
                   <div className="flex items-center gap-1 bg-background rounded-md p-0.5 border border-outline/10">
-                    {[2, 3, 4, 5, 6].map((n) => (
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
                       <button
                         key={n}
                         onClick={() => changePagePanelCount(pageIdx, n)}
