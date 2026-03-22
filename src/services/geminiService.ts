@@ -305,13 +305,15 @@ export const generateReferenceImage = async (
   description: string,
   visualLook: string,
   type: "Character" | "Environment" | "Prop" | "Vehicle",
+  stylePrompt: string = "Bold ink outlines, flat cel-shading, vibrant saturated colors, classic American comic book style",
   existingStyleRef?: string,
 ): Promise<string | null> => {
+  const visualStr = visualLook ? `Visual details: ${visualLook}.` : "";
   const prompts: Record<string, string> = {
-    Character: `Character reference sheet — front-facing portrait of ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Clean character design reference, simple background, full color, detailed, comic book art style. Do NOT include any text, labels, or speech bubbles.`,
-    Environment: `Environment concept art — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Wide establishing shot, detailed background art, comic book style. No characters or figures. No text.`,
-    Prop: `Object reference — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Clean product-shot, simple background, detailed, comic book art style. No people, no hands. No text.`,
-    Vehicle: `Vehicle reference — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Three-quarter view, clean background, detailed mechanical design, comic book art style. No people, no drivers. No text.`,
+    Character: `Character reference sheet — front-facing portrait of ${name}. ${description}. ${visualStr} Style: Clean character design reference, simple background, full color, detailed. ${stylePrompt}. Do NOT include any text, labels, or speech bubbles.`,
+    Environment: `Environment concept art — ${name}. ${description}. ${visualStr} Style: Wide establishing shot, detailed background art. ${stylePrompt}. No characters or figures. No text.`,
+    Prop: `Object reference — ${name}. ${description}. ${visualStr} Style: Clean product-shot, simple background, detailed. ${stylePrompt}. No people, no hands. No text.`,
+    Vehicle: `Vehicle reference — ${name}. ${description}. ${visualStr} Style: Three-quarter view, clean background, detailed mechanical design. ${stylePrompt}. No people, no drivers. No text.`,
   };
 
   const aspectRatios: Record<string, string> = {

@@ -22,6 +22,99 @@ import {
 
 export type VaultCategory = "Character" | "Environment" | "Prop" | "Vehicle";
 
+export const VAULT_STYLES = [
+  {
+    id: "american-comic",
+    name: "American Comic",
+    prompt:
+      "Bold ink outlines, flat cel-shading, vibrant saturated colors, classic American comic book style",
+  },
+  {
+    id: "manga",
+    name: "Manga",
+    prompt:
+      "Clean black ink lines, screentone shading, large expressive eyes, Japanese manga style",
+  },
+  {
+    id: "european-bd",
+    name: "European BD",
+    prompt:
+      "Ligne claire, even line weight, flat colors with subtle shading, Franco-Belgian bande dessinée style",
+  },
+  {
+    id: "cartoon",
+    name: "Cartoon",
+    prompt:
+      "Rounded shapes, thick outlines, bright colors, exaggerated proportions, cartoon style",
+  },
+  {
+    id: "pixel-art",
+    name: "Pixel Art",
+    prompt:
+      "Low-resolution pixel art, limited color palette, clean pixel edges, retro game sprite style",
+  },
+  {
+    id: "watercolor",
+    name: "Watercolor",
+    prompt:
+      "Soft watercolor washes, visible paper texture, loose brushwork, muted natural palette",
+  },
+  {
+    id: "noir",
+    name: "Noir",
+    prompt:
+      "High contrast black and white, heavy shadows, minimal midtones, film noir ink wash style",
+  },
+  {
+    id: "realistic",
+    name: "Realistic",
+    prompt:
+      "Photorealistic rendering, accurate proportions, natural lighting, digital painting",
+  },
+  {
+    id: "chibi",
+    name: "Chibi",
+    prompt:
+      "Super-deformed proportions, oversized head, tiny body, cute simplified features, chibi anime style",
+  },
+  {
+    id: "sketch",
+    name: "Sketch",
+    prompt:
+      "Loose pencil lines, visible construction marks, unfinished feel, concept art sketchbook style",
+  },
+  {
+    id: "pop-art",
+    name: "Pop Art",
+    prompt:
+      "Bold primary colors, Ben-Day dots, thick black outlines, pop art style",
+  },
+  {
+    id: "woodcut",
+    name: "Woodcut",
+    prompt:
+      "Bold black woodcut lines, stark contrast, rough texture, vintage printmaking style",
+  },
+  {
+    id: "flat-vector",
+    name: "Flat Vector",
+    prompt:
+      "Clean vector shapes, no outlines, flat colors, geometric simplification, modern illustration style",
+  },
+  {
+    id: "storybook",
+    name: "Storybook",
+    prompt:
+      "Soft pastel colors, gentle shading, whimsical proportions, children's book illustration style",
+  },
+  {
+    id: "grunge",
+    name: "Grunge",
+    prompt:
+      "Rough textures, distressed edges, muted desaturated palette, underground comics aesthetic",
+  },
+] as const;
+
 export interface VaultEntry {
   id: string;
   type: VaultCategory;
@@ -30,6 +123,7 @@ export interface VaultEntry {
   description: string;
   personality?: string;
   visualLook?: string;
+  style?: string;
 }
 
 interface VaultProps {
@@ -62,6 +156,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
     personality: "",
     visualLook: "",
     image: "",
+    style: "american-comic",
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,6 +183,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
         personality: "",
         visualLook: "",
         image: "",
+        style: "american-comic",
       });
     }
     setIsModalOpen(true);
@@ -151,11 +247,13 @@ export const VaultScreen: React.FC<VaultProps> = ({
     }
     setIsGeneratingImage(true);
     try {
+      const styleObj = VAULT_STYLES.find((s) => s.id === formData.style);
       const image = await generateReferenceImage(
         formData.name,
         formData.description || "",
         formData.visualLook || "",
         (formData.type || "Character") as VaultCategory,
+        styleObj?.prompt || VAULT_STYLES[0].prompt,
       );
       if (image) {
         setFormData((prev) => ({ ...prev, image }));
@@ -476,6 +574,32 @@ export const VaultScreen: React.FC<VaultProps> = ({
                 className="hidden"
                 accept="image/*"
               />
+
+              {/* Style picker */}
+              <div className="space-y-1.5">
+                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                  Art Style
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                  {VAULT_STYLES.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, style: s.id }))
+                      }
+                      className={`px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wide transition-all text-center leading-tight ${
+                        formData.style === s.id
+                          ? "bg-primary text-background"
+                          : "bg-surface-container text-accent/50 border border-outline/10"
+                      }`}
+                    >
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"

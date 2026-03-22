@@ -12,6 +12,8 @@ import {
   ChevronDown,
   Download,
   Eye,
+  Copy,
+  ClipboardPaste,
 } from "lucide-react";
 import {
   generatePanelImage,
@@ -359,6 +361,9 @@ const PanelCard = React.memo(
     isFailed,
     onQueueGenerate,
     onPreview,
+    copiedImage,
+    onCopyImage,
+    onPasteImage,
   }: {
     panel: PanelPrompt;
     characters: Character[];
@@ -372,6 +377,9 @@ const PanelCard = React.memo(
     isFailed?: boolean;
     onQueueGenerate: (panelId: string) => void;
     onPreview: (index: number) => void;
+    copiedImage?: string | null;
+    onCopyImage?: (image: string) => void;
+    onPasteImage?: () => void;
   }) => {
     const [prompt, setPrompt] = useState(panel.description);
     const [cameraAngle, setCameraAngle] = useState(panel.cameraAngle || "None");
@@ -671,6 +679,14 @@ const PanelCard = React.memo(
                       >
                         Upload
                       </button>
+                      {copiedImage && (
+                        <button
+                          onClick={() => onPasteImage?.()}
+                          className="bg-primary/80 text-background border border-primary px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary transition-all"
+                        >
+                          Paste
+                        </button>
+                      )}
                     </div>
                   </>
                 )}
@@ -719,6 +735,16 @@ const PanelCard = React.memo(
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (onCopyImage && image) onCopyImage(image);
+                  }}
+                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                  title="Copy image"
+                >
+                  <Copy size={14} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                     const link = document.createElement("a");
                     link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
                     link.href = image;
@@ -729,6 +755,18 @@ const PanelCard = React.memo(
                 >
                   <Download size={14} />
                 </button>
+                {copiedImage && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onPasteImage) onPasteImage();
+                    }}
+                    className="bg-primary/80 backdrop-blur-md text-background p-1.5 rounded-lg hover:bg-primary transition-all"
+                    title="Paste copied image"
+                  >
+                    <ClipboardPaste size={14} />
+                  </button>
+                )}
               </div>
             )}
 
@@ -1260,6 +1298,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     null,
   );
   const [failedPanels, setFailedPanels] = useState<Set<string>>(new Set());
+  const [copiedImage, setCopiedImage] = useState<string | null>(null);
   const [insertingAt, setInsertingAt] = useState<number | null>(null);
   const [draftPanel, setDraftPanel] = useState<{
     panel: PanelPrompt;
@@ -1625,6 +1664,14 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 isFailed={failedPanels.has(panel.id)}
                 onQueueGenerate={handleQueueGenerate}
                 onPreview={handlePreview}
+                copiedImage={copiedImage}
+                onCopyImage={(img) => setCopiedImage(img)}
+                onPasteImage={() => {
+                  if (copiedImage) {
+                    handleUpdatePanel(index, { ...panel, image: copiedImage });
+                    setCopiedImage(null);
+                  }
+                }}
               />
               {/* Insert button / draft card after this panel */}
               {draftPanel && draftPanel.insertIndex === index + 1 ? (

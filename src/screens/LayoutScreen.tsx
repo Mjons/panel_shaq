@@ -802,17 +802,67 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
 
   return (
     <div className="pt-24 px-6 max-w-7xl mx-auto pb-32">
-      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block font-bold">
-            Step 3: Composition
-          </span>
-          <h2 className="font-headline text-4xl md:text-5xl font-bold text-accent leading-tight">
-            Layout Architect
-          </h2>
+      {/* Header */}
+      <div className="mb-6">
+        <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block font-bold">
+          Step 3: Composition
+        </span>
+        <h2 className="font-headline text-4xl md:text-5xl font-bold text-accent leading-tight">
+          Layout Architect
+        </h2>
+      </div>
+
+      {/* Onboarding */}
+      {pages.length > 0 && showOnboarding && (
+        <div className="mb-6 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl">
+          <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
+            Step 3 of 4 — Arrange Your Pages
+          </p>
+          <p className="text-accent/70 text-sm leading-relaxed mb-3">
+            Your panels have been grouped into pages. Pick a layout for each
+            page, or change how many panels each page gets.
+            <span className="text-accent/50">
+              {" "}
+              Speech bubbles & finishing come next.
+            </span>
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
+            <span>• Tap a layout thumbnail to change the arrangement</span>
+            <span>
+              • Use the number buttons on each page to adjust panel count
+            </span>
+            <span>
+              • Use the global settings below to set format & panels per page
+            </span>
+          </div>
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem(
+                  "panelshaq_layout_onboarding_dismissed",
+                  "1",
+                );
+              }}
+              className="px-6 py-2 bg-secondary text-background font-headline font-bold text-sm rounded-lg hover:opacity-90 active:scale-95 transition-all"
+            >
+              Got it
+            </button>
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-3">
+      )}
+
+      {/* Global Page Settings */}
+      <div className="mb-8 bg-surface-container/30 rounded-xl p-5 border border-outline/10 space-y-4">
+        <p className="font-label text-accent/50 uppercase tracking-[0.15em] text-[9px] font-bold">
+          Global Page Settings
+        </p>
+
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
+            <span className="text-[10px] text-accent/40 font-bold uppercase tracking-widest w-16 shrink-0">
+              Format
+            </span>
             <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
               {Object.entries(PAGE_FORMATS).map(([key, fmt]) => (
                 <button
@@ -836,7 +886,11 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
               ))}
             </div>
           </div>
+
           <div className="flex items-center gap-3">
+            <span className="text-[10px] text-accent/40 font-bold uppercase tracking-widest w-16 shrink-0">
+              Panels
+            </span>
             <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
               {[1, 2, 3, 4, 5, 6].map((num) => (
                 <button
@@ -849,52 +903,16 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
               ))}
             </div>
           </div>
-          <button
-            onClick={onContinue}
-            className="flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-xl"
-          >
-            EDITOR
-            <ArrowRight size={20} />
-          </button>
         </div>
-      </div>
 
-      {pages.length > 0 && showOnboarding && (
-        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl">
-          <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
-            Step 3 of 4 — Arrange Your Pages
-          </p>
-          <p className="text-accent/70 text-sm leading-relaxed mb-3">
-            Your panels have been grouped into pages. Pick a layout for each
-            page, or change how many panels each page gets.
-            <span className="text-accent/50">
-              {" "}
-              Speech bubbles & finishing come next.
-            </span>
-          </p>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
-            <span>• Tap a layout thumbnail to change the arrangement</span>
-            <span>
-              • Use the number buttons on each page to adjust panel count
-            </span>
-            <span>• Use the top bar to repartition all pages at once</span>
-          </div>
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => {
-                setShowOnboarding(false);
-                localStorage.setItem(
-                  "panelshaq_layout_onboarding_dismissed",
-                  "1",
-                );
-              }}
-              className="px-6 py-2 bg-secondary text-background font-headline font-bold text-sm rounded-lg hover:opacity-90 active:scale-95 transition-all"
-            >
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
+        <button
+          onClick={onContinue}
+          className="w-full flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-xl"
+        >
+          CONTINUE TO EDITOR
+          <ArrowRight size={20} />
+        </button>
+      </div>
 
       {pages.length > 0 && (
         <p className="text-[10px] text-accent/30 italic text-center mb-2">
