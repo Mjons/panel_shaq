@@ -278,7 +278,7 @@ const DraggableBubble: React.FC<{
           } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg" : "p-2 bg-white border-2 border-background shadow-xl"}`}
           style={{
             width: "max-content",
-            maxWidth: "min(80vw, 300px)",
+            maxWidth: isNarration ? "min(90vw, 400px)" : "min(80vw, 300px)",
             whiteSpace: bubble.text.length < 40 ? "nowrap" : "normal",
             ...(isSFX || isPopText
               ? {}
