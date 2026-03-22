@@ -13,6 +13,10 @@ interface ConfirmOptions {
   confirmText?: string;
   cancelText?: string;
   danger?: boolean;
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface ConfirmContextValue {
@@ -82,6 +86,16 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({
                 >
                   {dialog.cancelText || "Cancel"}
                 </button>
+                {dialog.secondaryAction && (
+                  <button
+                    onClick={() => {
+                      dialog.secondaryAction!.onClick();
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-bold text-accent/80 border border-outline/20 hover:border-primary/30 hover:text-primary transition-all"
+                  >
+                    {dialog.secondaryAction.label}
+                  </button>
+                )}
                 <button
                   onClick={() => handleClose(true)}
                   className={`px-5 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 ${

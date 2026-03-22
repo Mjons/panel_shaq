@@ -149,9 +149,24 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     if (panelsWithImages > 0 && shouldWarn) {
       const ok = await confirm({
         title: "Replace Existing Panels",
-        message: `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Creating new panels will replace them all. Download your images first if you want to keep them.`,
+        message: `You have ${panelsWithImages} panel${panelsWithImages > 1 ? "s" : ""} with generated images. Creating new panels will replace them all.`,
         confirmText: "Replace Panels",
         danger: true,
+        secondaryAction: {
+          label: `Download ${panelsWithImages} Images`,
+          onClick: () => {
+            panels
+              .filter((p) => p.image)
+              .forEach((p, i) => {
+                const link = document.createElement("a");
+                link.download = `panel-${String(i + 1).padStart(2, "0")}.png`;
+                link.href = p.image!;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              });
+          },
+        },
       });
       if (!ok) return;
     }
