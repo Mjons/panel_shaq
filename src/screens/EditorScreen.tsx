@@ -275,7 +275,7 @@ const DraggableBubble: React.FC<{
             isSelected && !isExporting
               ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
               : ""
-          } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg" : "p-2 bg-white border-2 border-background shadow-xl"}`}
+          } ${isSFX || isPopText ? "" : isNarration ? "px-4 py-3 border border-background/60 shadow-lg" : "px-5 py-3 bg-white border-2 border-background shadow-xl"}`}
           style={{
             width: "max-content",
             maxWidth: isNarration ? "min(90vw, 400px)" : "min(80vw, 300px)",
