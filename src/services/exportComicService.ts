@@ -277,12 +277,27 @@ export async function exportAsComic(
   return JSON.stringify(comicFile);
 }
 
-export function downloadComicFile(json: string, projectName: string) {
+export async function downloadComicFile(json: string, projectName: string) {
+  const filename = `${(projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "")}.comic`;
   const blob = new Blob([json], { type: "application/json" });
+  const file = new File([blob], filename, { type: "application/json" });
+
+  // Use native share sheet if available (mobile)
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    } catch (e) {
+      // User cancelled or share failed — fall through to download
+      if ((e as Error).name === "AbortError") return;
+    }
+  }
+
+  // Fallback: direct download
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${(projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "")}.comic`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
