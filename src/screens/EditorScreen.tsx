@@ -206,7 +206,7 @@ const DraggableBubble: React.FC<{
       onPinchStart: () => {
         baseFontSize.current = bubble.fontSize;
       },
-      onPinch: ({ offset: [s, angle], last }) => {
+      onPinch: ({ offset: [s, angle] }) => {
         if (isExporting) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, baseFontSize.current * s)),
@@ -214,12 +214,7 @@ const DraggableBubble: React.FC<{
         // Snap rotation to 0 if within 15 degrees
         const snappedAngle = Math.abs(angle) < 15 ? 0 : Math.round(angle);
 
-        if (containerRef.current) {
-          const textEl = containerRef.current.querySelector("p");
-          if (textEl) textEl.style.fontSize = `${newSize}px`;
-          containerRef.current.style.transform = `translate(-50%, -50%) rotate(${snappedAngle}deg)`;
-        }
-        if (last) onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
+        onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
       },
     },
     {
