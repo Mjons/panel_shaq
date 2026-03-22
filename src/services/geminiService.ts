@@ -244,14 +244,35 @@ export const generateInsertedPanelPrompt = async (
   }
 };
 
+// Detect aspect ratio from a base64 image
+const detectAspectRatio = (src: string): Promise<string> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const r = img.width / img.height;
+      // Match to closest standard ratio
+      if (r > 2) resolve("21:9");
+      else if (r > 1.6) resolve("16:9");
+      else if (r > 1.4) resolve("3:2");
+      else if (r > 1.2) resolve("4:3");
+      else if (r > 0.9) resolve("1:1");
+      else if (r > 0.7) resolve("3:4");
+      else if (r > 0.6) resolve("2:3");
+      else resolve("9:16");
+    };
+    img.onerror = () => resolve("1:1");
+    img.src = src;
+  });
+
 export const finalNaturalRender = async (
   panelImage: string,
   bubbles: Bubble[],
 ): Promise<string | null> => {
   try {
+    const aspectRatio = await detectAspectRatio(panelImage);
     const result = await apiPost<{ image: string }>(
       "final-render",
-      { panelImage, bubbles },
+      { panelImage, bubbles, aspectRatio },
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;

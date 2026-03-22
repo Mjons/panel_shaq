@@ -102,7 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const usageError = await checkUsage(req, "image");
   if (usageError) return res.status(429).json({ error: usageError });
 
-  const { panelImage, bubbles } = req.body;
+  const { panelImage, bubbles, aspectRatio } = req.body;
   if (!panelImage)
     return res.status(400).json({ error: "Panel image is required" });
 
@@ -143,7 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       apiKey,
       "gemini-3.1-flash-image-preview",
       parts,
-      { aspectRatio: "16:9", imageSize: "1K" },
+      { aspectRatio: aspectRatio || "1:1", imageSize: "1K" },
     );
 
     if (image) return res.status(200).json({ image });
