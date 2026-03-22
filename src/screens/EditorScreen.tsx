@@ -907,10 +907,10 @@ export const EditorScreen: React.FC<EditorProps> = ({
             </p>
             <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-accent/40">
               <span>• Drag & pinch panels to reposition and scale</span>
-              <span>• Tap a panel, then add speech or thought bubbles</span>
-              <span>• Drag bubbles to position them in the panel</span>
+              <span>• Tap a panel, then tap + to add a bubble</span>
+              <span>• Tap a bubble to edit text, type, and size</span>
+              <span>• Drag bubbles to reposition, pinch to resize</span>
               <span>• Use "Bake" to burn dialogue into the image</span>
-              <span>• Export or share when you're done</span>
             </div>
             <div className="mt-4 text-center">
               <button
