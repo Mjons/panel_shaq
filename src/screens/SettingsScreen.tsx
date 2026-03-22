@@ -370,6 +370,9 @@ export const SettingsScreen = () => {
                   "panelshaq_layout_onboarding_dismissed",
                 );
                 localStorage.removeItem("panelshaq_vault_onboarding_dismissed");
+                localStorage.removeItem(
+                  "panelshaq_workshop_onboarding_dismissed",
+                );
                 localStorage.removeItem("panelshaq_desktop_gate_dismissed");
                 localStorage.removeItem("panelshaq_seen_desc_tip");
                 alert("All instruction banners will show again on next visit.");

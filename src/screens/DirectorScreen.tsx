@@ -1528,7 +1528,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
         </div>
       </div>
 
-      {panels.length > 0 && showOnboarding && !panels.some((p) => p.image) && (
+      {panels.length > 0 && showOnboarding && (
         <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
           <button
             onClick={() => {

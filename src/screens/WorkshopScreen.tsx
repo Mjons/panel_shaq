@@ -56,6 +56,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("panelshaq_workshop_onboarding_dismissed"),
+  );
 
   // Check which characters are mentioned in the story
   const getCharacterMentions = () => {
@@ -231,6 +234,63 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           placeholder="Untitled Project"
         />
       </section>
+
+      {showOnboarding && (
+        <div className="mb-6 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
+          <button
+            onClick={() => {
+              setShowOnboarding(false);
+              localStorage.setItem(
+                "panelshaq_workshop_onboarding_dismissed",
+                "1",
+              );
+            }}
+            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
+          >
+            <X size={16} />
+          </button>
+          <p className="font-headline font-bold text-accent text-lg mb-2">
+            Welcome to Panelhaus
+          </p>
+          <p className="text-accent/60 text-sm leading-relaxed mb-3">
+            Create AI-generated comics in minutes. Upload character references,
+            write a story, and let AI generate your panels.
+          </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-accent/40">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+                5m
+              </span>
+              <span>
+                Quick comic — upload a character, write a few lines, generate &
+                export
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-secondary/20 text-secondary flex items-center justify-center text-[10px] font-bold shrink-0">
+                30m
+              </span>
+              <span>
+                Polished comic — detailed descriptions, camera angles, dialogue,
+                custom layouts
+              </span>
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-outline/10 flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-accent/30">
+            <span>
+              <strong className="text-primary">1.</strong> Add characters with
+              reference images
+            </span>
+            <span>
+              <strong className="text-primary">2.</strong> Write your story
+            </span>
+            <span>
+              <strong className="text-primary">3.</strong> Generate panels →
+              arrange layouts → add dialogue → export
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
         {/* Characters + Style + Generate — shown first on mobile, right on desktop */}
