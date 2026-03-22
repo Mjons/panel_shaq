@@ -470,14 +470,14 @@ const TemplateThumbnail: React.FC<{
   <button
     onClick={onClick}
     title={template.name}
-    className={`p-1.5 rounded-lg border-2 transition-all hover:scale-105 ${
+    className={`p-1 rounded-md border-2 transition-all hover:scale-105 ${
       isActive
-        ? "border-primary bg-primary/10 shadow-[0_0_12px_rgba(255,145,0,0.2)]"
+        ? "border-primary bg-primary/10 shadow-[0_0_8px_rgba(255,145,0,0.2)]"
         : "border-outline/20 bg-background hover:border-primary/40"
     }`}
   >
     <div
-      className="w-16 h-12 gap-[2px]"
+      className="w-10 h-8 gap-[1px]"
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${template.cols}, 1fr)`,
@@ -495,13 +495,6 @@ const TemplateThumbnail: React.FC<{
         />
       ))}
     </div>
-    <p
-      className={`text-[7px] font-bold uppercase tracking-wider mt-1 text-center truncate ${
-        isActive ? "text-primary" : "text-accent/40"
-      }`}
-    >
-      {template.name}
-    </p>
   </button>
 );
 
@@ -726,7 +719,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
 
               {/* Template picker */}
               {availableTemplates.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b border-outline/10">
+                <div className="grid grid-cols-5 gap-1.5 mb-6 pb-4 border-b border-outline/10">
                   {availableTemplates.map((t) => (
                     <TemplateThumbnail
                       key={t.id}
