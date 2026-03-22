@@ -18,6 +18,7 @@ export interface LayoutTemplate {
   cols: number;
   rows: number;
   slots: LayoutSlot[];
+  webtoon?: boolean; // if true, only shown in webtoon mode; if absent, hidden in webtoon mode
 }
 
 export interface Page {
@@ -423,6 +424,157 @@ export const LAYOUT_TEMPLATES: LayoutTemplate[] = [
       { colStart: 3, colEnd: 5, rowStart: 3, rowEnd: 4 },
     ],
   },
+
+  // ── Webtoon Templates (vertical stacks only) ──
+  {
+    id: "wt-1-full",
+    name: "Full Strip",
+    panelCount: 1,
+    cols: 1,
+    rows: 1,
+    slots: [{ colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 }],
+    webtoon: true,
+  },
+  {
+    id: "wt-2-stack",
+    name: "2 Stack",
+    panelCount: 2,
+    cols: 1,
+    rows: 2,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-2-hero",
+    name: "Hero + Small",
+    panelCount: 2,
+    cols: 1,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-3-stack",
+    name: "3 Stack",
+    panelCount: 3,
+    cols: 1,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-3-hero-top",
+    name: "Hero Top",
+    panelCount: 3,
+    cols: 2,
+    rows: 3,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+      { colStart: 2, colEnd: 3, rowStart: 3, rowEnd: 4 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-4-stack",
+    name: "4 Stack",
+    panelCount: 4,
+    cols: 1,
+    rows: 4,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+      { colStart: 1, colEnd: 2, rowStart: 4, rowEnd: 5 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-4-mixed",
+    name: "Mixed Stack",
+    panelCount: 4,
+    cols: 2,
+    rows: 4,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 3, rowStart: 3, rowEnd: 5 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-5-stack",
+    name: "5 Stack",
+    panelCount: 5,
+    cols: 1,
+    rows: 5,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+      { colStart: 1, colEnd: 2, rowStart: 4, rowEnd: 5 },
+      { colStart: 1, colEnd: 2, rowStart: 5, rowEnd: 6 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-5-mixed",
+    name: "Mixed Flow",
+    panelCount: 5,
+    cols: 2,
+    rows: 4,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 3, rowStart: 3, rowEnd: 4 },
+      { colStart: 1, colEnd: 3, rowStart: 4, rowEnd: 5 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-6-stack",
+    name: "6 Stack",
+    panelCount: 6,
+    cols: 1,
+    rows: 6,
+    slots: [
+      { colStart: 1, colEnd: 2, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 2, rowStart: 3, rowEnd: 4 },
+      { colStart: 1, colEnd: 2, rowStart: 4, rowEnd: 5 },
+      { colStart: 1, colEnd: 2, rowStart: 5, rowEnd: 6 },
+      { colStart: 1, colEnd: 2, rowStart: 6, rowEnd: 7 },
+    ],
+    webtoon: true,
+  },
+  {
+    id: "wt-6-mixed",
+    name: "Mixed Scroll",
+    panelCount: 6,
+    cols: 2,
+    rows: 5,
+    slots: [
+      { colStart: 1, colEnd: 3, rowStart: 1, rowEnd: 2 },
+      { colStart: 1, colEnd: 2, rowStart: 2, rowEnd: 3 },
+      { colStart: 2, colEnd: 3, rowStart: 2, rowEnd: 3 },
+      { colStart: 1, colEnd: 3, rowStart: 3, rowEnd: 4 },
+      { colStart: 1, colEnd: 2, rowStart: 4, rowEnd: 6 },
+      { colStart: 2, colEnd: 3, rowStart: 4, rowEnd: 6 },
+    ],
+    webtoon: true,
+  },
 ];
 
 // ── Helpers ──
@@ -436,7 +588,22 @@ const DEFAULT_LAYOUTS: Record<number, string> = {
   6: "6-3x2",
 };
 
-export function getDefaultLayoutId(panelCount: number): string {
+const WEBTOON_DEFAULT_LAYOUTS: Record<number, string> = {
+  1: "wt-1-full",
+  2: "wt-2-stack",
+  3: "wt-3-stack",
+  4: "wt-4-stack",
+  5: "wt-5-stack",
+  6: "wt-6-stack",
+};
+
+export function getDefaultLayoutId(
+  panelCount: number,
+  format?: string,
+): string {
+  if (format === "webtoon") {
+    return WEBTOON_DEFAULT_LAYOUTS[panelCount] || WEBTOON_DEFAULT_LAYOUTS[3]!;
+  }
   return DEFAULT_LAYOUTS[panelCount] || DEFAULT_LAYOUTS[4]!;
 }
 
@@ -444,8 +611,15 @@ export function getTemplate(layoutId: string): LayoutTemplate | undefined {
   return LAYOUT_TEMPLATES.find((t) => t.id === layoutId);
 }
 
-export function getTemplatesForCount(count: number): LayoutTemplate[] {
-  return LAYOUT_TEMPLATES.filter((t) => t.panelCount === count);
+export function getTemplatesForCount(
+  count: number,
+  format?: string,
+): LayoutTemplate[] {
+  return LAYOUT_TEMPLATES.filter((t) => {
+    if (t.panelCount !== count) return false;
+    if (format === "webtoon") return !!t.webtoon;
+    return !t.webtoon;
+  });
 }
 
 /** Migrate old Page.layout to Page.layoutId */
@@ -549,7 +723,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         newPages.push({
           id: `page-${Math.random().toString(36).substr(2, 9)}`,
           panelIds: pagePanel.map((p) => p.id),
-          layoutId: getDefaultLayoutId(pagePanel.length),
+          layoutId: getDefaultLayoutId(pagePanel.length, pageFormat),
         });
       }
       setPages(newPages);
@@ -588,7 +762,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
           layoutId:
             ids.length === prev[i].panelIds.length
               ? prev[i].layoutId
-              : getDefaultLayoutId(ids.length),
+              : getDefaultLayoutId(ids.length, pageFormat),
         });
         cursor += count;
       }
@@ -598,7 +772,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         newPages.push({
           id: `page-${Math.random().toString(36).substr(2, 9)}`,
           panelIds: remaining,
-          layoutId: getDefaultLayoutId(remaining.length),
+          layoutId: getDefaultLayoutId(remaining.length, pageFormat),
         });
         cursor += remaining.length;
       }
@@ -620,7 +794,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
       newPages.push({
         id: `page-${Math.random().toString(36).substr(2, 9)}`,
         panelIds: pagePanel.map((p) => p.id),
-        layoutId: getDefaultLayoutId(pagePanel.length),
+        layoutId: getDefaultLayoutId(pagePanel.length, pageFormat),
       });
     }
     setPages(newPages);
@@ -722,10 +896,20 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         </div>
       )}
 
+      {pages.length > 0 && (
+        <p className="text-[10px] text-accent/30 italic text-center mb-2">
+          Panel images are for reference only — positioning and sizing are set
+          in the Editor.
+        </p>
+      )}
+
       <div className="space-y-12">
         {pages.map((page, pageIdx) => {
           const template = getTemplate(page.layoutId);
-          const availableTemplates = getTemplatesForCount(page.panelIds.length);
+          const availableTemplates = getTemplatesForCount(
+            page.panelIds.length,
+            pageFormat,
+          );
 
           return (
             <div
