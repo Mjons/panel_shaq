@@ -9,12 +9,16 @@ import {
   Upload,
   Trash2,
   Edit2,
+  Eye,
   X,
 } from "lucide-react";
 
 import { Loader2 } from "lucide-react";
 import { BottomSheet } from "../components/BottomSheet";
-import { generateReferenceImage } from "../services/geminiService";
+import {
+  generateReferenceImage,
+  analyzeCharacterImage,
+} from "../services/geminiService";
 
 export type VaultCategory = "Character" | "Environment" | "Prop" | "Vehicle";
 
@@ -101,6 +105,20 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
   };
 
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleAnalyzeImage = async () => {
+    if (!formData.image) return;
+    setIsAnalyzing(true);
+    try {
+      const description = await analyzeCharacterImage(formData.image);
+      if (description) {
+        setFormData((prev) => ({ ...prev, description }));
+      }
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleEnhanceDescription = async () => {
     if (!formData.name || !formData.description?.trim()) return;
@@ -536,21 +554,38 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
                   <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">
                     Description <span className="text-red-400">*</span>
                   </label>
-                  {formData.name && formData.description?.trim() && (
-                    <button
-                      type="button"
-                      onClick={handleEnhanceDescription}
-                      disabled={isEnhancing}
-                      className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-40"
-                    >
-                      {isEnhancing ? (
-                        <Loader2 size={10} className="animate-spin" />
-                      ) : (
-                        <Sparkles size={10} />
-                      )}
-                      {isEnhancing ? "Adding..." : "Add Detail"}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {formData.image && (
+                      <button
+                        type="button"
+                        onClick={handleAnalyzeImage}
+                        disabled={isAnalyzing}
+                        className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-40"
+                      >
+                        {isAnalyzing ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <Eye size={10} />
+                        )}
+                        {isAnalyzing ? "Analyzing..." : "Analyze Image"}
+                      </button>
+                    )}
+                    {formData.name && formData.description?.trim() && (
+                      <button
+                        type="button"
+                        onClick={handleEnhanceDescription}
+                        disabled={isEnhancing}
+                        className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-40"
+                      >
+                        {isEnhancing ? (
+                          <Loader2 size={10} className="animate-spin" />
+                        ) : (
+                          <Sparkles size={10} />
+                        )}
+                        {isEnhancing ? "Adding..." : "Add Detail"}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <textarea
                   required
