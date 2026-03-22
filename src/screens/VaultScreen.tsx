@@ -35,14 +35,19 @@ export interface VaultEntry {
 interface VaultProps {
   entries: VaultEntry[];
   setEntries: React.Dispatch<React.SetStateAction<VaultEntry[]>>;
+  autoOpenNew?: boolean;
 }
 
-export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
+export const VaultScreen: React.FC<VaultProps> = ({
+  entries,
+  setEntries,
+  autoOpenNew,
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<VaultCategory | "All">(
     "All",
   );
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(!!autoOpenNew);
   const [editingEntry, setEditingEntry] = useState<VaultEntry | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("panelshaq_vault_onboarding_dismissed"),

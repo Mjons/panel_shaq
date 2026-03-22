@@ -196,10 +196,14 @@ function AppInner() {
     return onApiError((msg) => addToast(msg, "error"));
   }, [addToast]);
 
+  const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
     "workshop",
   );
+  useEffect(() => {
+    if (activeTab !== "vault") setVaultAutoOpen(false);
+  }, [activeTab]);
   const [story, setStory] = usePersistedState("panelshaq_story", "");
   const [vaultEntries, setVaultEntries] = useIndexedDBState<VaultEntry[]>(
     "panelshaq_vault_entries",
@@ -512,6 +516,10 @@ function AppInner() {
             styleReferenceImage={styleReferenceImage}
             setStyleReferenceImage={setStyleReferenceImage}
             onGenerateSuccess={() => setActiveTab("director")}
+            onNavigate={(tab) => {
+              if (tab === "vault") setVaultAutoOpen(true);
+              setActiveTab(tab);
+            }}
           />
         );
       case "director":
@@ -541,7 +549,11 @@ function AppInner() {
         );
       case "vault":
         return (
-          <VaultScreen entries={vaultEntries} setEntries={setVaultEntries} />
+          <VaultScreen
+            entries={vaultEntries}
+            setEntries={setVaultEntries}
+            autoOpenNew={vaultAutoOpen}
+          />
         );
       case "editor":
         return (

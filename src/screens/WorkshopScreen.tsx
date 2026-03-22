@@ -32,6 +32,7 @@ interface WorkshopProps {
   styleReferenceImage: string | null;
   setStyleReferenceImage: (img: string | null) => void;
   onGenerateSuccess: () => void;
+  onNavigate?: (tab: string) => void;
 }
 
 export const WorkshopScreen: React.FC<WorkshopProps> = ({
@@ -46,6 +47,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   styleReferenceImage,
   setStyleReferenceImage,
   onGenerateSuccess,
+  onNavigate,
 }) => {
   const { confirm } = useConfirm();
   const [isPolishing, setIsPolishing] = useState(false);
@@ -307,7 +309,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 <span className="text-primary">1.</span> Characters
               </h3>
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => onNavigate?.("vault")}
                 className="text-primary hover:rotate-90 transition-transform duration-300"
               >
                 <PlusCircle size={24} />
