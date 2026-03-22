@@ -270,10 +270,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               reference images
             </span>
             <span>
-              <strong className="text-primary">2.</strong> Write your story
+              <strong className="text-primary">2.</strong> Set your style
             </span>
             <span>
-              <strong className="text-primary">3.</strong> Generate panels →
+              <strong className="text-primary">3.</strong> Write your story
+            </span>
+            <span>
+              <strong className="text-primary">4.</strong> Generate panels →
               arrange layouts → add dialogue → export
             </span>
           </div>
@@ -431,7 +434,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             <div className="bg-background rounded-lg p-5 min-h-[300px] lg:min-h-[450px] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
-                  <span className="text-primary">2.</span> Story
+                  <span className="text-primary">3.</span> Story
                 </h3>
                 <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
                   {story.length} / 2000
@@ -529,7 +532,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             className="panel-shaq-gradient w-full py-5 rounded-lg flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(255,145,0,0.2)] hover:shadow-[0_15px_40px_rgba(255,145,0,0.4)] transition-all active:scale-95 disabled:opacity-50"
           >
             <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
-              {isGeneratingPanels ? "Generating..." : "3. Generate Panels"}
+              {isGeneratingPanels ? "Generating..." : "4. Generate Panels"}
             </span>
             {isGeneratingPanels ? (
               <Loader2 size={24} className="text-background animate-spin" />

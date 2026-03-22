@@ -203,6 +203,7 @@ interface DirectorProps {
   props: VaultEntry[];
   vehicles: VaultEntry[];
   story: string;
+  projectName?: string;
   onContinue: () => void;
 }
 
@@ -1234,6 +1235,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   props,
   vehicles,
   story,
+  projectName,
   onContinue,
 }) => {
   const { confirm } = useConfirm();
@@ -1511,7 +1513,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
       <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block font-bold">
-            Project: Cyberpunk Chronicles
+            {projectName || "Untitled Project"}
           </span>
           <h2 className="font-headline text-4xl md:text-5xl font-bold text-accent leading-tight">
             Panel Director

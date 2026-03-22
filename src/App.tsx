@@ -520,6 +520,7 @@ function AppInner() {
             props={vaultEntries.filter((e) => e.type === "Prop")}
             vehicles={vaultEntries.filter((e) => e.type === "Vehicle")}
             story={story}
+            projectName={projectName}
             onContinue={() => setActiveTab("layout")}
           />
         );
