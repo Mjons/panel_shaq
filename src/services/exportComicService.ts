@@ -142,108 +142,75 @@ function mapVaultEntry(entry: VaultEntry) {
   };
 }
 
-// ── Image Dimensions Helper ──
-
-function getImageDimensions(
-  src: string,
-): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () =>
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    img.onerror = () => resolve({ width: 1024, height: 1024 }); // fallback
-    img.src = src;
-  });
-}
-
 // ── Main Export ──
 
-export async function exportAsComic(
+export function exportAsComic(
   projectName: string,
   story: string,
   pages: Page[],
   panels: PanelPrompt[],
   vaultEntries: VaultEntry[],
-): Promise<string> {
+): string {
   const panelMap = new Map(panels.map((p) => [p.id, p]));
 
-  const desktopPages = await Promise.all(
-    pages.map(async (page) => {
-      const template = getTemplate(page.layoutId);
-      const rects = template
-        ? slotsToPixels(template)
-        : page.panelIds.map((_, i) => ({
-            x: MARGIN,
-            y: MARGIN + i * (PAGE_HEIGHT / page.panelIds.length),
-            width: PAGE_WIDTH - MARGIN * 2,
-            height: PAGE_HEIGHT / page.panelIds.length - MARGIN,
-          }));
+  const desktopPages = pages.map((page) => {
+    const template = getTemplate(page.layoutId);
+    const rects = template
+      ? slotsToPixels(template)
+      : page.panelIds.map((_, i) => ({
+          x: MARGIN,
+          y: MARGIN + i * (PAGE_HEIGHT / page.panelIds.length),
+          width: PAGE_WIDTH - MARGIN * 2,
+          height: PAGE_HEIGHT / page.panelIds.length - MARGIN,
+        }));
 
-      const desktopPanels = await Promise.all(
-        page.panelIds.map(async (pid, i) => {
-          const panel = panelMap.get(pid);
-          const rect = rects[i] || rects[0];
-          const userTransform = panel?.imageTransform || {
-            x: 0,
-            y: 0,
-            scale: 1,
-          };
-
-          // Calculate fit scale so the image fits inside the panel frame
-          let fit = 1;
-          if (panel?.image) {
-            const imgSize = await getImageDimensions(panel.image);
-            fit = Math.min(
-              rect.width / imgSize.width,
-              rect.height / imgSize.height,
-            );
-          }
-
-          return {
-            id: `panel-${pid}`,
-            x: rect.x,
-            y: rect.y,
-            width: rect.width,
-            height: rect.height,
-            imageSrc: panel?.image || "",
-            imageId: `img_${pid}`,
-            imageTransform: {
-              x: userTransform.x * fit,
-              y: userTransform.y * fit,
-              scale: userTransform.scale * fit,
-              rotation: 0,
-              flipH: false,
-              flipV: false,
-            },
-            strokeWidth: 2,
-            strokeColor: "#000000",
-            showOutline: true,
-            visible: true,
-            locked: false,
-            zIndex: i,
-          };
-        }),
-      );
-
-      // Collect all bubbles from panels on this page
-      const textBubbles = page.panelIds.flatMap((pid, i) => {
-        const panel = panelMap.get(pid);
-        const rect = rects[i] || rects[0];
-        return (panel?.bubbles || []).map((b) => mapBubble(b, rect));
-      });
+    const desktopPanels = page.panelIds.map((pid, i) => {
+      const panel = panelMap.get(pid);
+      const rect = rects[i] || rects[0];
 
       return {
-        id: `page-${page.id}`,
-        dimension: { width: PAGE_WIDTH, height: PAGE_HEIGHT },
-        layers: {
-          panels: desktopPanels,
-          textBubbles,
-          stickers: [],
-          background: null,
+        id: `panel-${pid}`,
+        x: rect.x,
+        y: rect.y,
+        width: rect.width,
+        height: rect.height,
+        imageSrc: panel?.image || "",
+        imageId: `img_${pid}`,
+        imageTransform: {
+          x: 0,
+          y: 0,
+          scale: -1,
+          rotation: 0,
+          flipH: false,
+          flipV: false,
         },
+        strokeWidth: 2,
+        strokeColor: "#000000",
+        showOutline: true,
+        visible: true,
+        locked: false,
+        zIndex: i,
       };
-    }),
-  );
+    });
+
+    // Collect all bubbles from panels on this page
+    const textBubbles = page.panelIds.flatMap((pid, i) => {
+      const panel = panelMap.get(pid);
+      const rect = rects[i] || rects[0];
+      return (panel?.bubbles || []).map((b) => mapBubble(b, rect));
+    });
+
+    return {
+      id: `page-${page.id}`,
+      dimension: { width: PAGE_WIDTH, height: PAGE_HEIGHT },
+      layers: {
+        panels: desktopPanels,
+        textBubbles,
+        stickers: [],
+        background: null,
+      },
+    };
+  });
 
   const blueprints = vaultEntries.map(mapVaultEntry);
 

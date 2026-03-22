@@ -236,7 +236,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
           </div>
           <button
             onClick={async () => {
-              const json = await exportAsComic(
+              const json = exportAsComic(
                 projectName,
                 story,
                 pages,
