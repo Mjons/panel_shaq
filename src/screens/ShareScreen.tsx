@@ -103,10 +103,10 @@ export const ShareScreen: React.FC<ShareProps> = ({
     <div className="pt-24 px-6 max-w-2xl mx-auto pb-40">
       <header className="mb-10">
         <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block">
-          Distribution
+          Share
         </span>
         <h2 className="font-headline text-5xl font-bold text-accent tracking-tighter">
-          Share & Export
+          Share & Send
         </h2>
       </header>
 
@@ -118,7 +118,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
             Share Comic
           </h3>
           <p className="text-sm text-accent/50">
-            Share your panel images via your device's native share sheet.
+            Share your panel images via email, chat, or social media.
           </p>
 
           {panelsWithImages.length > 0 ? (
@@ -163,7 +163,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                 <Share2 size={18} />
                 {sharing
                   ? "PREPARING..."
-                  : `SHARE ALL ${panelsWithImages.length} PANELS`}
+                  : `SHARE ${panelsWithImages.length} PANELS`}
               </button>
 
               {/* Individual panel thumbnails */}
@@ -221,12 +221,11 @@ export const ShareScreen: React.FC<ShareProps> = ({
         <section className="bg-surface-container rounded-xl p-6 border border-primary/20 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
             <Upload size={18} />
-            Export for Panelhaus
+            Send to Panelhaus Desktop
           </h3>
           <p className="text-sm text-accent/50">
-            Download your project as a <strong>.comic</strong> file and open it
-            in Panelhaus for full editing — layers, effects, text tools, and
-            more.
+            Export as a <strong>.comic</strong> file to continue editing in
+            Panelhaus Desktop — layers, effects, pro text tools, and more.
           </p>
           <div className="text-[10px] text-accent/30 space-y-1">
             <p>

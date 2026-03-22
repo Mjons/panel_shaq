@@ -1191,6 +1191,32 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           />
                         ))}
 
+                        {/* FAB: Add bubble button on selected panel */}
+                        {selectedPanelId === pid &&
+                          !isExporting &&
+                          !selectedBubbleId && (
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addBubble();
+                                }}
+                                className="absolute bottom-2 right-2 z-30 w-8 h-8 bg-primary text-background rounded-full flex items-center justify-center shadow-lg hover:opacity-90 active:scale-90 transition-all"
+                                title="Add dialogue bubble"
+                              >
+                                <Plus size={18} />
+                              </button>
+                              {(!panel.bubbles ||
+                                panel.bubbles.length === 0) && (
+                                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                                  <p className="text-accent/30 text-xs font-bold uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-lg">
+                                    Tap + to add dialogue
+                                  </p>
+                                </div>
+                              )}
+                            </>
+                          )}
+
                         {/* Dim non-selected panels when one is selected */}
                         {selectedPanelId &&
                           selectedPanelId !== pid &&
@@ -1256,145 +1282,115 @@ export const EditorScreen: React.FC<EditorProps> = ({
               </p>
             ) : null}
 
+            {/* Download */}
             <div className="space-y-2">
               <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                Export PDF
+                Download
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleExportPDF(false)}
+                  onClick={() => handleExportPNG(false)}
                   disabled={isExporting}
-                  className="py-3 rounded-lg bg-secondary/20 text-secondary border border-secondary/30 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                  className="py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
                 >
                   {isExporting ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
                     <Download size={14} />
                   )}
-                  PAGE
+                  <span>This Page</span>
+                  <span className="text-[7px] opacity-50 normal-case">PNG</span>
                 </button>
                 <button
                   onClick={() => handleExportPDF(true)}
                   disabled={isExporting}
-                  className="py-3 rounded-lg bg-secondary text-background font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                  className="py-3 rounded-lg bg-primary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
+                >
+                  {isExporting ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Download size={14} />
+                  )}
+                  <span>All Pages</span>
+                  <span className="text-[7px] opacity-50 normal-case">PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Share */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
+                Share
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={async () => {
+                    if (!comicRef.current || isExporting) return;
+                    setIsExporting(true);
+                    setSelectedPanelId(null);
+                    setSelectedBubbleId(null);
+                    await waitForPaint();
+                    try {
+                      const imgData = await captureRef(comicRef, "png");
+                      const res = await fetch(imgData);
+                      const blob = await res.blob();
+                      const file = new File(
+                        [blob],
+                        `Comic_Page_${selectedPageIdx + 1}.png`,
+                        { type: "image/png" },
+                      );
+                      if (navigator.canShare?.({ files: [file] })) {
+                        await navigator.share({
+                          title: "My Comic",
+                          text: "Made with Panelhaus",
+                          files: [file],
+                        });
+                      } else {
+                        const link = document.createElement("a");
+                        link.download = file.name;
+                        link.href = imgData;
+                        link.click();
+                      }
+                    } catch {
+                      /* user cancelled */
+                    }
+                    setIsExporting(false);
+                  }}
+                  disabled={isExporting}
+                  className="py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
                 >
                   {isExporting ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
                     <Share2 size={14} />
                   )}
-                  FULL
+                  <span>This Page</span>
                 </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                Export PNG
-              </p>
-              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleExportPNG(false)}
+                  onClick={() => handleExportPDF(true)}
                   disabled={isExporting}
-                  className="py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                  className="py-3 rounded-lg bg-secondary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
                 >
                   {isExporting ? (
                     <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    <ImageIcon size={14} />
+                    <Share2 size={14} />
                   )}
-                  PAGE
+                  <span>All Pages</span>
                 </button>
-                <button
-                  onClick={() => handleExportPNG(true)}
-                  disabled={isExporting}
-                  className="py-3 rounded-lg bg-primary text-background font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Layers size={14} />
-                  )}
-                  FULL
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-              Share
-            </p>
-            <button
-              onClick={async () => {
-                if (!comicRef.current || isExporting) return;
-                setIsExporting(true);
-                setSelectedPanelId(null);
-                setSelectedBubbleId(null);
-                await waitForPaint();
-                try {
-                  const imgData = await captureRef(comicRef, "png");
-                  const res = await fetch(imgData);
-                  const blob = await res.blob();
-                  const file = new File(
-                    [blob],
-                    `Comic_Page_${selectedPageIdx + 1}.png`,
-                    { type: "image/png" },
-                  );
-                  if (navigator.canShare?.({ files: [file] })) {
-                    await navigator.share({
-                      title: "My Comic",
-                      text: "Made with Panelhaus",
-                      files: [file],
-                    });
-                  } else {
-                    // Fallback: download
-                    const link = document.createElement("a");
-                    link.download = file.name;
-                    link.href = imgData;
-                    link.click();
-                  }
-                } catch {
-                  /* user cancelled or share failed */
-                }
-                setIsExporting(false);
-              }}
-              disabled={isExporting}
-              className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/30 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-            >
-              {isExporting ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Share2 size={14} />
-              )}
-              SHARE THIS PAGE
-            </button>
-          </div>
-
-          <div className="pt-6 border-t border-outline/10">
-            <h4 className="text-[10px] font-label uppercase tracking-widest text-accent/50 mb-4">
-              Export Settings
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-background rounded-lg">
-                <span className="text-xs text-accent">Format</span>
-                <span className="text-xs font-bold text-primary">PDF (HQ)</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-background rounded-lg">
-                <span className="text-xs text-accent">Resolution</span>
-                <span className="text-xs font-bold text-primary">300 DPI</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Share */}
+        {/* More Export Options */}
         {onNavigate && (
           <button
             onClick={() => onNavigate("share")}
             className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-secondary/20 active:scale-95 transition-all"
           >
             <Share2 size={16} />
-            Share Your Comic
+            More Export Options
           </button>
         )}
 
