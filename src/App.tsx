@@ -231,6 +231,10 @@ function AppInner() {
   const setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>> =
     setRawPanels;
   const [pages, setPages] = usePersistedState<Page[]>("panelshaq_pages", []);
+  const [pageFormat, setPageFormat] = usePersistedState<string>(
+    "panelshaq_page_format",
+    "portrait",
+  );
   const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
     string | null
   >("panelshaq_style_ref", null);
@@ -531,6 +535,8 @@ function AppInner() {
             pages={pages}
             setPages={setPages}
             onContinue={() => setActiveTab("editor")}
+            pageFormat={pageFormat}
+            setPageFormat={setPageFormat}
           />
         );
       case "vault":
@@ -544,6 +550,7 @@ function AppInner() {
             pages={pages}
             setPanels={setPanels}
             onNavigate={setActiveTab}
+            pageFormat={pageFormat}
           />
         );
       case "settings":

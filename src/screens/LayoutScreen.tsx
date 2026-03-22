@@ -500,11 +500,24 @@ const TemplateThumbnail: React.FC<{
 
 // ── Main Screen ──
 
+const PAGE_FORMATS: Record<
+  string,
+  { label: string; aspect: string; ratio: [number, number] }
+> = {
+  portrait: { label: "Portrait", aspect: "aspect-[3/4]", ratio: [3, 4] },
+  square: { label: "Square", aspect: "aspect-square", ratio: [1, 1] },
+  webtoon: { label: "Webtoon", aspect: "aspect-[9/20]", ratio: [9, 20] },
+};
+
+export { PAGE_FORMATS };
+
 interface LayoutScreenProps {
   panels: PanelPrompt[];
   pages: Page[];
   setPages: React.Dispatch<React.SetStateAction<Page[]>>;
   onContinue: () => void;
+  pageFormat: string;
+  setPageFormat: (format: string) => void;
 }
 
 export const LayoutScreen: React.FC<LayoutScreenProps> = ({
@@ -512,6 +525,8 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
   pages,
   setPages,
   onContinue,
+  pageFormat,
+  setPageFormat,
 }) => {
   const [panelsPerPage, setPanelsPerPage] = useState(4);
   const [showOnboarding, setShowOnboarding] = useState(
@@ -622,17 +637,43 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
             Layout Architect
           </h2>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <button
-                key={num}
-                onClick={() => repartitionPages(num)}
-                className={`px-3 py-2 rounded-md text-[10px] font-bold transition-all ${panelsPerPage === num ? "bg-primary text-background" : "text-accent/50 hover:text-accent"}`}
-              >
-                {num} PANELS
-              </button>
-            ))}
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-3">
+            <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
+              {Object.entries(PAGE_FORMATS).map(([key, fmt]) => (
+                <button
+                  key={key}
+                  onClick={() => setPageFormat(key)}
+                  className={`px-3 py-2 rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5 ${pageFormat === key ? "bg-primary text-background" : "text-accent/50 hover:text-accent"}`}
+                >
+                  <span
+                    className={`rounded-[2px] border ${pageFormat === key ? "border-background/50 bg-background/20" : "border-accent/30"}`}
+                    style={{
+                      width: Math.round(
+                        (fmt.ratio[0] / Math.max(...fmt.ratio)) * 10,
+                      ),
+                      height: Math.round(
+                        (fmt.ratio[1] / Math.max(...fmt.ratio)) * 10,
+                      ),
+                    }}
+                  />
+                  {fmt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
+              {[1, 2, 3, 4, 5, 6].map((num) => (
+                <button
+                  key={num}
+                  onClick={() => repartitionPages(num)}
+                  className={`px-3 py-2 rounded-md text-[10px] font-bold transition-all ${panelsPerPage === num ? "bg-primary text-background" : "text-accent/50 hover:text-accent"}`}
+                >
+                  {num}
+                </button>
+              ))}
+            </div>
           </div>
           <button
             onClick={onContinue}
@@ -735,7 +776,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
 
               {/* Page preview */}
               <div
-                className="gap-3 min-h-[400px]"
+                className={`gap-2 p-2 ${PAGE_FORMATS[pageFormat]?.aspect || "aspect-[3/4]"}`}
                 style={
                   template
                     ? {
@@ -767,7 +808,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
                       {panel.image ? (
                         <img
                           src={panel.image}
-                          className="w-full h-full object-cover opacity-80 group-hover/panel:opacity-100 transition-opacity"
+                          className="w-full h-full object-contain opacity-80 group-hover/panel:opacity-100 transition-opacity"
                           alt="Panel"
                         />
                       ) : (

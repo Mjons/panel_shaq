@@ -31,7 +31,7 @@ import {
   Bubble,
   critiqueComic,
 } from "../services/geminiService";
-import { Page, getTemplate } from "./LayoutScreen";
+import { Page, getTemplate, PAGE_FORMATS } from "./LayoutScreen";
 import { toPng, toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
@@ -466,6 +466,7 @@ interface EditorProps {
   pages: Page[];
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   onNavigate?: (tab: string) => void;
+  pageFormat?: string;
 }
 
 export const EditorScreen: React.FC<EditorProps> = ({
@@ -473,6 +474,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   pages,
   setPanels,
   onNavigate,
+  pageFormat = "portrait",
 }) => {
   const [selectedPageIdx, setSelectedPageIdx] = useState(0);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
@@ -1030,7 +1032,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </button>
         </div>
 
-        <div className="aspect-[3/4] relative">
+        <div
+          className={`${PAGE_FORMATS[pageFormat]?.aspect || "aspect-[3/4]"} relative`}
+        >
           {/* Exporting Overlay - Moved outside the ref'd container to prevent it being captured in exports */}
           {isExporting && (
             <div className="absolute inset-0 z-[100] bg-black/80 flex flex-col items-center justify-center gap-4 backdrop-blur-sm rounded-lg">
