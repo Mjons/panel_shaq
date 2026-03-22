@@ -167,6 +167,7 @@ const DraggableBubble: React.FC<{
   onRemove: () => void;
   onBakeAll?: () => void;
   isRendering?: boolean;
+  onEditingChange?: (editing: boolean) => void;
 }> = ({
   bubble,
   isSelected,
@@ -178,9 +179,14 @@ const DraggableBubble: React.FC<{
   onRemove,
   onBakeAll,
   isRendering,
+  onEditingChange,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditingRaw] = useState(false);
+  const setIsEditing = (v: boolean) => {
+    setIsEditingRaw(v);
+    onEditingChange?.(v);
+  };
 
   // Track position in a ref for live DOM updates during drag
   const posRef = useRef({ ...bubble.pos });
@@ -482,6 +488,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
     () => !localStorage.getItem("panelshaq_editor_onboarding_dismissed"),
   );
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
+  const [isBubbleEditing, setIsBubbleEditing] = useState(false);
   const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -511,20 +518,21 @@ export const EditorScreen: React.FC<EditorProps> = ({
           Math.max(6, Math.min(69, bubblePinchBase.current * s)),
         );
 
-        // Rotation with high deadzone — only rotate after 35°+ intentional twist
-        bubbleRotAccum.current = a;
-        const absAccum = Math.abs(bubbleRotAccum.current);
+        // Rotation only when bubble is in edit mode (tapped, toolbar visible)
         let newRotation = bubblePinchRotBase.current;
-        if (absAccum > 35) {
-          newRotation = Math.round(
-            bubblePinchRotBase.current + bubbleRotAccum.current,
-          );
-          // Snap to 0 when close
-          if (
-            Math.abs(newRotation % 360) < 8 ||
-            Math.abs(newRotation % 360) > 352
-          ) {
-            newRotation = 0;
+        if (isBubbleEditing) {
+          bubbleRotAccum.current = a;
+          const absAccum = Math.abs(bubbleRotAccum.current);
+          if (absAccum > 35) {
+            newRotation = Math.round(
+              bubblePinchRotBase.current + bubbleRotAccum.current,
+            );
+            if (
+              Math.abs(newRotation % 360) < 8 ||
+              Math.abs(newRotation % 360) > 352
+            ) {
+              newRotation = 0;
+            }
           }
         }
 
@@ -1015,7 +1023,12 @@ export const EditorScreen: React.FC<EditorProps> = ({
         <div className="flex items-center justify-between bg-surface-container p-4 rounded-lg border border-outline/10">
           <button
             disabled={selectedPageIdx === 0}
-            onClick={() => setSelectedPageIdx((prev) => prev - 1)}
+            onClick={() => {
+              setSelectedBubbleId(null);
+              setSelectedPanelId(null);
+              setIsBubbleEditing(false);
+              setSelectedPageIdx((prev) => prev - 1);
+            }}
             className="p-2 rounded-full hover:bg-background disabled:opacity-20 transition-colors"
           >
             <ChevronLeft size={20} />
@@ -1025,7 +1038,12 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </span>
           <button
             disabled={selectedPageIdx === pages.length - 1}
-            onClick={() => setSelectedPageIdx((prev) => prev + 1)}
+            onClick={() => {
+              setSelectedBubbleId(null);
+              setSelectedPanelId(null);
+              setIsBubbleEditing(false);
+              setSelectedPageIdx((prev) => prev + 1);
+            }}
             className="p-2 rounded-full hover:bg-background disabled:opacity-20 transition-colors"
           >
             <ChevronRight size={20} />
@@ -1180,7 +1198,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               setSelectedPanelId(pid);
                               setSelectedBubbleId(bubble.id);
                             }}
-                            onDeselect={() => setSelectedBubbleId(null)}
+                            onDeselect={() => {
+                              setSelectedBubbleId(null);
+                              setIsBubbleEditing(false);
+                            }}
+                            onEditingChange={setIsBubbleEditing}
                             onMove={(pos) => {
                               if (selectedPanelId !== pid)
                                 setSelectedPanelId(pid);
