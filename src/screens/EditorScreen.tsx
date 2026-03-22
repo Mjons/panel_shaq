@@ -174,16 +174,23 @@ const DraggableBubble: React.FC<{
   const posRef = useRef({ ...bubble.pos });
   posRef.current = { ...bubble.pos };
   const baseFontSize = useRef(bubble.fontSize);
+  const baseRotation = useRef(bubble.rotation || 0);
 
+  // Tap handler — always active
+  const bindTap = useDrag(
+    ({ tap }) => {
+      if (isExporting || !tap) return;
+      onSelect();
+      setIsEditing(true);
+    },
+    { filterTaps: true, pointer: { touch: true } },
+  );
+
+  // Drag + pinch — only active when selected
   const bindGesture = useGesture(
     {
-      onDrag: ({ delta: [dx, dy], tap, last, pinching }) => {
-        if (isExporting || pinching) return;
-        if (tap) {
-          onSelect();
-          setIsEditing(true);
-          return;
-        }
+      onDrag: ({ delta: [dx, dy], pinching, last }) => {
+        if (isExporting || pinching || !isSelected) return;
         const parent = containerRef.current?.parentElement;
         if (!parent) return;
         const rect = parent.getBoundingClientRect();
@@ -205,21 +212,36 @@ const DraggableBubble: React.FC<{
       },
       onPinchStart: () => {
         baseFontSize.current = bubble.fontSize;
+        baseRotation.current = bubble.rotation || 0;
       },
-      onPinch: ({ offset: [s, angle] }) => {
-        if (isExporting) return;
+      onPinch: ({ offset: [s], da: [, a], last }) => {
+        if (isExporting || !isSelected) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, baseFontSize.current * s)),
         );
-        // Snap rotation to 0 if within 15 degrees
-        const snappedAngle = Math.abs(angle) < 15 ? 0 : Math.round(angle);
+        const rawAngle = baseRotation.current + a;
+        // Snap rotation to 0 if within 15 degrees of straight
+        const snappedAngle =
+          Math.abs(rawAngle % 360) < 15 || Math.abs(rawAngle % 360) > 345
+            ? 0
+            : Math.round(rawAngle);
 
-        onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
+        // Live DOM update for smooth feedback
+        if (containerRef.current) {
+          containerRef.current.style.transform = `translate(-50%, -50%) rotate(${snappedAngle}deg)`;
+          containerRef.current.style.fontSize = `${newSize}px`;
+        }
+
+        if (last) onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
       },
     },
     {
-      drag: { filterTaps: true, pointer: { touch: true } },
-      pinch: { scaleBounds: { min: 0.5, max: 4 }, from: () => [1, 0] },
+      drag: { pointer: { touch: true } },
+      pinch: {
+        scaleBounds: { min: 0.5, max: 4 },
+        from: () => [1, 0],
+        pointer: { touch: true },
+      },
     },
   );
 
@@ -235,8 +257,8 @@ const DraggableBubble: React.FC<{
     <>
       <div
         ref={containerRef}
-        {...(!isExporting ? bindGesture() : {})}
-        className={`absolute z-20 touch-none cursor-grab active:cursor-grabbing ${
+        {...(!isExporting ? (isSelected ? bindGesture() : bindTap()) : {})}
+        className={`absolute z-20 ${isSelected ? "touch-none cursor-grab active:cursor-grabbing" : ""} ${
           isSelected && !isExporting
             ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
             : ""
