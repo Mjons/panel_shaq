@@ -168,6 +168,7 @@ const DraggableBubble: React.FC<{
   onBakeAll?: () => void;
   isRendering?: boolean;
   onEditingChange?: (editing: boolean) => void;
+  panelLocked?: boolean;
 }> = ({
   bubble,
   isSelected,
@@ -180,6 +181,7 @@ const DraggableBubble: React.FC<{
   onBakeAll,
   isRendering,
   onEditingChange,
+  panelLocked,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditingRaw] = useState(false);
@@ -204,7 +206,8 @@ const DraggableBubble: React.FC<{
           setIsEditing(true);
           return;
         }
-        // Select bubble on drag start so panel-level pinch activates
+        // Allow dragging when in edit mode or when panel is locked
+        if (!isEditing && !panelLocked) return;
         if (first) onSelect();
         if (pinching) return;
         const parent = containerRef.current?.parentElement;
@@ -489,7 +492,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
   );
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
   const [isBubbleEditing, setIsBubbleEditing] = useState(false);
-  const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
+  const [unlockedPanelIds, setUnlockedPanelIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -505,6 +510,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
     {
       onPinchStart: () => {
         if (!selectedBubbleId || !selectedPanel) return;
+        const panelLocked = !unlockedPanelIds.has(selectedPanelId || "");
+        if (!isBubbleEditing && !panelLocked) return;
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
           bubblePinchBase.current = b.fontSize;
@@ -513,14 +520,15 @@ export const EditorScreen: React.FC<EditorProps> = ({
         }
       },
       onPinch: ({ offset: [s], da: [, a] }) => {
-        if (!selectedBubbleId) return;
+        const panelIsLocked = !unlockedPanelIds.has(selectedPanelId || "");
+        if (!selectedBubbleId || (!isBubbleEditing && !panelIsLocked)) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, bubblePinchBase.current * s)),
         );
 
-        // Rotation only when bubble is in edit mode (tapped, toolbar visible)
+        // Rotation when in edit mode or panel is locked
         let newRotation = bubblePinchRotBase.current;
-        if (isBubbleEditing) {
+        if (isBubbleEditing || panelIsLocked) {
           bubbleRotAccum.current = a;
           const absAccum = Math.abs(bubbleRotAccum.current);
           if (absAccum > 35) {
@@ -1140,7 +1148,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             isSelected={selectedPanelId === pid}
                             isExporting={isExporting}
                             locked={
-                              !!selectedBubbleId || lockedPanelIds.has(pid)
+                              !!selectedBubbleId || !unlockedPanelIds.has(pid)
                             }
                             onSelect={setSelectedPanelId}
                             onTransform={(id, t) =>
@@ -1164,7 +1172,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLockedPanelIds((prev) => {
+                              setUnlockedPanelIds((prev) => {
                                 const next = new Set(prev);
                                 if (next.has(pid)) next.delete(pid);
                                 else next.add(pid);
@@ -1172,15 +1180,15 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               });
                             }}
                             className={`absolute top-1.5 left-1.5 z-10 p-1.5 rounded transition-opacity ${
-                              lockedPanelIds.has(pid)
+                              unlockedPanelIds.has(pid)
                                 ? "opacity-100"
-                                : "opacity-60 lg:opacity-0 lg:group-hover/panel:opacity-100"
+                                : "opacity-0 lg:group-hover/panel:opacity-60"
                             }`}
                           >
-                            {lockedPanelIds.has(pid) ? (
-                              <Lock size={12} className="text-primary" />
+                            {unlockedPanelIds.has(pid) ? (
+                              <Unlock size={12} className="text-primary" />
                             ) : (
-                              <Unlock size={12} className="text-accent/50" />
+                              <Lock size={12} className="text-accent/50" />
                             )}
                           </button>
                         )}
@@ -1203,6 +1211,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               setIsBubbleEditing(false);
                             }}
                             onEditingChange={setIsBubbleEditing}
+                            panelLocked={!unlockedPanelIds.has(pid)}
                             onMove={(pos) => {
                               if (selectedPanelId !== pid)
                                 setSelectedPanelId(pid);
