@@ -173,37 +173,59 @@ const DraggableBubble: React.FC<{
   // Track position in a ref for live DOM updates during drag
   const posRef = useRef({ ...bubble.pos });
   posRef.current = { ...bubble.pos };
+  const baseFontSize = useRef(bubble.fontSize);
 
-  const bindDrag = useDrag(
-    ({ delta: [dx, dy], tap, last }) => {
-      if (isExporting) return;
-      if (tap) {
-        onSelect();
-        setIsEditing(true);
-        return;
-      }
-      const parent = containerRef.current?.parentElement;
-      if (!parent) return;
-      const rect = parent.getBoundingClientRect();
-      const pctX = (dx / rect.width) * 100;
-      const pctY = (dy / rect.height) * 100;
-      posRef.current.x = Math.max(5, Math.min(95, posRef.current.x + pctX));
-      posRef.current.y = Math.max(5, Math.min(95, posRef.current.y + pctY));
+  const bindGesture = useGesture(
+    {
+      onDrag: ({ delta: [dx, dy], tap, last, pinching }) => {
+        if (isExporting || pinching) return;
+        if (tap) {
+          onSelect();
+          setIsEditing(true);
+          return;
+        }
+        const parent = containerRef.current?.parentElement;
+        if (!parent) return;
+        const rect = parent.getBoundingClientRect();
+        const pctX = (dx / rect.width) * 100;
+        const pctY = (dy / rect.height) * 100;
+        posRef.current.x = Math.max(5, Math.min(95, posRef.current.x + pctX));
+        posRef.current.y = Math.max(5, Math.min(95, posRef.current.y + pctY));
 
-      // Live DOM update for smooth dragging
-      if (containerRef.current) {
-        containerRef.current.style.left = `${posRef.current.x}%`;
-        containerRef.current.style.top = `${posRef.current.y}%`;
-      }
+        if (containerRef.current) {
+          containerRef.current.style.left = `${posRef.current.x}%`;
+          containerRef.current.style.top = `${posRef.current.y}%`;
+        }
 
-      // Commit to React state on release
-      if (last)
-        onMove({
-          x: Math.round(posRef.current.x),
-          y: Math.round(posRef.current.y),
-        });
+        if (last)
+          onMove({
+            x: Math.round(posRef.current.x),
+            y: Math.round(posRef.current.y),
+          });
+      },
+      onPinchStart: () => {
+        baseFontSize.current = bubble.fontSize;
+      },
+      onPinch: ({ offset: [s, angle], last }) => {
+        if (isExporting) return;
+        const newSize = Math.round(
+          Math.max(6, Math.min(69, baseFontSize.current * s)),
+        );
+        // Snap rotation to 0 if within 15 degrees
+        const snappedAngle = Math.abs(angle) < 15 ? 0 : Math.round(angle);
+
+        if (containerRef.current) {
+          const textEl = containerRef.current.querySelector("p");
+          if (textEl) textEl.style.fontSize = `${newSize}px`;
+          containerRef.current.style.transform = `translate(-50%, -50%) rotate(${snappedAngle}deg)`;
+        }
+        if (last) onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
+      },
     },
-    { filterTaps: true, pointer: { touch: true } },
+    {
+      drag: { filterTaps: true, pointer: { touch: true } },
+      pinch: { scaleBounds: { min: 0.5, max: 4 }, from: () => [1, 0] },
+    },
   );
 
   const isSFX =
@@ -218,7 +240,7 @@ const DraggableBubble: React.FC<{
     <>
       <div
         ref={containerRef}
-        {...(!isExporting ? bindDrag() : {})}
+        {...(!isExporting ? bindGesture() : {})}
         className={`absolute z-20 touch-none cursor-grab active:cursor-grabbing ${
           isSelected && !isExporting
             ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
@@ -227,7 +249,7 @@ const DraggableBubble: React.FC<{
         style={{
           left: `${bubble.pos.x}%`,
           top: `${bubble.pos.y}%`,
-          transform: "translate(-50%, -50%)",
+          transform: `translate(-50%, -50%) rotate(${bubble.rotation || 0}deg)`,
           ...(isSFX || isPopText
             ? {}
             : isNarration
@@ -364,7 +386,7 @@ const DraggableBubble: React.FC<{
             </span>
             <button
               onClick={() =>
-                onUpdateBubble({ fontSize: Math.min(24, bubble.fontSize + 2) })
+                onUpdateBubble({ fontSize: Math.min(69, bubble.fontSize + 2) })
               }
               className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
             >
@@ -394,8 +416,14 @@ const DraggableBubble: React.FC<{
           {onBakeAll && (
             <button
               onClick={() => {
-                onBakeAll();
-                setIsEditing(false);
+                if (
+                  window.confirm(
+                    "This will permanently bake ALL text elements on this panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+                  )
+                ) {
+                  onBakeAll();
+                  setIsEditing(false);
+                }
               }}
               disabled={isRendering}
               className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
@@ -1115,7 +1143,15 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </h3>
           <div className="space-y-4 relative z-10">
             <button
-              onClick={handleFinalRender}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+                  )
+                ) {
+                  handleFinalRender();
+                }
+              }}
               disabled={
                 !selectedPanelId ||
                 isRendering ||

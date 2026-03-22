@@ -29,6 +29,7 @@ export interface Bubble {
   fontSize: number;
   fontWeight: string;
   fontStyle: string;
+  rotation?: number;
   tailPos?: { x: number; y: number };
 }
 
