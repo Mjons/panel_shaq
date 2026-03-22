@@ -398,6 +398,22 @@ const PanelCard = React.memo(
       panel.customReferenceImages || [],
     );
 
+    const uploadPanelRef = useRef<HTMLInputElement>(null);
+    const handleUploadPanelImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Image too large. Please use an image under 10MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onUpdatePanel(index, { ...panel, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+      if (e.target) e.target.value = "";
+    };
+
     const image = panel.image;
     const selectedChars = characters.filter((c) =>
       selectedCharIds.includes(c.id),
@@ -626,12 +642,20 @@ const PanelCard = React.memo(
               <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
                 <ImageIcon size={48} className="text-outline opacity-20" />
                 {!isQueueGenerating && !isQueued && (
-                  <button
-                    onClick={handleGenerate}
-                    className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
-                  >
-                    Ready to Generate
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleGenerate}
+                      className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
+                    >
+                      Generate
+                    </button>
+                    <button
+                      onClick={() => uploadPanelRef.current?.click()}
+                      className="bg-accent/5 text-accent/60 border border-outline/20 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                    >
+                      Upload
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -664,19 +688,31 @@ const PanelCard = React.memo(
               </button>
             )}
             {image && !isQueued && !isQueueGenerating && !isFailed && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const link = document.createElement("a");
-                  link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
-                  link.href = image;
-                  link.click();
-                }}
-                className="absolute top-2 right-2 md:top-4 md:right-4 bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg z-10 hover:text-primary hover:bg-background/90 transition-all"
-                title="Download panel image"
-              >
-                <Download size={14} />
-              </button>
+              <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-1 z-10">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    uploadPanelRef.current?.click();
+                  }}
+                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                  title="Upload replacement image"
+                >
+                  <Upload size={14} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const link = document.createElement("a");
+                    link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
+                    link.href = image;
+                    link.click();
+                  }}
+                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                  title="Download panel image"
+                >
+                  <Download size={14} />
+                </button>
+              </div>
             )}
 
             <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -1178,6 +1214,13 @@ const PanelCard = React.memo(
             </div>
           </div>
         </div>
+        <input
+          type="file"
+          ref={uploadPanelRef}
+          onChange={handleUploadPanelImage}
+          className="hidden"
+          accept="image/*"
+        />
       </div>
     );
   },
@@ -1475,60 +1518,6 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           </h2>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          {panels.some((p) => p.image) && (
-            <button
-              onClick={handleDownloadAll}
-              className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-accent/20 text-accent/60 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
-            >
-              <Download size={16} />
-              DOWNLOAD ALL
-            </button>
-          )}
-          {panels.length > 0 && (
-            <>
-              <button
-                onClick={() => setPreviewIndex(0)}
-                className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-accent/20 text-accent/60 font-headline font-bold text-xs uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
-              >
-                <Eye size={16} />
-                PREVIEW
-              </button>
-              <button
-                onClick={handleGenerateAll}
-                disabled={queueActive}
-                className="flex items-center justify-center gap-2 bg-primary text-background px-6 py-4 rounded-lg font-headline font-bold tracking-tight hover:opacity-90 active:scale-95 transition-all disabled:opacity-50"
-              >
-                {queueActive ? (
-                  <Loader2 size={18} className="animate-spin" />
-                ) : (
-                  <Sparkles size={18} />
-                )}
-                {queueActive
-                  ? `GENERATING ${queueProgress}/${panels.length}...`
-                  : "GENERATE ALL"}
-              </button>
-              {queueActive && (
-                <button
-                  onClick={() => {
-                    setGenerationQueue([]);
-                    setCurrentlyGenerating(null);
-                  }}
-                  className="px-4 py-4 rounded-lg border border-red-500/30 text-red-500 font-headline font-bold text-xs uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
-                >
-                  Cancel
-                </button>
-              )}
-              {failedPanels.size > 0 && !queueActive && (
-                <button
-                  onClick={handleRetryFailed}
-                  className="flex items-center justify-center gap-2 px-5 py-4 rounded-lg border border-red-500/30 text-red-400 font-headline font-bold text-xs uppercase tracking-widest hover:bg-red-500/10 transition-all"
-                >
-                  <RefreshCw size={16} />
-                  RETRY {failedPanels.size} FAILED
-                </button>
-              )}
-            </>
-          )}
           <button
             onClick={onContinue}
             className="flex items-center justify-center gap-3 bg-secondary text-background px-8 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
@@ -1645,20 +1634,59 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
 
       {/* Bottom actions */}
       {panels.length > 0 && (
-        <div className="flex flex-col items-center gap-3 pt-8">
+        <div className="flex flex-col items-center gap-4 pt-8">
+          {/* Generate All / Cancel / Retry */}
+          <div className="flex items-center gap-3 flex-wrap justify-center">
+            <button
+              onClick={handleGenerateAll}
+              disabled={queueActive}
+              className="flex items-center justify-center gap-2 bg-primary text-background px-6 py-3.5 rounded-lg font-headline font-bold text-sm tracking-tight active:scale-95 transition-all disabled:opacity-50"
+            >
+              {queueActive ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Sparkles size={18} />
+              )}
+              {queueActive
+                ? `GENERATING ${queueProgress}/${panels.length}...`
+                : "GENERATE ALL"}
+            </button>
+            {queueActive && (
+              <button
+                onClick={() => {
+                  setGenerationQueue([]);
+                  setCurrentlyGenerating(null);
+                }}
+                className="px-4 py-3.5 rounded-lg border border-red-500/30 text-red-500 font-headline font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
+              >
+                Cancel
+              </button>
+            )}
+            {failedPanels.size > 0 && !queueActive && (
+              <button
+                onClick={handleRetryFailed}
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg border border-red-500/30 text-red-400 font-headline font-bold text-xs uppercase tracking-widest transition-all"
+              >
+                <RefreshCw size={14} />
+                RETRY {failedPanels.size} FAILED
+              </button>
+            )}
+          </div>
+
+          {/* Preview / Download */}
           <div className="flex items-center gap-3">
             {panels.some((p) => p.image) && (
               <>
                 <button
                   onClick={() => setPreviewIndex(0)}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest transition-all"
                 >
                   <Eye size={14} />
                   Preview
                 </button>
                 <button
                   onClick={handleDownloadAll}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-accent/20 text-accent/50 font-headline font-bold text-[10px] uppercase tracking-widest transition-all"
                 >
                   <Download size={14} />
                   Download All
@@ -1666,9 +1694,11 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               </>
             )}
           </div>
+
+          {/* Continue */}
           <button
             onClick={onContinue}
-            className="flex items-center justify-center gap-3 bg-secondary text-background px-10 py-4 rounded-lg font-headline font-extrabold tracking-tight hover:opacity-90 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
+            className="flex items-center justify-center gap-3 bg-secondary text-background px-10 py-4 rounded-lg font-headline font-extrabold tracking-tight active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,214,0,0.15)]"
           >
             CONTINUE TO LAYOUTS
             <ArrowRight size={20} />

@@ -275,3 +275,28 @@ export const analyzeCharacterImage = async (
     return "";
   }
 };
+
+export const generateReferenceImage = async (
+  name: string,
+  description: string,
+  visualLook: string,
+  type: "Character" | "Environment" | "Prop" | "Vehicle",
+  existingStyleRef?: string,
+): Promise<string | null> => {
+  const prompts: Record<string, string> = {
+    Character: `Character reference sheet — front-facing portrait of ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Clean character design reference, simple background, full color, detailed, comic book art style. Do NOT include any text, labels, or speech bubbles.`,
+    Environment: `Environment concept art — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Wide establishing shot, detailed background art, comic book style. No characters or figures. No text.`,
+    Prop: `Object reference — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Clean product-shot, simple background, detailed, comic book art style. No people, no hands. No text.`,
+    Vehicle: `Vehicle reference — ${name}. ${description}. ${visualLook ? `Visual details: ${visualLook}.` : ""} Style: Three-quarter view, clean background, detailed mechanical design, comic book art style. No people, no drivers. No text.`,
+  };
+
+  const aspectRatios: Record<string, string> = {
+    Character: "3:4",
+    Environment: "16:9",
+    Prop: "1:1",
+    Vehicle: "4:3",
+  };
+
+  const refs = existingStyleRef ? [existingStyleRef] : undefined;
+  return generatePanelImage(prompts[type], refs, aspectRatios[type]);
+};

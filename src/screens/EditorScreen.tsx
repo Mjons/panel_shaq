@@ -100,9 +100,25 @@ const PanelImage: React.FC<{
     },
   );
 
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (isExporting || locked) return;
+      // Only on desktop-sized screens
+      if (window.innerWidth < 1024) return;
+      e.stopPropagation();
+      const delta = e.deltaY > 0 ? -0.08 : 0.08;
+      const t = tRef.current;
+      t.scale = Math.min(4.2, Math.max(0.5, t.scale + delta));
+      applyTransform();
+      onTransform(panel.id, { ...t });
+    },
+    [isExporting, locked, panel.id, onTransform],
+  );
+
   return (
     <div
       {...(!isExporting && !locked ? bind() : {})}
+      onWheel={handleWheel}
       className={`w-full h-full relative overflow-hidden ${locked ? "" : "touch-none"}`}
     >
       <img

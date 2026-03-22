@@ -12,7 +12,9 @@ import {
   X,
 } from "lucide-react";
 
+import { Loader2 } from "lucide-react";
 import { BottomSheet } from "../components/BottomSheet";
+import { generateReferenceImage } from "../services/geminiService";
 
 export type VaultCategory = "Character" | "Environment" | "Prop" | "Vehicle";
 
@@ -41,6 +43,7 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("panelshaq_vault_onboarding_dismissed"),
   );
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState<Partial<VaultEntry>>({
@@ -95,6 +98,28 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!formData.name) {
+      alert("Add a name first so the AI knows what to generate.");
+      return;
+    }
+    setIsGeneratingImage(true);
+    try {
+      const image = await generateReferenceImage(
+        formData.name,
+        formData.description || "",
+        formData.visualLook || "",
+        (formData.type || "Character") as VaultCategory,
+      );
+      if (image) {
+        setFormData((prev) => ({ ...prev, image }));
+      }
+    } catch {
+      alert("Generation failed. Check your API key in Settings.");
+    }
+    setIsGeneratingImage(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -402,6 +427,29 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
                 className="hidden"
                 accept="image/*"
               />
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="py-2 rounded-lg border border-outline/20 text-accent/60 text-[10px] font-bold uppercase tracking-widest hover:border-primary/40 hover:text-primary transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Upload size={12} />
+                  Upload
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGenerateImage}
+                  disabled={isGeneratingImage || !formData.name}
+                  className="py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40"
+                >
+                  {isGeneratingImage ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  {isGeneratingImage ? "Generating..." : "Generate"}
+                </button>
+              </div>
             </div>
 
             {/* Basic Info */}
