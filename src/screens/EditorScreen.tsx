@@ -247,10 +247,21 @@ const DraggableBubble: React.FC<{
       pinch: {
         scaleBounds: { min: 0.5, max: 4 },
         from: () => [1, 0],
-        pointer: { touch: true },
       },
+      eventOptions: { passive: false },
     },
   );
+
+  // Prevent native browser zoom on the bubble so pinch gesture fires
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const prevent = (e: TouchEvent) => {
+      if (e.touches.length >= 2) e.preventDefault();
+    };
+    el.addEventListener("touchmove", prevent, { passive: false });
+    return () => el.removeEventListener("touchmove", prevent);
+  }, []);
 
   const isSFX =
     bubble.style === "effect" ||
@@ -262,94 +273,104 @@ const DraggableBubble: React.FC<{
 
   return (
     <>
+      {/* Outer wrapper with expanded touch target for pinch */}
       <div
         ref={containerRef}
         {...(!isExporting ? bindGesture() : {})}
-        className={`absolute z-20 touch-none cursor-grab active:cursor-grabbing ${
-          isSelected && !isExporting
-            ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
-            : ""
-        } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+        className="absolute z-20 touch-none"
         style={{
           left: `${bubble.pos.x}%`,
           top: `${bubble.pos.y}%`,
           transform: `translate(-50%, -50%) rotate(${bubble.rotation || 0}deg)`,
-          ...(isSFX || isPopText
-            ? {}
-            : isNarration
-              ? {
-                  borderRadius: "2px",
-                  backgroundColor: "rgba(255, 248, 220, 0.92)",
-                }
-              : {
-                  borderRadius: bubble.style === "thought" ? "40%" : "9999px",
-                  borderStyle: bubble.style === "thought" ? "dashed" : "solid",
-                }),
-          fontSize: `${bubble.fontSize}px`,
-          fontWeight: bubble.fontWeight,
-          fontStyle: bubble.fontStyle,
+          padding: "24px",
+          margin: "-24px",
         }}
       >
-        {isPopText ? (
-          <p
-            className="leading-tight uppercase text-center font-black"
-            style={{
-              color: "#FFFFFF",
-              fontFamily: "'Bangers', 'Comic Sans MS', cursive",
-              fontSize: `${bubble.fontSize + 6}px`,
-              textShadow:
-                "3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 0 0 #000, -3px 0 0 #000, 0 3px 0 #000, 0 -3px 0 #000",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {bubble.text}
-          </p>
-        ) : isSFX ? (
-          <p
-            className="leading-tight uppercase font-headline text-center font-black"
-            style={{
-              color:
-                bubble.style === "sfx-impact"
-                  ? "#FF3333"
-                  : bubble.style === "sfx-ambient"
-                    ? "#88CCFF"
-                    : "#FFD600",
-              textShadow:
-                bubble.style === "sfx-impact"
-                  ? "3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 10px rgba(255,0,0,0.5)"
-                  : bubble.style === "sfx-ambient"
-                    ? "1px 1px 4px rgba(0,0,0,0.6)"
-                    : "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
-              transform:
-                bubble.style === "sfx-impact"
-                  ? "rotate(-8deg) scale(1.1)"
-                  : bubble.style === "sfx-ambient"
-                    ? "rotate(0deg)"
-                    : "rotate(-3deg)",
-              fontSize: `${bubble.fontSize + (bubble.style === "sfx-impact" ? 6 : bubble.style === "sfx-ambient" ? 2 : 4)}px`,
-              fontStyle: bubble.style === "sfx-ambient" ? "italic" : "normal",
-              letterSpacing:
-                bubble.style === "sfx-impact"
-                  ? "0.1em"
-                  : bubble.style === "sfx-ambient"
-                    ? "0.2em"
-                    : "normal",
-            }}
-          >
-            {bubble.text}
-          </p>
-        ) : isNarration ? (
-          <p
-            className="leading-snug text-[11px] text-center italic text-background/90"
-            style={{ fontFamily: "'Inter', serif" }}
-          >
-            {bubble.text}
-          </p>
-        ) : (
-          <p className="leading-tight uppercase font-headline text-center text-background">
-            {bubble.text}
-          </p>
-        )}
+        <div
+          className={`cursor-grab active:cursor-grabbing ${
+            isSelected && !isExporting
+              ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
+              : ""
+          } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+          style={{
+            ...(isSFX || isPopText
+              ? {}
+              : isNarration
+                ? {
+                    borderRadius: "2px",
+                    backgroundColor: "rgba(255, 248, 220, 0.92)",
+                  }
+                : {
+                    borderRadius: bubble.style === "thought" ? "40%" : "9999px",
+                    borderStyle:
+                      bubble.style === "thought" ? "dashed" : "solid",
+                  }),
+            fontSize: `${bubble.fontSize}px`,
+            fontWeight: bubble.fontWeight,
+            fontStyle: bubble.fontStyle,
+          }}
+        >
+          {isPopText ? (
+            <p
+              className="leading-tight uppercase text-center font-black"
+              style={{
+                color: "#FFFFFF",
+                fontFamily: "'Bangers', 'Comic Sans MS', cursive",
+                fontSize: `${bubble.fontSize + 6}px`,
+                textShadow:
+                  "3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 0 0 #000, -3px 0 0 #000, 0 3px 0 #000, 0 -3px 0 #000",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {bubble.text}
+            </p>
+          ) : isSFX ? (
+            <p
+              className="leading-tight uppercase font-headline text-center font-black"
+              style={{
+                color:
+                  bubble.style === "sfx-impact"
+                    ? "#FF3333"
+                    : bubble.style === "sfx-ambient"
+                      ? "#88CCFF"
+                      : "#FFD600",
+                textShadow:
+                  bubble.style === "sfx-impact"
+                    ? "3px 3px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 10px rgba(255,0,0,0.5)"
+                    : bubble.style === "sfx-ambient"
+                      ? "1px 1px 4px rgba(0,0,0,0.6)"
+                      : "2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000",
+                transform:
+                  bubble.style === "sfx-impact"
+                    ? "rotate(-8deg) scale(1.1)"
+                    : bubble.style === "sfx-ambient"
+                      ? "rotate(0deg)"
+                      : "rotate(-3deg)",
+                fontSize: `${bubble.fontSize + (bubble.style === "sfx-impact" ? 6 : bubble.style === "sfx-ambient" ? 2 : 4)}px`,
+                fontStyle: bubble.style === "sfx-ambient" ? "italic" : "normal",
+                letterSpacing:
+                  bubble.style === "sfx-impact"
+                    ? "0.1em"
+                    : bubble.style === "sfx-ambient"
+                      ? "0.2em"
+                      : "normal",
+              }}
+            >
+              {bubble.text}
+            </p>
+          ) : isNarration ? (
+            <p
+              className="leading-snug text-[11px] text-center italic text-background/90"
+              style={{ fontFamily: "'Inter', serif" }}
+            >
+              {bubble.text}
+            </p>
+          ) : (
+            <p className="leading-tight uppercase font-headline text-center text-background">
+              {bubble.text}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}
