@@ -888,8 +888,8 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[10px] text-accent/40 font-bold uppercase tracking-widest w-16 shrink-0">
-              Panels
+            <span className="text-[10px] text-accent/40 font-bold uppercase tracking-widest w-20 shrink-0">
+              Panels / page
             </span>
             <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
               {[1, 2, 3, 4, 5, 6].map((num) => (

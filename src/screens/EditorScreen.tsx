@@ -1274,49 +1274,147 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
       {/* Right Sidebar: Finish & Export */}
       <aside className="lg:col-span-3 space-y-6">
-        <div className="bg-surface-container rounded-lg p-6 space-y-6 relative overflow-hidden">
+        {/* Bake Dialogue */}
+        <div className="bg-surface-container rounded-lg p-6 space-y-4">
+          <h3 className="font-headline text-accent text-lg font-bold flex items-center gap-2">
+            <Wand2 size={18} className="text-primary" />
+            BAKE DIALOGUE
+          </h3>
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+                )
+              ) {
+                handleFinalRender();
+              }
+            }}
+            disabled={
+              !selectedPanelId || isRendering || !selectedPanel?.bubbles?.length
+            }
+            className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2">
+              {isRendering ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Wand2 size={20} />
+              )}
+              <span>Bake Dialogue Into Image</span>
+            </div>
+            <span className="text-[8px] opacity-70 uppercase tracking-widest">
+              Permanently renders bubbles into artwork
+            </span>
+          </button>
+          {selectedPanelId && selectedPanel?.bubbles?.length ? (
+            <p className="text-[9px] text-accent/30 leading-relaxed">
+              This will permanently draw your speech bubbles into the panel
+              image. The original clean image will be replaced. Download first
+              if you want to keep it.
+            </p>
+          ) : null}
+        </div>
+
+        {/* Comic Critique Corner */}
+        <div className="bg-surface-container rounded-lg p-6 space-y-4">
+          <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
+            <Sparkles size={18} />
+            CRITIQUE CORNER
+          </h3>
+
+          {!critiqueText ? (
+            <div className="space-y-3">
+              <p className="text-xs text-accent/50">
+                Get AI feedback on composition, pacing, and storytelling.
+              </p>
+              <button
+                onClick={() => handleCritique(false)}
+                disabled={isCritiquing}
+                className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isCritiquing ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Sparkles size={14} />
+                )}
+                {isCritiquing ? "ANALYZING..." : "CRITIQUE THIS PAGE"}
+              </button>
+              {pages.length > 1 && (
+                <button
+                  onClick={() => handleCritique(true)}
+                  disabled={isCritiquing}
+                  className="w-full py-2.5 rounded-lg bg-background text-accent/60 border border-outline/10 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                >
+                  {isCritiquing ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Layers size={14} />
+                  )}
+                  {isCritiquing ? "ANALYZING..." : "CRITIQUE ALL PAGES"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {critiqueText
+                .split(
+                  /\n(?=(?:COMPOSITION|PACING|DIALOGUE|VISUAL STORYTELLING|OVERALL)\b)/i,
+                )
+                .filter((s) => s.trim())
+                .map((section, i) => {
+                  const lines = section.split("\n");
+                  const heading = lines[0].trim();
+                  const body = lines.slice(1).join(" ").trim();
+                  return (
+                    <div key={i}>
+                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
+                        {heading}
+                      </p>
+                      <p className="text-xs text-accent/60 leading-relaxed">
+                        {body}
+                      </p>
+                    </div>
+                  );
+                })}
+
+              {/* Panelhaus CTA */}
+              <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 space-y-2">
+                <p className="text-[10px] text-accent/60 leading-relaxed">
+                  Want to polish it further? Download your{" "}
+                  <strong className="text-accent/80">.comic</strong> file from
+                  the Share menu and open it in{" "}
+                  <strong className="text-accent/80">panelhaus.app</strong> for
+                  the full desktop editing experience.
+                </p>
+                {onNavigate && (
+                  <button
+                    onClick={() => onNavigate("share")}
+                    className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <ArrowRight size={12} />
+                    Go to Share & Export
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setCritiqueText(null)}
+                className="w-full py-2 text-[10px] font-bold uppercase tracking-widest text-accent/40 hover:text-primary transition-colors"
+              >
+                Get Another Critique
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Export */}
+        <div className="bg-surface-container rounded-lg p-6 space-y-4 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 text-primary/5 halftone-bg -mr-16 -mt-16 rotate-12"></div>
           <h3 className="font-headline text-accent text-lg font-bold">
             EXPORT
           </h3>
           <div className="space-y-4 relative z-10">
-            <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
-                  )
-                ) {
-                  handleFinalRender();
-                }
-              }}
-              disabled={
-                !selectedPanelId ||
-                isRendering ||
-                !selectedPanel?.bubbles?.length
-              }
-              className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
-            >
-              <div className="flex items-center gap-2">
-                {isRendering ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <Wand2 size={20} />
-                )}
-                <span>Bake Dialogue Into Image</span>
-              </div>
-              <span className="text-[8px] opacity-70 uppercase tracking-widest">
-                Permanently renders bubbles into artwork
-              </span>
-            </button>
-            {selectedPanelId && selectedPanel?.bubbles?.length ? (
-              <p className="text-[9px] text-accent/30 leading-relaxed">
-                This will permanently draw your speech bubbles into the panel
-                image. The original clean image will be replaced. Download first
-                if you want to keep it.
-              </p>
-            ) : null}
-
             {/* Download */}
             <div className="space-y-2">
               <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
@@ -1428,98 +1526,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
             More Export Options
           </button>
         )}
-
-        {/* Comic Critique Corner */}
-        <div className="bg-surface-container rounded-lg p-6 space-y-4">
-          <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
-            <Sparkles size={18} />
-            CRITIQUE CORNER
-          </h3>
-
-          {!critiqueText ? (
-            <div className="space-y-3">
-              <p className="text-xs text-accent/50">
-                Get AI feedback on composition, pacing, and storytelling.
-              </p>
-              <button
-                onClick={() => handleCritique(false)}
-                disabled={isCritiquing}
-                className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isCritiquing ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Sparkles size={14} />
-                )}
-                {isCritiquing ? "ANALYZING..." : "CRITIQUE THIS PAGE"}
-              </button>
-              {pages.length > 1 && (
-                <button
-                  onClick={() => handleCritique(true)}
-                  disabled={isCritiquing}
-                  className="w-full py-2.5 rounded-lg bg-background text-accent/60 border border-outline/10 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isCritiquing ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Layers size={14} />
-                  )}
-                  {isCritiquing ? "ANALYZING..." : "CRITIQUE ALL PAGES"}
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {critiqueText
-                .split(
-                  /\n(?=(?:COMPOSITION|PACING|DIALOGUE|VISUAL STORYTELLING|OVERALL)\b)/i,
-                )
-                .filter((s) => s.trim())
-                .map((section, i) => {
-                  const lines = section.split("\n");
-                  const heading = lines[0].trim();
-                  const body = lines.slice(1).join(" ").trim();
-                  return (
-                    <div key={i}>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        {heading}
-                      </p>
-                      <p className="text-xs text-accent/60 leading-relaxed">
-                        {body}
-                      </p>
-                    </div>
-                  );
-                })}
-
-              {/* Panelhaus CTA */}
-              <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 space-y-2">
-                <p className="text-[10px] text-accent/60 leading-relaxed">
-                  Want to polish it further? Download your{" "}
-                  <strong className="text-accent/80">.comic</strong> file from
-                  the Share menu and open it in{" "}
-                  <strong className="text-accent/80">panelhaus.app</strong> for
-                  the full desktop editing experience.
-                </p>
-                {onNavigate && (
-                  <button
-                    onClick={() => onNavigate("share")}
-                    className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <ArrowRight size={12} />
-                    Go to Share & Export
-                  </button>
-                )}
-              </div>
-
-              <button
-                onClick={() => setCritiqueText(null)}
-                className="w-full py-2 text-[10px] font-bold uppercase tracking-widest text-accent/40 hover:text-primary transition-colors"
-              >
-                Get Another Critique
-              </button>
-            </div>
-          )}
-        </div>
 
         {/* Recent Exports */}
         <div className="bg-surface-container rounded-lg p-6">
