@@ -246,29 +246,27 @@ export function exportAsComic(
 
 export async function downloadComicFile(json: string, projectName: string) {
   const safeName = (projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "");
-  const filename = `${safeName}.comic`;
 
-  // Use octet-stream so the OS accepts the custom .comic extension for sharing
-  const file = new File([json], filename, {
-    type: "application/octet-stream",
-  });
-
-  // Try native share sheet (mobile)
-  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+  if (navigator.share) {
+    // Use .json extension for sharing — phones reject unknown extensions
+    const file = new File([json], `${safeName}.comic.json`, {
+      type: "application/json",
+    });
     try {
-      await navigator.share({ files: [file], title: filename });
+      await navigator.share({ files: [file] });
       return;
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
+      // Share rejected the file — fall through to download
     }
   }
 
-  // Fallback: direct download
-  const blob = new Blob([json], { type: "application/octet-stream" });
+  // Fallback: direct download with .comic extension
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename;
+  link.download = `${safeName}.comic`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
