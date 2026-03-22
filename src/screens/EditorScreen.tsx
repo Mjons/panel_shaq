@@ -492,9 +492,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   );
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
   const [isBubbleEditing, setIsBubbleEditing] = useState(false);
-  const [unlockedPanelIds, setUnlockedPanelIds] = useState<Set<string>>(
-    new Set(),
-  );
+  const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -510,7 +508,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
     {
       onPinchStart: () => {
         if (!selectedBubbleId || !selectedPanel) return;
-        const panelLocked = !unlockedPanelIds.has(selectedPanelId || "");
+        const panelLocked = lockedPanelIds.has(selectedPanelId || "");
         if (!isBubbleEditing && !panelLocked) return;
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
@@ -520,7 +518,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
         }
       },
       onPinch: ({ offset: [s], da: [, a] }) => {
-        const panelIsLocked = !unlockedPanelIds.has(selectedPanelId || "");
+        const panelIsLocked = lockedPanelIds.has(selectedPanelId || "");
         if (!selectedBubbleId || (!isBubbleEditing && !panelIsLocked)) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, bubblePinchBase.current * s)),
@@ -1148,7 +1146,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             isSelected={selectedPanelId === pid}
                             isExporting={isExporting}
                             locked={
-                              !!selectedBubbleId || !unlockedPanelIds.has(pid)
+                              !!selectedBubbleId || lockedPanelIds.has(pid)
                             }
                             onSelect={setSelectedPanelId}
                             onTransform={(id, t) =>
@@ -1172,23 +1170,19 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setUnlockedPanelIds((prev) => {
+                              setLockedPanelIds((prev) => {
                                 const next = new Set(prev);
                                 if (next.has(pid)) next.delete(pid);
                                 else next.add(pid);
                                 return next;
                               });
                             }}
-                            className={`absolute top-1.5 left-1.5 z-10 p-1.5 rounded transition-opacity ${
-                              unlockedPanelIds.has(pid)
-                                ? "opacity-100"
-                                : "opacity-0 lg:group-hover/panel:opacity-60"
-                            }`}
+                            className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
                           >
-                            {unlockedPanelIds.has(pid) ? (
-                              <Unlock size={12} className="text-primary" />
+                            {lockedPanelIds.has(pid) ? (
+                              <Lock size={12} className="text-primary" />
                             ) : (
-                              <Lock size={12} className="text-accent/50" />
+                              <Unlock size={12} className="text-accent/40" />
                             )}
                           </button>
                         )}
@@ -1211,7 +1205,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               setIsBubbleEditing(false);
                             }}
                             onEditingChange={setIsBubbleEditing}
-                            panelLocked={!unlockedPanelIds.has(pid)}
+                            panelLocked={lockedPanelIds.has(pid)}
                             onMove={(pos) => {
                               if (selectedPanelId !== pid)
                                 setSelectedPanelId(pid);
