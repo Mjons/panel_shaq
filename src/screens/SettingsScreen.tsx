@@ -359,6 +359,27 @@ export const SettingsScreen = () => {
 
           <div className="space-y-2 pt-4 border-t border-outline/10">
             <button
+              onClick={() => {
+                localStorage.removeItem(
+                  "panelshaq_director_onboarding_dismissed",
+                );
+                localStorage.removeItem(
+                  "panelshaq_editor_onboarding_dismissed",
+                );
+                localStorage.removeItem(
+                  "panelshaq_layout_onboarding_dismissed",
+                );
+                localStorage.removeItem("panelshaq_vault_onboarding_dismissed");
+                localStorage.removeItem("panelshaq_desktop_gate_dismissed");
+                localStorage.removeItem("panelshaq_seen_desc_tip");
+                alert("All instruction banners will show again on next visit.");
+              }}
+              className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 text-accent/60 hover:text-primary transition-all"
+            >
+              <Info size={16} />
+              <span className="text-sm font-bold">Reset All Instructions</span>
+            </button>
+            <button
               onClick={handleClearExportHistory}
               className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-500/10 text-accent/60 hover:text-red-500 transition-all"
             >
