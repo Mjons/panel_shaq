@@ -966,7 +966,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => setSelectedPanelId(pid)}
-                        className={`bg-black relative cursor-pointer transition-all overflow-hidden ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
+                        className={`bg-black relative cursor-pointer transition-all overflow-hidden group/panel ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
                         style={
                           slot
                             ? {
@@ -1014,18 +1014,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
                                 return next;
                               });
                             }}
-                            className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
+                            className={`absolute top-1.5 left-1.5 z-10 p-1.5 rounded transition-opacity ${
+                              lockedPanelIds.has(pid)
+                                ? "opacity-100"
+                                : "opacity-0 lg:group-hover/panel:opacity-100"
+                            }`}
                           >
                             {lockedPanelIds.has(pid) ? (
-                              <Lock
-                                size={12}
-                                className="text-primary opacity-80"
-                              />
+                              <Lock size={12} className="text-primary" />
                             ) : (
-                              <Unlock
-                                size={12}
-                                className="text-accent opacity-40"
-                              />
+                              <Unlock size={12} className="text-accent/50" />
                             )}
                           </button>
                         )}

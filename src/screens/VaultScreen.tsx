@@ -100,9 +100,30 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
     }
   };
 
+  const [isEnhancing, setIsEnhancing] = useState(false);
+
+  const handleEnhanceDescription = async () => {
+    if (!formData.name || !formData.description?.trim()) return;
+    setIsEnhancing(true);
+    try {
+      const { apiPost } = await import("../services/geminiService");
+      const result = await apiPost<{ text: string }>("polish-story", {
+        text: `Add ONE short, specific visual detail (one sentence) to this ${formData.type || "character"} description. Keep everything that's already there. Just append one new detail about appearance, clothing, or distinguishing features.\n\nName: ${formData.name}\nCurrent description: ${formData.description}`,
+      });
+      if (result.text) {
+        setFormData((prev) => ({ ...prev, description: result.text }));
+      }
+    } catch {
+      // silently fail
+    }
+    setIsEnhancing(false);
+  };
+
   const handleGenerateImage = async () => {
-    if (!formData.name) {
-      alert("Add a name first so the AI knows what to generate.");
+    if (!formData.name || !formData.description?.trim()) {
+      alert(
+        "Add both a name and description so the AI knows what to generate.",
+      );
       return;
     }
     setIsGeneratingImage(true);
@@ -439,7 +460,11 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
                 <button
                   type="button"
                   onClick={handleGenerateImage}
-                  disabled={isGeneratingImage || !formData.name}
+                  disabled={
+                    isGeneratingImage ||
+                    !formData.name ||
+                    !formData.description?.trim()
+                  }
                   className="py-2 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40"
                 >
                   {isGeneratingImage ? (
@@ -502,14 +527,31 @@ export const VaultScreen: React.FC<VaultProps> = ({ entries, setEntries }) => {
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
-                  Brief Description
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">
+                    Description <span className="text-red-400">*</span>
+                  </label>
+                  {formData.name && formData.description?.trim() && (
+                    <button
+                      type="button"
+                      onClick={handleEnhanceDescription}
+                      disabled={isEnhancing}
+                      className="text-[9px] font-bold text-primary flex items-center gap-1 hover:opacity-80 transition-opacity disabled:opacity-40"
+                    >
+                      {isEnhancing ? (
+                        <Loader2 size={10} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={10} />
+                      )}
+                      {isEnhancing ? "Adding..." : "Add Detail"}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   required
                   rows={3}
                   className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"
-                  placeholder="A short summary of this entry..."
+                  placeholder="Describe the visual appearance — the AI uses this for generation..."
                   value={formData.description}
                   onChange={(e) =>
                     setFormData((prev) => ({

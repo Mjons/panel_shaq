@@ -96,7 +96,7 @@ function getUserApiKey(): string {
   return "";
 }
 
-async function apiPost<T>(
+export async function apiPost<T>(
   endpoint: string,
   body: any,
   timeoutMs: number = DEFAULT_TIMEOUT,
