@@ -282,8 +282,8 @@ const DraggableBubble: React.FC<{
           left: `${bubble.pos.x}%`,
           top: `${bubble.pos.y}%`,
           transform: `translate(-50%, -50%) rotate(${bubble.rotation || 0}deg)`,
-          padding: "24px",
-          margin: "-24px",
+          padding: "40px",
+          margin: "-40px",
         }}
       >
         <div
@@ -291,8 +291,9 @@ const DraggableBubble: React.FC<{
             isSelected && !isExporting
               ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
               : ""
-          } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+          } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg" : "p-2 bg-white border-2 border-background shadow-xl"}`}
           style={{
+            width: "fit-content",
             ...(isSFX || isPopText
               ? {}
               : isNarration
