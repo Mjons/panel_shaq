@@ -300,3 +300,34 @@ export const generateReferenceImage = async (
   const refs = existingStyleRef ? [existingStyleRef] : undefined;
   return generatePanelImage(prompts[type], refs, aspectRatios[type]);
 };
+
+const CRITIQUE_PROMPT = `You are a comic book editor giving quick, constructive feedback. Review this comic page and critique it under these exact headings. Keep each section to 1-2 SHORT sentences — be direct, specific, and get to the point. Reference panels by position ("top panel", "bottom-right"). No fluff.
+
+COMPOSITION
+Panel layout, visual hierarchy, eye flow. What works, what doesn't.
+
+PACING
+Story rhythm and transitions. Any panels redundant or missing?
+
+DIALOGUE
+Bubble placement and readability. Any text issues?
+
+VISUAL STORYTELLING
+Camera angles, expressions, mood. Does it show or just tell?
+
+OVERALL
+Score out of 10. One strength, one concrete improvement.`;
+
+export const critiqueComic = async (pageImages: string[]): Promise<string> => {
+  try {
+    const { text } = await apiPost<{ text: string }>(
+      "critique-comic",
+      { images: pageImages, prompt: CRITIQUE_PROMPT },
+      IMAGE_TIMEOUT,
+    );
+    return text;
+  } catch (error) {
+    notifyError("Comic critique failed", error);
+    return "Critique failed — check your API key in Settings.";
+  }
+};

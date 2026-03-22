@@ -22,11 +22,14 @@ import {
   Unlock,
   X,
   RotateCcw,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
 import {
   PanelPrompt,
   finalNaturalRender,
   Bubble,
+  critiqueComic,
 } from "../services/geminiService";
 import { Page, getTemplate } from "./LayoutScreen";
 import { toPng, toJpeg } from "html-to-image";
@@ -100,25 +103,29 @@ const PanelImage: React.FC<{
     },
   );
 
-  const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
-      if (isExporting || locked) return;
-      // Only on desktop-sized screens
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || isExporting || locked) return;
+    const handler = (e: WheelEvent) => {
       if (window.innerWidth < 1024) return;
+      e.preventDefault();
       e.stopPropagation();
       const delta = e.deltaY > 0 ? -0.08 : 0.08;
       const t = tRef.current;
       t.scale = Math.min(4.2, Math.max(0.5, t.scale + delta));
       applyTransform();
       onTransform(panel.id, { ...t });
-    },
-    [isExporting, locked, panel.id, onTransform],
-  );
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [isExporting, locked, panel.id, onTransform]);
 
   return (
     <div
+      ref={containerRef}
       {...(!isExporting && !locked ? bind() : {})}
-      onWheel={handleWheel}
       className={`w-full h-full relative overflow-hidden ${locked ? "" : "touch-none"}`}
     >
       <img
@@ -398,6 +405,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
   // isFraming removed — selected panels automatically show overflow for transform
   const [exportProgress, setExportProgress] = useState(0);
   const comicRef = useRef<HTMLDivElement>(null);
+  const [critiqueText, setCritiqueText] = useState<string | null>(null);
+  const [isCritiquing, setIsCritiquing] = useState(false);
   const [exportHistory, setExportHistory] = useState<
     {
       id: string;
@@ -695,6 +704,38 @@ export const EditorScreen: React.FC<EditorProps> = ({
       setExportProgress(0);
       setShouldCancelExport(false);
     }
+  };
+
+  const handleCritique = async (allPages: boolean) => {
+    if (!comicRef.current || isCritiquing) return;
+    setIsCritiquing(true);
+    setCritiqueText(null);
+    setSelectedPanelId(null);
+    setSelectedBubbleId(null);
+    await waitForPaint();
+
+    try {
+      const pagesToCapture = allPages ? pages : [pages[selectedPageIdx]];
+      const originalIdx = selectedPageIdx;
+      const captures: string[] = [];
+
+      for (let i = 0; i < pagesToCapture.length; i++) {
+        if (allPages) {
+          setSelectedPageIdx(i);
+          await waitForPaint();
+        }
+        captures.push(await captureRef(comicRef, "png"));
+      }
+
+      if (allPages) setSelectedPageIdx(originalIdx);
+
+      const critique = await critiqueComic(captures);
+      setCritiqueText(critique);
+    } catch (err) {
+      console.error("Critique failed:", err);
+      setCritiqueText("Critique failed — check your API key in Settings.");
+    }
+    setIsCritiquing(false);
   };
 
   return (
@@ -1215,6 +1256,98 @@ export const EditorScreen: React.FC<EditorProps> = ({
             Share Your Comic
           </button>
         )}
+
+        {/* Comic Critique Corner */}
+        <div className="bg-surface-container rounded-lg p-6 space-y-4">
+          <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
+            <Sparkles size={18} />
+            CRITIQUE CORNER
+          </h3>
+
+          {!critiqueText ? (
+            <div className="space-y-3">
+              <p className="text-xs text-accent/50">
+                Get AI feedback on composition, pacing, and storytelling.
+              </p>
+              <button
+                onClick={() => handleCritique(false)}
+                disabled={isCritiquing}
+                className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isCritiquing ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Sparkles size={14} />
+                )}
+                {isCritiquing ? "ANALYZING..." : "CRITIQUE THIS PAGE"}
+              </button>
+              {pages.length > 1 && (
+                <button
+                  onClick={() => handleCritique(true)}
+                  disabled={isCritiquing}
+                  className="w-full py-2.5 rounded-lg bg-background text-accent/60 border border-outline/10 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                >
+                  {isCritiquing ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Layers size={14} />
+                  )}
+                  {isCritiquing ? "ANALYZING..." : "CRITIQUE ALL PAGES"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {critiqueText
+                .split(
+                  /\n(?=(?:COMPOSITION|PACING|DIALOGUE|VISUAL STORYTELLING|OVERALL)\b)/i,
+                )
+                .filter((s) => s.trim())
+                .map((section, i) => {
+                  const lines = section.split("\n");
+                  const heading = lines[0].trim();
+                  const body = lines.slice(1).join(" ").trim();
+                  return (
+                    <div key={i}>
+                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
+                        {heading}
+                      </p>
+                      <p className="text-xs text-accent/60 leading-relaxed">
+                        {body}
+                      </p>
+                    </div>
+                  );
+                })}
+
+              {/* Panelhaus CTA */}
+              <div className="p-3 bg-primary/5 rounded-xl border border-primary/15 space-y-2">
+                <p className="text-[10px] text-accent/60 leading-relaxed">
+                  Want to polish it further? Download your{" "}
+                  <strong className="text-accent/80">.comic</strong> file from
+                  the Share menu and open it in{" "}
+                  <strong className="text-accent/80">panelhaus.app</strong> for
+                  the full desktop editing experience.
+                </p>
+                {onNavigate && (
+                  <button
+                    onClick={() => onNavigate("share")}
+                    className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary/20 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <ArrowRight size={12} />
+                    Go to Share & Export
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setCritiqueText(null)}
+                className="w-full py-2 text-[10px] font-bold uppercase tracking-widest text-accent/40 hover:text-primary transition-colors"
+              >
+                Get Another Critique
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Recent Exports */}
         <div className="bg-surface-container rounded-lg p-6">
