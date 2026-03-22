@@ -279,7 +279,11 @@ const DraggableBubble: React.FC<{
           style={{
             width: "max-content",
             maxWidth: isNarration ? "min(90vw, 400px)" : "min(80vw, 300px)",
-            whiteSpace: bubble.text.length < 40 ? "nowrap" : "normal",
+            whiteSpace: bubble.text.includes("\n")
+              ? "pre-wrap"
+              : bubble.text.length < 40
+                ? "nowrap"
+                : "normal",
             ...(isSFX || isPopText
               ? {}
               : isNarration
