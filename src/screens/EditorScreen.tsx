@@ -188,21 +188,17 @@ const DraggableBubble: React.FC<{
   const baseFontSize = useRef(bubble.fontSize);
   const baseRotation = useRef(bubble.rotation || 0);
 
-  // Tap handler — always active
-  const bindTap = useDrag(
-    ({ tap }) => {
-      if (isExporting || !tap) return;
-      onSelect();
-      setIsEditing(true);
-    },
-    { filterTaps: true, pointer: { touch: true } },
-  );
-
-  // Drag + pinch — only active when selected
+  // All gestures in one handler — drag/pinch always work, tap opens editor
   const bindGesture = useGesture(
     {
-      onDrag: ({ delta: [dx, dy], pinching, last }) => {
-        if (isExporting || pinching || !isSelected) return;
+      onDrag: ({ delta: [dx, dy], tap, pinching, last }) => {
+        if (isExporting) return;
+        if (tap) {
+          onSelect();
+          setIsEditing(true);
+          return;
+        }
+        if (pinching) return;
         const parent = containerRef.current?.parentElement;
         if (!parent) return;
         const rect = parent.getBoundingClientRect();
@@ -227,12 +223,11 @@ const DraggableBubble: React.FC<{
         baseRotation.current = bubble.rotation || 0;
       },
       onPinch: ({ offset: [s], da: [, a], last }) => {
-        if (isExporting || !isSelected) return;
+        if (isExporting) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, baseFontSize.current * s)),
         );
         const rawAngle = baseRotation.current + a;
-        // Snap rotation to 0 if within 15 degrees of straight
         const snappedAngle =
           Math.abs(rawAngle % 360) < 15 || Math.abs(rawAngle % 360) > 345
             ? 0
@@ -248,7 +243,7 @@ const DraggableBubble: React.FC<{
       },
     },
     {
-      drag: { pointer: { touch: true } },
+      drag: { filterTaps: true, pointer: { touch: true } },
       pinch: {
         scaleBounds: { min: 0.5, max: 4 },
         from: () => [1, 0],
@@ -269,8 +264,8 @@ const DraggableBubble: React.FC<{
     <>
       <div
         ref={containerRef}
-        {...(!isExporting ? (isSelected ? bindGesture() : bindTap()) : {})}
-        className={`absolute z-20 ${isSelected ? "touch-none cursor-grab active:cursor-grabbing" : ""} ${
+        {...(!isExporting ? bindGesture() : {})}
+        className={`absolute z-20 touch-none cursor-grab active:cursor-grabbing ${
           isSelected && !isExporting
             ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
             : ""
@@ -831,19 +826,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
       <aside className="lg:col-span-3 space-y-6">
         {/* Editor Instructions */}
         {showOnboarding && (
-          <div className="p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
-            <button
-              onClick={() => {
-                setShowOnboarding(false);
-                localStorage.setItem(
-                  "panelshaq_editor_onboarding_dismissed",
-                  "1",
-                );
-              }}
-              className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
-            >
-              <X size={16} />
-            </button>
+          <div className="p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl">
             <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
               Step 4 of 4 — Final Touches
             </p>
@@ -856,6 +839,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
               <span>• Drag bubbles to position them in the panel</span>
               <span>• Use "Bake" to burn dialogue into the image</span>
               <span>• Export or share when you're done</span>
+            </div>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => {
+                  setShowOnboarding(false);
+                  localStorage.setItem(
+                    "panelshaq_editor_onboarding_dismissed",
+                    "1",
+                  );
+                }}
+                className="px-6 py-2 bg-secondary text-background font-headline font-bold text-sm rounded-lg hover:opacity-90 active:scale-95 transition-all"
+              >
+                Got it
+              </button>
             </div>
           </div>
         )}
