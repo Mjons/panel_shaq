@@ -24,7 +24,8 @@ export interface Bubble {
     | "effect"
     | "sfx-impact"
     | "sfx-ambient"
-    | "narration";
+    | "narration"
+    | "pop-text";
   fontSize: number;
   fontWeight: string;
   fontStyle: string;

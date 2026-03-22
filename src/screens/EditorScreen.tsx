@@ -212,6 +212,7 @@ const DraggableBubble: React.FC<{
     bubble.style === "sfx-impact" ||
     bubble.style === "sfx-ambient";
   const isNarration = bubble.style === "narration";
+  const isPopText = bubble.style === "pop-text";
 
   return (
     <>
@@ -222,12 +223,12 @@ const DraggableBubble: React.FC<{
           isSelected && !isExporting
             ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
             : ""
-        } ${isSFX ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+        } ${isSFX || isPopText ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
         style={{
           left: `${bubble.pos.x}%`,
           top: `${bubble.pos.y}%`,
           transform: "translate(-50%, -50%)",
-          ...(isSFX
+          ...(isSFX || isPopText
             ? {}
             : isNarration
               ? {
@@ -243,7 +244,21 @@ const DraggableBubble: React.FC<{
           fontStyle: bubble.fontStyle,
         }}
       >
-        {isSFX ? (
+        {isPopText ? (
+          <p
+            className="leading-tight uppercase text-center font-black"
+            style={{
+              color: "#FFFFFF",
+              fontFamily: "'Bangers', 'Comic Sans MS', cursive",
+              fontSize: `${bubble.fontSize + 6}px`,
+              textShadow:
+                "3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 0 0 #000, -3px 0 0 #000, 0 3px 0 #000, 0 -3px 0 #000",
+              letterSpacing: "0.05em",
+            }}
+          >
+            {bubble.text}
+          </p>
+        ) : isSFX ? (
           <p
             className="leading-tight uppercase font-headline text-center font-black"
             style={{
@@ -307,6 +322,7 @@ const DraggableBubble: React.FC<{
               { value: "speech", label: "Speech" },
               { value: "thought", label: "Thought" },
               { value: "narration", label: "Narration" },
+              { value: "pop-text", label: "Pop Text" },
               { value: "effect", label: "SFX" },
               { value: "sfx-impact", label: "SFX Impact" },
               { value: "sfx-ambient", label: "SFX Ambient" },
