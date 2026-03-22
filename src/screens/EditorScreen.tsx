@@ -218,36 +218,9 @@ const DraggableBubble: React.FC<{
             y: Math.round(posRef.current.y),
           });
       },
-      onPinchStart: () => {
-        baseFontSize.current = bubble.fontSize;
-        baseRotation.current = bubble.rotation || 0;
-      },
-      onPinch: ({ offset: [s], da: [, a], last }) => {
-        if (isExporting) return;
-        const newSize = Math.round(
-          Math.max(6, Math.min(69, baseFontSize.current * s)),
-        );
-        const rawAngle = baseRotation.current + a;
-        const snappedAngle =
-          Math.abs(rawAngle % 360) < 15 || Math.abs(rawAngle % 360) > 345
-            ? 0
-            : Math.round(rawAngle);
-
-        // Live DOM update for smooth feedback
-        if (containerRef.current) {
-          containerRef.current.style.transform = `translate(-50%, -50%) rotate(${snappedAngle}deg)`;
-          containerRef.current.style.fontSize = `${newSize}px`;
-        }
-
-        onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
-      },
     },
     {
       drag: { filterTaps: true, pointer: { touch: true } },
-      pinch: {
-        scaleBounds: { min: 0.5, max: 4 },
-        from: () => [1, 0],
-      },
       eventOptions: { passive: false },
     },
   );
@@ -512,6 +485,56 @@ export const EditorScreen: React.FC<EditorProps> = ({
   // isFraming removed — selected panels automatically show overflow for transform
   const [exportProgress, setExportProgress] = useState(0);
   const comicRef = useRef<HTMLDivElement>(null);
+
+  // Panel-level pinch for bubble font resize — captures pinch from anywhere on the panel
+  const bubblePinchBase = useRef(12);
+  const bubblePinchRotBase = useRef(0);
+  const bubbleRotAccum = useRef(0);
+  const bindComicPinch = useGesture(
+    {
+      onPinchStart: () => {
+        if (!selectedBubbleId || !selectedPanel) return;
+        const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
+        if (b) {
+          bubblePinchBase.current = b.fontSize;
+          bubblePinchRotBase.current = b.rotation || 0;
+          bubbleRotAccum.current = 0;
+        }
+      },
+      onPinch: ({ offset: [s], da: [, a] }) => {
+        if (!selectedBubbleId) return;
+        const newSize = Math.round(
+          Math.max(6, Math.min(69, bubblePinchBase.current * s)),
+        );
+
+        // Rotation with high deadzone — only rotate after 35°+ intentional twist
+        bubbleRotAccum.current = a;
+        const absAccum = Math.abs(bubbleRotAccum.current);
+        let newRotation = bubblePinchRotBase.current;
+        if (absAccum > 35) {
+          newRotation = Math.round(
+            bubblePinchRotBase.current + bubbleRotAccum.current,
+          );
+          // Snap to 0 when close
+          if (
+            Math.abs(newRotation % 360) < 8 ||
+            Math.abs(newRotation % 360) > 352
+          ) {
+            newRotation = 0;
+          }
+        }
+
+        updateBubble(selectedBubbleId, {
+          fontSize: newSize,
+          rotation: newRotation,
+        });
+      },
+    },
+    {
+      pinch: { scaleBounds: { min: 0.5, max: 4 }, from: () => [1, 0] },
+      eventOptions: { passive: false },
+    },
+  );
   const [critiqueText, setCritiqueText] = useState<string | null>(null);
   const [isCritiquing, setIsCritiquing] = useState(false);
   const [exportHistory, setExportHistory] = useState<
@@ -1038,7 +1061,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
             ref={comicRef}
           >
             <div
-              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""}`}
+              {...(selectedBubbleId && !isExporting ? bindComicPinch() : {})}
+              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""} ${selectedBubbleId ? "touch-none" : ""}`}
             >
               {currentPage ? (
                 <div
