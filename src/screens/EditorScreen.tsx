@@ -360,8 +360,11 @@ const DraggableBubble: React.FC<{
             </p>
           ) : isNarration ? (
             <p
-              className="leading-snug text-[11px] text-center italic text-background/90"
-              style={{ fontFamily: "'Inter', serif" }}
+              className="leading-snug text-center italic text-background/90"
+              style={{
+                fontFamily: "'Inter', serif",
+                fontSize: `${bubble.fontSize}px`,
+              }}
             >
               {bubble.text}
             </p>
