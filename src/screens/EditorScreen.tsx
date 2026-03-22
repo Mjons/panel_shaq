@@ -191,13 +191,15 @@ const DraggableBubble: React.FC<{
   // All gestures in one handler — drag/pinch always work, tap opens editor
   const bindGesture = useGesture(
     {
-      onDrag: ({ delta: [dx, dy], tap, pinching, last }) => {
+      onDrag: ({ delta: [dx, dy], tap, pinching, last, first }) => {
         if (isExporting) return;
         if (tap) {
           onSelect();
           setIsEditing(true);
           return;
         }
+        // Select bubble on drag start so panel-level pinch activates
+        if (first) onSelect();
         if (pinching) return;
         const parent = containerRef.current?.parentElement;
         if (!parent) return;
@@ -1061,7 +1063,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
             ref={comicRef}
           >
             <div
-              {...(selectedBubbleId && !isExporting ? bindComicPinch() : {})}
+              {...(!isExporting ? bindComicPinch() : {})}
               className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""} ${selectedBubbleId ? "touch-none" : ""}`}
             >
               {currentPage ? (
