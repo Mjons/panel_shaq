@@ -211,6 +211,7 @@ const DraggableBubble: React.FC<{
     bubble.style === "action" ||
     bubble.style === "sfx-impact" ||
     bubble.style === "sfx-ambient";
+  const isNarration = bubble.style === "narration";
 
   return (
     <>
@@ -221,17 +222,22 @@ const DraggableBubble: React.FC<{
           isSelected && !isExporting
             ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
             : ""
-        } ${isSFX ? "" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
+        } ${isSFX ? "" : isNarration ? "p-2 border border-background/60 shadow-lg max-w-[120px]" : "p-2 bg-white border-2 border-background shadow-xl max-w-[100px]"}`}
         style={{
           left: `${bubble.pos.x}%`,
           top: `${bubble.pos.y}%`,
           transform: "translate(-50%, -50%)",
           ...(isSFX
             ? {}
-            : {
-                borderRadius: bubble.style === "thought" ? "40%" : "9999px",
-                borderStyle: bubble.style === "thought" ? "dashed" : "solid",
-              }),
+            : isNarration
+              ? {
+                  borderRadius: "2px",
+                  backgroundColor: "rgba(255, 248, 220, 0.92)",
+                }
+              : {
+                  borderRadius: bubble.style === "thought" ? "40%" : "9999px",
+                  borderStyle: bubble.style === "thought" ? "dashed" : "solid",
+                }),
           fontSize: `${bubble.fontSize}px`,
           fontWeight: bubble.fontWeight,
           fontStyle: bubble.fontStyle,
@@ -271,6 +277,13 @@ const DraggableBubble: React.FC<{
           >
             {bubble.text}
           </p>
+        ) : isNarration ? (
+          <p
+            className="leading-snug text-[11px] text-center italic text-background/90"
+            style={{ fontFamily: "'Inter', serif" }}
+          >
+            {bubble.text}
+          </p>
         ) : (
           <p className="leading-tight uppercase font-headline text-center text-background">
             {bubble.text}
@@ -293,6 +306,7 @@ const DraggableBubble: React.FC<{
             const types: { value: Bubble["style"]; label: string }[] = [
               { value: "speech", label: "Speech" },
               { value: "thought", label: "Thought" },
+              { value: "narration", label: "Narration" },
               { value: "effect", label: "SFX" },
               { value: "sfx-impact", label: "SFX Impact" },
               { value: "sfx-ambient", label: "SFX Ambient" },

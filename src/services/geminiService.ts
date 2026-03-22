@@ -23,7 +23,8 @@ export interface Bubble {
     | "action"
     | "effect"
     | "sfx-impact"
-    | "sfx-ambient";
+    | "sfx-ambient"
+    | "narration";
   fontSize: number;
   fontWeight: string;
   fontStyle: string;

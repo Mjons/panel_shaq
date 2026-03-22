@@ -54,6 +54,7 @@ const BUBBLE_TYPE_MAP: Record<string, string> = {
   effect: "caption-box",
   "sfx-impact": "shout-bubble",
   "sfx-ambient": "caption-box",
+  narration: "caption-box",
 };
 
 function mapBubble(bubble: Bubble, panelRect: PanelRect) {
