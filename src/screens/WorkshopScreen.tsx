@@ -236,19 +236,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
       </section>
 
       {showOnboarding && (
-        <div className="mb-6 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
-          <button
-            onClick={() => {
-              setShowOnboarding(false);
-              localStorage.setItem(
-                "panelshaq_workshop_onboarding_dismissed",
-                "1",
-              );
-            }}
-            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
-          >
-            <X size={16} />
-          </button>
+        <div className="mb-6 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl">
           <p className="font-headline font-bold text-accent text-lg mb-2">
             Welcome to Panelhaus
           </p>
@@ -288,6 +276,20 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               <strong className="text-primary">3.</strong> Generate panels →
               arrange layouts → add dialogue → export
             </span>
+          </div>
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem(
+                  "panelshaq_workshop_onboarding_dismissed",
+                  "1",
+                );
+              }}
+              className="px-6 py-2 bg-secondary text-background font-headline font-bold text-sm rounded-lg hover:opacity-90 active:scale-95 transition-all"
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}

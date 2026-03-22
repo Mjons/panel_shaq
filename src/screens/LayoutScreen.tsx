@@ -645,19 +645,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
       </div>
 
       {pages.length > 0 && showOnboarding && (
-        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl relative">
-          <button
-            onClick={() => {
-              setShowOnboarding(false);
-              localStorage.setItem(
-                "panelshaq_layout_onboarding_dismissed",
-                "1",
-              );
-            }}
-            className="absolute top-3 right-3 text-accent/30 hover:text-accent/60 transition-colors"
-          >
-            <X size={16} />
-          </button>
+        <div className="mb-8 p-5 bg-surface-container/50 border-l-4 border-primary/60 rounded-r-xl">
           <p className="font-label text-primary uppercase tracking-[0.2em] text-[10px] font-bold mb-2">
             Step 3 of 4 — Arrange Your Pages
           </p>
@@ -675,6 +663,20 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
               • Use the number buttons on each page to adjust panel count
             </span>
             <span>• Use the top bar to repartition all pages at once</span>
+          </div>
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem(
+                  "panelshaq_layout_onboarding_dismissed",
+                  "1",
+                );
+              }}
+              className="px-6 py-2 bg-secondary text-background font-headline font-bold text-sm rounded-lg hover:opacity-90 active:scale-95 transition-all"
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}
