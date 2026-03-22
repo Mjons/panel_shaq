@@ -641,22 +641,38 @@ const PanelCard = React.memo(
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
-                <ImageIcon size={48} className="text-outline opacity-20" />
-                {!isQueueGenerating && !isQueued && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleGenerate}
-                      className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
-                    >
-                      Generate
-                    </button>
-                    <button
-                      onClick={() => uploadPanelRef.current?.click()}
-                      className="bg-accent/5 text-accent/60 border border-outline/20 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
-                    >
-                      Upload
-                    </button>
-                  </div>
+                {isQueueGenerating ? (
+                  <>
+                    <Loader2 size={36} className="text-primary animate-spin" />
+                    <span className="text-[10px] text-primary font-bold uppercase tracking-widest">
+                      Generating...
+                    </span>
+                  </>
+                ) : isQueued ? (
+                  <>
+                    <ImageIcon size={36} className="text-secondary/40" />
+                    <span className="text-[10px] text-secondary font-bold uppercase tracking-widest">
+                      Queued
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon size={48} className="text-outline opacity-20" />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleGenerate}
+                        className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
+                      >
+                        Generate
+                      </button>
+                      <button
+                        onClick={() => uploadPanelRef.current?.click()}
+                        className="bg-accent/5 text-accent/60 border border-outline/20 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             )}
