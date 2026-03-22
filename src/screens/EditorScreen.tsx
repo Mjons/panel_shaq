@@ -239,7 +239,7 @@ const DraggableBubble: React.FC<{
           containerRef.current.style.fontSize = `${newSize}px`;
         }
 
-        if (last) onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
+        onUpdateBubble({ fontSize: newSize, rotation: snappedAngle });
       },
     },
     {
