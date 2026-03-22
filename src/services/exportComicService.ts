@@ -278,26 +278,34 @@ export async function exportAsComic(
 }
 
 export async function downloadComicFile(json: string, projectName: string) {
-  const filename = `${(projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "")}.comic`;
-  const blob = new Blob([json], { type: "application/json" });
-  const file = new File([blob], filename, { type: "application/json" });
+  const safeName = (projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "");
 
-  // Use native share sheet if available (mobile)
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: filename });
-      return;
-    } catch (e) {
-      // User cancelled or share failed — fall through to download
-      if ((e as Error).name === "AbortError") return;
+  // Try native share sheet with .json extension (browsers reject unknown extensions like .comic)
+  if (navigator.share && navigator.canShare) {
+    const shareFile = new File([json], `${safeName}.comic.json`, {
+      type: "application/json",
+    });
+    if (navigator.canShare({ files: [shareFile] })) {
+      try {
+        await navigator.share({
+          files: [shareFile],
+          title: `${safeName}.comic`,
+          text: `Panel Shaq project: ${safeName}`,
+        });
+        return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+        // Share failed — fall through to download
+      }
     }
   }
 
-  // Fallback: direct download
+  // Fallback: direct download with .comic extension
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filename;
+  link.download = `${safeName}.comic`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
