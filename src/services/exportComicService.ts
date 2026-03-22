@@ -246,33 +246,29 @@ export function exportAsComic(
 
 export async function downloadComicFile(json: string, projectName: string) {
   const safeName = (projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "");
+  const filename = `${safeName}.comic`;
 
-  // Try native share sheet with .json extension (browsers reject unknown extensions like .comic)
-  if (navigator.share && navigator.canShare) {
-    const shareFile = new File([json], `${safeName}.comic.json`, {
-      type: "application/json",
-    });
-    if (navigator.canShare({ files: [shareFile] })) {
-      try {
-        await navigator.share({
-          files: [shareFile],
-          title: `${safeName}.comic`,
-          text: `Panel Shaq project: ${safeName}`,
-        });
-        return;
-      } catch (e) {
-        if ((e as Error).name === "AbortError") return;
-        // Share failed — fall through to download
-      }
+  // Use octet-stream so the OS accepts the custom .comic extension for sharing
+  const file = new File([json], filename, {
+    type: "application/octet-stream",
+  });
+
+  // Try native share sheet (mobile)
+  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      return;
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
     }
   }
 
-  // Fallback: direct download with .comic extension
-  const blob = new Blob([json], { type: "application/json" });
+  // Fallback: direct download
+  const blob = new Blob([json], { type: "application/octet-stream" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${safeName}.comic`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
