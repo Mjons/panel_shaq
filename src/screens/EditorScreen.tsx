@@ -1477,6 +1477,62 @@ export const EditorScreen: React.FC<EditorProps> = ({
               )}
               Share This Page
             </button>
+            {pages.length > 1 && (
+              <button
+                onClick={async () => {
+                  if (!comicRef.current || isExporting) return;
+                  setIsExporting(true);
+                  setSelectedPanelId(null);
+                  setSelectedBubbleId(null);
+                  await waitForPaint();
+                  try {
+                    const originalIdx = selectedPageIdx;
+                    const files: File[] = [];
+                    for (let i = 0; i < pages.length; i++) {
+                      setSelectedPageIdx(i);
+                      await waitForPaint();
+                      const imgData = await captureRef(comicRef, "png");
+                      const res = await fetch(imgData);
+                      const blob = await res.blob();
+                      files.push(
+                        new File([blob], `Comic_Page_${i + 1}.png`, {
+                          type: "image/png",
+                        }),
+                      );
+                    }
+                    setSelectedPageIdx(originalIdx);
+                    if (navigator.canShare?.({ files })) {
+                      await navigator.share({
+                        title: "My Comic",
+                        text: "Made with Panelhaus",
+                        files,
+                      });
+                    } else {
+                      files.forEach((f) => {
+                        const url = URL.createObjectURL(f);
+                        const link = document.createElement("a");
+                        link.download = f.name;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                      });
+                    }
+                  } catch {
+                    /* user cancelled */
+                  }
+                  setIsExporting(false);
+                }}
+                disabled={isExporting}
+                className="w-full py-3 rounded-lg bg-secondary text-background font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Share2 size={14} />
+                )}
+                Share All Pages
+              </button>
+            )}
           </div>
         </div>
 

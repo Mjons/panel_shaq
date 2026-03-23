@@ -115,10 +115,10 @@ export const ShareScreen: React.FC<ShareProps> = ({
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
             <Share2 size={18} />
-            Share Comic
+            Share Panel Images
           </h3>
           <p className="text-sm text-accent/50">
-            Share your panel images via email, chat, or social media.
+            Share individual panel images via email, chat, or social media.
           </p>
 
           {panelsWithImages.length > 0 ? (
