@@ -1598,12 +1598,32 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 </span>
               </div>
 
-              {/* Panel — full width */}
+              {/* Panel — full width, double-tap background to exit */}
               <div
                 className="flex-1 relative overflow-hidden"
                 {...(!isExporting ? bindComicPinch() : {})}
+                onClick={(e) => {
+                  // Only double-tap on background (not bubbles)
+                  if (
+                    e.target === e.currentTarget ||
+                    (e.target as HTMLElement).closest("[data-panel-bg]")
+                  ) {
+                    const now = Date.now();
+                    if (
+                      lastTapRef.current?.id === "fs-exit" &&
+                      now - lastTapRef.current.time < 400
+                    ) {
+                      setFullscreenPanelId(null);
+                      setSelectedBubbleId(null);
+                      setIsBubbleEditing(false);
+                      lastTapRef.current = null;
+                    } else {
+                      lastTapRef.current = { id: "fs-exit", time: now };
+                    }
+                  }
+                }}
               >
-                <div className="w-full h-full relative">
+                <div className="w-full h-full relative" data-panel-bg>
                   {panel.image ? (
                     <PanelImage
                       panel={panel}
@@ -1651,37 +1671,81 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 </div>
               </div>
 
-              {/* Bottom toolbar */}
-              <div className="flex items-center gap-3 px-4 py-3 border-t border-outline/10 bg-surface-container">
-                <button
-                  onClick={() => {
-                    setSelectedPanelId(fullscreenPanelId);
-                    addBubble();
-                  }}
-                  className="flex-1 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
-                >
-                  <Plus size={14} />
-                  Add Bubble
-                </button>
-                <button
-                  onClick={() => {
-                    setLockedPanelIds((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(fullscreenPanelId))
-                        next.delete(fullscreenPanelId);
-                      else next.add(fullscreenPanelId);
-                      return next;
-                    });
-                  }}
-                  className={`py-2.5 px-4 rounded-lg border font-headline font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all ${
-                    isLocked
-                      ? "bg-primary/10 border-primary/30 text-primary"
-                      : "border-outline/20 text-accent/50"
-                  }`}
-                >
-                  {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
-                  {isLocked ? "Locked" : "Unlocked"}
-                </button>
+              {/* Floating editing toolbar — matches bottom nav style */}
+              <div
+                className="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[95]"
+                style={{ bottom: "calc(var(--sab, 0px) + 1.5rem)" }}
+              >
+                <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
+                  <button
+                    onClick={() => {
+                      setSelectedPanelId(fullscreenPanelId);
+                      addBubble();
+                    }}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl text-[#FFF3D2] hover:bg-surface-container transition-all"
+                  >
+                    <Plus size={20} />
+                    <span className="text-[8px] mt-0.5 uppercase tracking-widest">
+                      Bubble
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLockedPanelIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(fullscreenPanelId))
+                          next.delete(fullscreenPanelId);
+                        else next.add(fullscreenPanelId);
+                        return next;
+                      });
+                    }}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${
+                      isLocked
+                        ? "bg-primary text-background shadow-[0_0_15px_rgba(255,145,0,0.5)] scale-110"
+                        : "text-[#FFF3D2] hover:bg-surface-container"
+                    }`}
+                  >
+                    {isLocked ? <Lock size={20} /> : <Unlock size={20} />}
+                    <span className="text-[8px] mt-0.5 uppercase tracking-widest">
+                      {isLocked ? "Lock" : "Unlock"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Bake ALL text into the image? The original will be replaced.",
+                        )
+                      ) {
+                        handleFinalRender();
+                      }
+                    }}
+                    disabled={isRendering || !panel.bubbles?.length}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl text-[#FFF3D2] hover:bg-surface-container transition-all disabled:opacity-30"
+                  >
+                    {isRendering ? (
+                      <Loader2 size={20} className="animate-spin" />
+                    ) : (
+                      <Wand2 size={20} />
+                    )}
+                    <span className="text-[8px] mt-0.5 uppercase tracking-widest">
+                      Bake
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setFullscreenPanelId(null);
+                      setSelectedBubbleId(null);
+                      setIsBubbleEditing(false);
+                    }}
+                    className="flex flex-col items-center justify-center p-3 rounded-xl text-[#FFF3D2] hover:bg-surface-container transition-all"
+                  >
+                    <X size={20} />
+                    <span className="text-[8px] mt-0.5 uppercase tracking-widest">
+                      Done
+                    </span>
+                  </button>
+                </div>
               </div>
             </div>
           );
