@@ -959,75 +959,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
             )}
           </div>
         )}
-
-        <div className="bg-surface-container rounded-lg p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
-              <MessageSquare size={18} />
-              DIALOGUE
-            </h3>
-            {selectedPanelId && (
-              <button
-                onClick={addBubble}
-                className="p-1.5 bg-primary/10 text-primary rounded-md hover:bg-primary hover:text-background transition-colors"
-                title="Add Bubble"
-              >
-                <Plus size={16} />
-              </button>
-            )}
-          </div>
-
-          {selectedPanelId ? (
-            <div className="space-y-3">
-              {/* Step hints */}
-              {(!selectedPanel?.bubbles ||
-                selectedPanel.bubbles.length === 0) && (
-                <div className="space-y-1.5 text-[10px] text-accent/30">
-                  <p>
-                    <span className="text-primary font-bold">1.</span> Tap{" "}
-                    <span className="text-primary">+</span> above to add a
-                    bubble
-                  </p>
-                  <p>
-                    <span className="text-primary font-bold">2.</span> Tap the
-                    bubble to edit text & type
-                  </p>
-                  <p>
-                    <span className="text-primary font-bold">3.</span> Drag it
-                    into position
-                  </p>
-                  <p>
-                    <span className="text-primary font-bold">4.</span> Hit "Bake
-                    Dialogue" when done
-                  </p>
-                </div>
-              )}
-
-              {/* Bubble List */}
-              {selectedPanel?.bubbles && selectedPanel.bubbles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedPanel.bubbles.map((b, idx) => (
-                    <button
-                      key={b.id}
-                      onClick={() => setSelectedBubbleId(b.id)}
-                      className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${selectedBubbleId === b.id ? "bg-primary border-primary text-background" : "bg-surface-container-highest border-outline/20 text-accent/50 hover:border-primary/50"}`}
-                    >
-                      {b.style === "effect" ? "SFX" : b.style} {idx + 1}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              <p className="text-[9px] text-accent/25 italic">
-                Tap bubbles on the panel to edit. Drag to reposition.
-              </p>
-            </div>
-          ) : (
-            <div className="py-4 text-center text-accent/30 italic text-xs">
-              Select a panel to add dialogue
-            </div>
-          )}
-        </div>
       </aside>
 
       {/* Center: Comic Canvas */}
@@ -1274,47 +1205,94 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
       {/* Right Sidebar: Finish & Export */}
       <aside className="lg:col-span-3 space-y-6">
-        {/* Bake Dialogue */}
+        {/* Dialogue */}
         <div className="bg-surface-container rounded-lg p-6 space-y-4">
-          <h3 className="font-headline text-accent text-lg font-bold flex items-center gap-2">
-            <Wand2 size={18} className="text-primary" />
-            BAKE DIALOGUE
-          </h3>
-          <button
-            onClick={() => {
-              if (
-                window.confirm(
-                  "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
-                )
-              ) {
-                handleFinalRender();
-              }
-            }}
-            disabled={
-              !selectedPanelId || isRendering || !selectedPanel?.bubbles?.length
-            }
-            className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
-          >
-            <div className="flex items-center gap-2">
-              {isRendering ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Wand2 size={20} />
+          <div className="flex items-center justify-between">
+            <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
+              <MessageSquare size={18} />
+              DIALOGUE
+            </h3>
+            {selectedPanelId && (
+              <button
+                onClick={addBubble}
+                className="p-1.5 bg-primary/10 text-primary rounded-md hover:bg-primary hover:text-background transition-colors"
+                title="Add Bubble"
+              >
+                <Plus size={16} />
+              </button>
+            )}
+          </div>
+
+          {selectedPanelId ? (
+            <div className="space-y-3">
+              {(!selectedPanel?.bubbles ||
+                selectedPanel.bubbles.length === 0) && (
+                <div className="space-y-1.5 text-[10px] text-accent/30">
+                  <p>
+                    <span className="text-primary font-bold">1.</span> Tap{" "}
+                    <span className="text-primary">+</span> above to add a
+                    bubble
+                  </p>
+                  <p>
+                    <span className="text-primary font-bold">2.</span> Tap the
+                    bubble to edit text & type
+                  </p>
+                  <p>
+                    <span className="text-primary font-bold">3.</span> Drag it
+                    into position
+                  </p>
+                </div>
               )}
-              <span>Bake Dialogue Into Image</span>
+
+              {selectedPanel?.bubbles && selectedPanel.bubbles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedPanel.bubbles.map((b, idx) => (
+                    <button
+                      key={b.id}
+                      onClick={() => setSelectedBubbleId(b.id)}
+                      className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${selectedBubbleId === b.id ? "bg-primary border-primary text-background" : "bg-surface-container-highest border-outline/20 text-accent/50 hover:border-primary/50"}`}
+                    >
+                      {b.style === "effect" ? "SFX" : b.style} {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <span className="text-[8px] opacity-70 uppercase tracking-widest">
-              Permanently renders bubbles into artwork
-            </span>
-          </button>
-          {selectedPanelId && selectedPanel?.bubbles?.length ? (
-            <p className="text-[9px] text-accent/30 leading-relaxed">
-              This will permanently draw your speech bubbles into the panel
-              image. The original clean image will be replaced. Download first
-              if you want to keep it.
-            </p>
-          ) : null}
+          ) : (
+            <div className="py-4 text-center text-accent/30 italic text-xs">
+              Select a panel to add dialogue
+            </div>
+          )}
         </div>
+
+        {/* Bake Dialogue */}
+        <button
+          onClick={() => {
+            if (
+              window.confirm(
+                "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+              )
+            ) {
+              handleFinalRender();
+            }
+          }}
+          disabled={
+            !selectedPanelId || isRendering || !selectedPanel?.bubbles?.length
+          }
+          className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
+        >
+          <div className="flex items-center gap-2">
+            {isRendering ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Wand2 size={20} />
+            )}
+            <span>Bake Dialogue Into Image</span>
+          </div>
+          <span className="text-[8px] opacity-70 uppercase tracking-widest">
+            Permanently renders bubbles into artwork
+          </span>
+        </button>
 
         {/* Comic Critique Corner */}
         <div className="bg-surface-container rounded-lg p-6 space-y-4">

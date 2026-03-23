@@ -248,15 +248,15 @@ export function exportAsComic(
 
 export async function downloadComicFile(json: string, projectName: string) {
   const safeName = (projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "");
-  const file = new File([json], `${safeName}.json`, {
-    type: "application/json",
+  const file = new File([json], `${safeName}.comic`, {
+    type: "application/octet-stream",
   });
 
-  // Use native share — same pattern as panel image sharing
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
         title: `${safeName}.comic`,
+        text: "Made with Panelhaus",
         files: [file],
       });
       return;
@@ -270,8 +270,6 @@ export async function downloadComicFile(json: string, projectName: string) {
   const link = document.createElement("a");
   link.href = url;
   link.download = `${safeName}.comic`;
-  document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }

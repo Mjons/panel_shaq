@@ -247,8 +247,8 @@ export const ShareScreen: React.FC<ShareProps> = ({
             disabled={panels.length === 0}
             className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
           >
-            <Download size={18} />
-            EXPORT .COMIC FILE
+            <Share2 size={18} />
+            SHARE .COMIC FILE
           </button>
           {panels.length === 0 && (
             <p className="text-[10px] text-accent/30 text-center">
