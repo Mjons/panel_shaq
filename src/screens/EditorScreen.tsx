@@ -499,6 +499,10 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [selectedBubbleId, setSelectedBubbleId] = useState<string | null>(null);
   const [isBubbleEditing, setIsBubbleEditing] = useState(false);
   const [lockedPanelIds, setLockedPanelIds] = useState<Set<string>>(new Set());
+  const [fullscreenPanelId, setFullscreenPanelId] = useState<string | null>(
+    null,
+  );
+  const lastTapRef = useRef<{ id: string; time: number } | null>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -970,6 +974,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
               setSelectedBubbleId(null);
               setSelectedPanelId(null);
               setIsBubbleEditing(false);
+              setFullscreenPanelId(null);
               setSelectedPageIdx((prev) => prev - 1);
             }}
             className="p-2 rounded-full hover:bg-background disabled:opacity-20 transition-colors"
@@ -985,6 +990,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
               setSelectedBubbleId(null);
               setSelectedPanelId(null);
               setIsBubbleEditing(false);
+              setFullscreenPanelId(null);
               setSelectedPageIdx((prev) => prev + 1);
             }}
             className="p-2 rounded-full hover:bg-background disabled:opacity-20 transition-colors"
@@ -1065,7 +1071,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     return (
                       <div
                         key={pid}
-                        onClick={() => setSelectedPanelId(pid)}
+                        onClick={() => {
+                          const now = Date.now();
+                          if (
+                            lastTapRef.current?.id === pid &&
+                            now - lastTapRef.current.time < 400
+                          ) {
+                            setFullscreenPanelId(pid);
+                            setSelectedPanelId(pid);
+                            lastTapRef.current = null;
+                          } else {
+                            setSelectedPanelId(pid);
+                            lastTapRef.current = { id: pid, time: now };
+                          }
+                        }}
                         className={`bg-black relative cursor-pointer transition-all overflow-hidden group/panel ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
                         style={
                           slot
@@ -1547,6 +1566,126 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </div>
         </div>
       </aside>
+
+      {/* Full-screen panel editing overlay */}
+      {fullscreenPanelId &&
+        (() => {
+          const panel = panels.find((p) => p.id === fullscreenPanelId);
+          if (!panel) return null;
+          const panelIdx =
+            currentPage?.panelIds.indexOf(fullscreenPanelId) ?? -1;
+          const isLocked = lockedPanelIds.has(fullscreenPanelId);
+
+          return (
+            <div className="fixed inset-0 z-[90] bg-background flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-outline/10 bg-surface-container">
+                <button
+                  onClick={() => {
+                    setFullscreenPanelId(null);
+                    setSelectedBubbleId(null);
+                    setIsBubbleEditing(false);
+                  }}
+                  className="flex items-center gap-1.5 text-accent/70 hover:text-primary transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                  <span className="text-xs font-bold uppercase tracking-widest">
+                    Back to Page
+                  </span>
+                </button>
+                <span className="text-[10px] font-label text-accent/40 uppercase tracking-widest">
+                  Panel {panelIdx + 1} of {currentPage?.panelIds.length || 0}
+                </span>
+              </div>
+
+              {/* Panel — full width */}
+              <div
+                className="flex-1 relative overflow-hidden"
+                {...(!isExporting ? bindComicPinch() : {})}
+              >
+                <div className="w-full h-full relative">
+                  {panel.image ? (
+                    <PanelImage
+                      panel={panel}
+                      idx={panelIdx}
+                      isSelected={true}
+                      isExporting={false}
+                      locked={isLocked}
+                      onSelect={() => {}}
+                      onTransform={(id, t) =>
+                        updatePanel(id, { imageTransform: t })
+                      }
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-surface-container text-accent/20">
+                      <ImageIcon size={48} />
+                    </div>
+                  )}
+
+                  {/* Bubbles */}
+                  {(panel.bubbles || []).map((bubble) => (
+                    <DraggableBubble
+                      key={bubble.id}
+                      bubble={bubble}
+                      isSelected={selectedBubbleId === bubble.id}
+                      isExporting={false}
+                      onSelect={() => {
+                        setSelectedPanelId(fullscreenPanelId);
+                        setSelectedBubbleId(bubble.id);
+                      }}
+                      onDeselect={() => {
+                        setSelectedBubbleId(null);
+                        setIsBubbleEditing(false);
+                      }}
+                      onEditingChange={setIsBubbleEditing}
+                      panelLocked={isLocked}
+                      onMove={(pos) => updateBubble(bubble.id, { pos })}
+                      onUpdateBubble={(updates) =>
+                        updateBubble(bubble.id, updates)
+                      }
+                      onRemove={() => removeBubble(bubble.id)}
+                      onBakeAll={handleFinalRender}
+                      isRendering={isRendering}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom toolbar */}
+              <div className="flex items-center gap-3 px-4 py-3 border-t border-outline/10 bg-surface-container">
+                <button
+                  onClick={() => {
+                    setSelectedPanelId(fullscreenPanelId);
+                    addBubble();
+                  }}
+                  className="flex-1 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                >
+                  <Plus size={14} />
+                  Add Bubble
+                </button>
+                <button
+                  onClick={() => {
+                    setLockedPanelIds((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(fullscreenPanelId))
+                        next.delete(fullscreenPanelId);
+                      else next.add(fullscreenPanelId);
+                      return next;
+                    });
+                  }}
+                  className={`py-2.5 px-4 rounded-lg border font-headline font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all ${
+                    isLocked
+                      ? "bg-primary/10 border-primary/30 text-primary"
+                      : "border-outline/20 text-accent/50"
+                  }`}
+                >
+                  {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                  {isLocked ? "Locked" : "Unlocked"}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
     </main>
   );
 };
