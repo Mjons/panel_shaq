@@ -237,6 +237,20 @@ export const TopNav = ({
                     </div>
                     <div>
                       <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
+                        Gestures
+                      </p>
+                      <ul className="space-y-1 list-disc list-inside">
+                        <li>Drag: move panel image or bubble</li>
+                        <li>Pinch: zoom image or resize bubble text</li>
+                        <li>
+                          2-finger tap: rotate (step size configurable in
+                          Settings)
+                        </li>
+                        <li>Double-tap panel: fullscreen editing</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
                         API Key
                       </p>
                       <p>

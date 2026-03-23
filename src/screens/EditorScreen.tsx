@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { useGesture, useDrag } from "@use-gesture/react";
 import {
   MessageSquare,
@@ -45,6 +51,7 @@ const PanelImage: React.FC<{
   isSelected: boolean;
   isExporting: boolean;
   locked?: boolean;
+  rotationStep?: number;
   onSelect: (id: string) => void;
   onTransform: (
     id: string,
@@ -56,6 +63,7 @@ const PanelImage: React.FC<{
   isSelected,
   isExporting,
   locked,
+  rotationStep = 10,
   onSelect,
   onTransform,
 }) => {
@@ -91,11 +99,11 @@ const PanelImage: React.FC<{
         if (last) onTransform(panel.id, { ...t });
       },
       onPinchStart: () => {
-        // Rotate 10° per second-finger tap
+        // Rotate per second-finger tap
         if (!isExporting && !locked) {
-          const newRotation = (tRef.current.rotation || 0) + 10;
+          const newRotation = (tRef.current.rotation || 0) + rotationStep;
           tRef.current.rotation =
-            Math.abs(newRotation % 360) < 5 ? 0 : newRotation;
+            Math.abs(newRotation % 360) < rotationStep / 2 ? 0 : newRotation;
           applyTransform();
           onTransform(panel.id, { ...tRef.current });
         }
@@ -514,6 +522,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
     null,
   );
   const lastTapRef = useRef<{ id: string; time: number } | null>(null);
+  const rotationStep = useMemo(() => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).rotationStep || 10 : 10;
+    } catch {
+      return 10;
+    }
+  }, []);
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -534,10 +550,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
           bubblePinchBase.current = b.fontSize;
-          // Rotate 5° on each second-finger tap
-          const newRotation = (b.rotation || 0) + 5;
+          // Rotate on each second-finger tap
+          const newRotation = (b.rotation || 0) + rotationStep;
           updateBubble(selectedBubbleId, {
-            rotation: Math.abs(newRotation % 360) < 3 ? 0 : newRotation,
+            rotation:
+              Math.abs(newRotation % 360) < rotationStep / 2 ? 0 : newRotation,
           });
         }
       },
@@ -1102,6 +1119,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             locked={
                               !!selectedBubbleId || lockedPanelIds.has(pid)
                             }
+                            rotationStep={rotationStep}
                             onSelect={setSelectedPanelId}
                             onTransform={(id, t) =>
                               updatePanel(id, { imageTransform: t })
@@ -1650,6 +1668,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       isSelected={true}
                       isExporting={false}
                       locked={isLocked}
+                      rotationStep={rotationStep}
                       onSelect={() => {}}
                       onTransform={(id, t) =>
                         updatePanel(id, { imageTransform: t })
@@ -1696,11 +1715,17 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 className="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[201]"
                 style={{ bottom: "calc(var(--sab, 0px) + 5.5rem)" }}
               >
-                {!isLocked && (
-                  <p className="text-center text-[9px] text-accent/30 mb-1.5">
-                    Lock the panel to freely move dialogue
-                  </p>
-                )}
+                <p className="text-center text-[9px] text-accent/30 mb-1.5">
+                  {isLocked
+                    ? selectedBubbleId
+                      ? "Drag to move • 2-finger tap to rotate"
+                      : "Tap a bubble to edit • 2-finger tap rotates"
+                    : "Drag to reposition • 2-finger tap to rotate"}
+                  <span className="text-accent/20">
+                    {" "}
+                    (step size in Settings)
+                  </span>
+                </p>
                 <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
                   <button
                     onClick={() => {
