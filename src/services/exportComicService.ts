@@ -248,11 +248,31 @@ export function exportAsComic(
 
 export async function downloadComicFile(json: string, projectName: string) {
   const safeName = (projectName || "Untitled").replace(/[^a-zA-Z0-9-_ ]/g, "");
-  const file = new File([json], `${safeName}.comic`, {
-    type: "application/octet-stream",
-  });
+  // Try shareable file types in order of preference
+  const fileConfigs = [
+    { name: `${safeName}.comic`, type: "application/octet-stream" },
+    { name: `${safeName}.json`, type: "application/json" },
+    { name: `${safeName}.comic.json`, type: "application/json" },
+    { name: `${safeName}.txt`, type: "text/plain" },
+  ];
 
-  if (navigator.canShare?.({ files: [file] })) {
+  for (const cfg of fileConfigs) {
+    const f = new File([json], cfg.name, { type: cfg.type });
+    const ok = navigator.canShare?.({ files: [f] });
+    console.log(`canShare "${cfg.name}" (${cfg.type}):`, ok);
+  }
+
+  // Use first config that canShare accepts
+  let file: File | null = null;
+  for (const cfg of fileConfigs) {
+    const f = new File([json], cfg.name, { type: cfg.type });
+    if (navigator.canShare?.({ files: [f] })) {
+      file = f;
+      break;
+    }
+  }
+
+  if (file && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
         title: `${safeName}.comic`,
