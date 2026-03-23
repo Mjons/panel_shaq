@@ -169,6 +169,7 @@ const DraggableBubble: React.FC<{
   isRendering?: boolean;
   onEditingChange?: (editing: boolean) => void;
   panelLocked?: boolean;
+  isFullscreen?: boolean;
 }> = ({
   bubble,
   isSelected,
@@ -182,6 +183,7 @@ const DraggableBubble: React.FC<{
   isRendering,
   onEditingChange,
   panelLocked,
+  isFullscreen,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditingRaw] = useState(false);
@@ -370,12 +372,19 @@ const DraggableBubble: React.FC<{
       {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}
       {isSelected && isEditing && !isExporting && (
         <div
-          className="fixed z-[60] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]"
-          style={{
-            left: "50%",
-            bottom: "calc(6rem + var(--sab, 0px))",
-            transform: "translateX(-50%)",
-          }}
+          className={`fixed z-[210] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]`}
+          style={
+            isFullscreen
+              ? {
+                  top: "4rem",
+                  right: "1rem",
+                }
+              : {
+                  left: "50%",
+                  bottom: "calc(6rem + var(--sab, 0px))",
+                  transform: "translateX(-50%)",
+                }
+          }
         >
           {/* Type toggle — tap to cycle */}
           {(() => {
@@ -1673,6 +1682,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       }}
                       onEditingChange={setIsBubbleEditing}
                       panelLocked={isLocked}
+                      isFullscreen={true}
                       onMove={(pos) => updateBubble(bubble.id, { pos })}
                       onUpdateBubble={(updates) =>
                         updateBubble(bubble.id, updates)

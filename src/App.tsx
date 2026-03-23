@@ -197,13 +197,42 @@ function AppInner() {
   }, [addToast]);
 
   const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
     "workshop",
   );
+
+  const guardedSetActiveTab = useCallback(
+    (tab: string) => {
+      if (activeTab === "director" && isGenerating && tab !== "director") {
+        if (
+          !window.confirm(
+            "Panels are still generating. Switching tabs will cancel the queue and waste API credits. Continue?",
+          )
+        ) {
+          return;
+        }
+      }
+      setActiveTab(tab);
+    },
+    [activeTab, isGenerating, setActiveTab],
+  );
+
   useEffect(() => {
     if (activeTab !== "vault") setVaultAutoOpen(false);
   }, [activeTab]);
+
+  // Warn on browser close/refresh during generation
+  useEffect(() => {
+    if (!isGenerating) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isGenerating]);
   const [story, setStory] = usePersistedState("panelshaq_story", "");
   const [vaultEntries, setVaultEntries] = useIndexedDBState<VaultEntry[]>(
     "panelshaq_vault_entries",
@@ -518,7 +547,7 @@ function AppInner() {
             onGenerateSuccess={() => setActiveTab("director")}
             onNavigate={(tab) => {
               if (tab === "vault") setVaultAutoOpen(true);
-              setActiveTab(tab);
+              guardedSetActiveTab(tab);
             }}
           />
         );
@@ -533,7 +562,8 @@ function AppInner() {
             vehicles={vaultEntries.filter((e) => e.type === "Vehicle")}
             story={story}
             projectName={projectName}
-            onContinue={() => setActiveTab("layout")}
+            onContinue={() => guardedSetActiveTab("layout")}
+            onGeneratingChange={setIsGenerating}
           />
         );
       case "layout":
@@ -542,7 +572,7 @@ function AppInner() {
             panels={panels}
             pages={pages}
             setPages={setPages}
-            onContinue={() => setActiveTab("editor")}
+            onContinue={() => guardedSetActiveTab("editor")}
             pageFormat={pageFormat}
             setPageFormat={setPageFormat}
           />
@@ -561,7 +591,7 @@ function AppInner() {
             panels={panels}
             pages={pages}
             setPanels={setPanels}
-            onNavigate={setActiveTab}
+            onNavigate={guardedSetActiveTab}
             pageFormat={pageFormat}
           />
         );
@@ -604,7 +634,7 @@ function AppInner() {
       if (currentIdx === -1) return;
       const nextIdx = currentIdx - swipeX;
       if (nextIdx >= 0 && nextIdx < TAB_ORDER.length) {
-        setActiveTab(TAB_ORDER[nextIdx]);
+        guardedSetActiveTab(TAB_ORDER[nextIdx]);
       }
     },
     { axis: "x", swipe: { distance: 50, velocity: 0.3 } },
@@ -619,7 +649,7 @@ function AppInner() {
 
       <TopNav
         onCreate={() => setIsProjectManagerOpen(true)}
-        onTabChange={setActiveTab}
+        onTabChange={guardedSetActiveTab}
       />
 
       <main
@@ -632,7 +662,7 @@ function AppInner() {
         </ErrorBoundary>
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={guardedSetActiveTab} />
 
       <ProjectManager
         isOpen={isProjectManagerOpen}

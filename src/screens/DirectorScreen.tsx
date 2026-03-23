@@ -207,6 +207,7 @@ interface DirectorProps {
   story: string;
   projectName?: string;
   onContinue: () => void;
+  onGeneratingChange?: (generating: boolean) => void;
 }
 
 /* ── Insert Panel Button ── */
@@ -1291,6 +1292,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   story,
   projectName,
   onContinue,
+  onGeneratingChange,
 }) => {
   const { confirm } = useConfirm();
   const [generationQueue, setGenerationQueue] = useState<string[]>([]);
@@ -1562,6 +1564,11 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   const queueProgress = queueActive
     ? panels.length - generationQueue.length
     : 0;
+
+  // Report generation state to parent
+  useEffect(() => {
+    onGeneratingChange?.(queueActive);
+  }, [queueActive, onGeneratingChange]);
 
   return (
     <div className="pt-24 px-6 max-w-7xl mx-auto pb-32">
