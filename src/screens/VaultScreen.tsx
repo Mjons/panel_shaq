@@ -575,30 +575,53 @@ export const VaultScreen: React.FC<VaultProps> = ({
                 accept="image/*"
               />
 
-              {/* Style picker */}
-              <div className="space-y-1.5">
-                <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
-                  Art Style
-                </label>
-                <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
-                  {VAULT_STYLES.map((s) => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, style: s.id }))
-                      }
-                      className={`px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wide transition-all text-center leading-tight ${
-                        formData.style === s.id
-                          ? "bg-primary text-background"
-                          : "bg-surface-container text-accent/50 border border-outline/10"
-                      }`}
-                    >
-                      {s.name}
-                    </button>
-                  ))}
+              {/* Style picker — only relevant for AI generation */}
+              {!formData.image && (
+                <div className="space-y-1.5">
+                  <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
+                    Art Style
+                  </label>
+                  {!localStorage.getItem("panelshaq_style_hint_dismissed") && (
+                    <div className="flex items-start gap-2 p-2.5 bg-surface-container/50 border-l-2 border-primary/40 rounded-r-lg mb-1.5">
+                      <p className="text-[10px] text-accent/50 leading-relaxed flex-1">
+                        This style is used when generating a reference image
+                        with AI. If you upload your own image, it already
+                        carries its style.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          localStorage.setItem(
+                            "panelshaq_style_hint_dismissed",
+                            "1",
+                          )
+                        }
+                        className="text-accent/30 shrink-0 mt-0.5"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 gap-1.5 max-h-32 overflow-y-auto pr-1">
+                    {VAULT_STYLES.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({ ...prev, style: s.id }))
+                        }
+                        className={`px-2 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wide transition-all text-center leading-tight ${
+                          formData.style === s.id
+                            ? "bg-primary text-background"
+                            : "bg-surface-container text-accent/50 border border-outline/10"
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-2 gap-2">
                 <button

@@ -21,6 +21,7 @@ export interface AppSettings {
   imageModel: "flash" | "pro";
   showRegenWarnings: boolean;
   showDataWarnings: boolean;
+  rotationStep: number;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -32,6 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   imageModel: "flash",
   showRegenWarnings: true,
   showDataWarnings: true,
+  rotationStep: 10,
 };
 
 export const SettingsScreen = () => {
@@ -296,6 +298,36 @@ export const SettingsScreen = () => {
               }
               className="accent-primary w-4 h-4"
             />
+          </div>
+        </section>
+
+        {/* Editor */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-accent">
+            Editor
+          </h3>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+              Rotation per tap
+            </label>
+            <div className="bg-background p-1 rounded-lg flex gap-1 border border-outline/10">
+              {[1, 5, 10, 15, 45].map((deg) => (
+                <button
+                  key={deg}
+                  onClick={() => updateSetting("rotationStep", deg)}
+                  className={`flex-1 px-2 py-2 rounded-md text-[11px] font-bold transition-all ${
+                    (settings.rotationStep || 10) === deg
+                      ? "bg-primary text-background"
+                      : "text-accent/50"
+                  }`}
+                >
+                  {deg}°
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] text-accent/30">
+              Degrees per 2-finger tap on images and bubbles
+            </p>
           </div>
         </section>
 
