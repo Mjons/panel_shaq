@@ -1587,7 +1587,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
           const heightPct = (rowSpan / totalRows) * 100;
 
           return (
-            <div className="fixed inset-0 z-[90] bg-background flex flex-col">
+            <div className="fixed inset-0 z-[200] bg-background flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-outline/10 bg-surface-container">
                 <button
@@ -1687,7 +1687,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
               {/* Floating editing toolbar — matches bottom nav style */}
               <div
-                className="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[95]"
+                className="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[201]"
                 style={{ bottom: "calc(var(--sab, 0px) + 1.5rem)" }}
               >
                 <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
