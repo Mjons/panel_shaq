@@ -532,38 +532,22 @@ export const EditorScreen: React.FC<EditorProps> = ({
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
           bubblePinchBase.current = b.fontSize;
-          bubblePinchRotBase.current = b.rotation || 0;
-          bubbleRotAccum.current = 0;
+          // Rotate 5° on each second-finger tap
+          const newRotation = (b.rotation || 0) + 5;
+          updateBubble(selectedBubbleId, {
+            rotation: Math.abs(newRotation % 360) < 3 ? 0 : newRotation,
+          });
         }
       },
-      onPinch: ({ offset: [s], da: [, a] }) => {
+      onPinch: ({ offset: [s] }) => {
         const panelIsLocked = lockedPanelIds.has(selectedPanelId || "");
         if (!selectedBubbleId || (!isBubbleEditing && !panelIsLocked)) return;
         const newSize = Math.round(
           Math.max(6, Math.min(69, bubblePinchBase.current * s)),
         );
 
-        // Rotation when in edit mode or panel is locked
-        let newRotation = bubblePinchRotBase.current;
-        if (isBubbleEditing || panelIsLocked) {
-          bubbleRotAccum.current = a;
-          const absAccum = Math.abs(bubbleRotAccum.current);
-          if (absAccum > 35) {
-            newRotation = Math.round(
-              bubblePinchRotBase.current + bubbleRotAccum.current,
-            );
-            if (
-              Math.abs(newRotation % 360) < 8 ||
-              Math.abs(newRotation % 360) > 352
-            ) {
-              newRotation = 0;
-            }
-          }
-        }
-
         updateBubble(selectedBubbleId, {
           fontSize: newSize,
-          rotation: newRotation,
         });
       },
     },
@@ -1081,6 +1065,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       <div
                         key={pid}
                         onClick={() => {
+                          // Clear bubble selection when tapping a panel
+                          setSelectedBubbleId(null);
+                          setIsBubbleEditing(false);
                           const now = Date.now();
                           if (
                             lastTapRef.current?.id === pid &&
@@ -1421,104 +1408,75 @@ export const EditorScreen: React.FC<EditorProps> = ({
             EXPORT
           </h3>
           <div className="space-y-4 relative z-10">
-            {/* Download */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                Download
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleExportPNG(false)}
-                  disabled={isExporting}
-                  className="py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Download size={14} />
-                  )}
-                  <span>This Page</span>
-                  <span className="text-[7px] opacity-50 normal-case">PNG</span>
-                </button>
-                <button
-                  onClick={() => handleExportPDF(true)}
-                  disabled={isExporting}
-                  className="py-3 rounded-lg bg-primary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Download size={14} />
-                  )}
-                  <span>All Pages</span>
-                  <span className="text-[7px] opacity-50 normal-case">PDF</span>
-                </button>
-              </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleExportPNG(false)}
+                disabled={isExporting}
+                className="py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Download size={14} />
+                )}
+                <span>This Page</span>
+              </button>
+              <button
+                onClick={() => handleExportPNG(true)}
+                disabled={isExporting}
+                className="py-3 rounded-lg bg-primary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Download size={14} />
+                )}
+                <span>All Pages</span>
+              </button>
             </div>
-
-            {/* Share */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-label uppercase tracking-widest text-accent/50">
-                Share
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={async () => {
-                    if (!comicRef.current || isExporting) return;
-                    setIsExporting(true);
-                    setSelectedPanelId(null);
-                    setSelectedBubbleId(null);
-                    await waitForPaint();
-                    try {
-                      const imgData = await captureRef(comicRef, "png");
-                      const res = await fetch(imgData);
-                      const blob = await res.blob();
-                      const file = new File(
-                        [blob],
-                        `Comic_Page_${selectedPageIdx + 1}.png`,
-                        { type: "image/png" },
-                      );
-                      if (navigator.canShare?.({ files: [file] })) {
-                        await navigator.share({
-                          title: "My Comic",
-                          text: "Made with Panelhaus",
-                          files: [file],
-                        });
-                      } else {
-                        const link = document.createElement("a");
-                        link.download = file.name;
-                        link.href = imgData;
-                        link.click();
-                      }
-                    } catch {
-                      /* user cancelled */
-                    }
-                    setIsExporting(false);
-                  }}
-                  disabled={isExporting}
-                  className="py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Share2 size={14} />
-                  )}
-                  <span>This Page</span>
-                </button>
-                <button
-                  onClick={() => handleExportPDF(true)}
-                  disabled={isExporting}
-                  className="py-3 rounded-lg bg-secondary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  {isExporting ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Share2 size={14} />
-                  )}
-                  <span>All Pages</span>
-                </button>
-              </div>
-            </div>
+            <button
+              onClick={async () => {
+                if (!comicRef.current || isExporting) return;
+                setIsExporting(true);
+                setSelectedPanelId(null);
+                setSelectedBubbleId(null);
+                await waitForPaint();
+                try {
+                  const imgData = await captureRef(comicRef, "png");
+                  const res = await fetch(imgData);
+                  const blob = await res.blob();
+                  const file = new File(
+                    [blob],
+                    `Comic_Page_${selectedPageIdx + 1}.png`,
+                    { type: "image/png" },
+                  );
+                  if (navigator.canShare?.({ files: [file] })) {
+                    await navigator.share({
+                      title: "My Comic",
+                      text: "Made with Panelhaus",
+                      files: [file],
+                    });
+                  } else {
+                    const link = document.createElement("a");
+                    link.download = file.name;
+                    link.href = imgData;
+                    link.click();
+                  }
+                } catch {
+                  /* user cancelled */
+                }
+                setIsExporting(false);
+              }}
+              disabled={isExporting}
+              className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {isExporting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Share2 size={14} />
+              )}
+              Share This Page
+            </button>
           </div>
         </div>
 
@@ -1617,30 +1575,10 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 </span>
               </div>
 
-              {/* Panel — centered at composed size, double-tap background to exit */}
+              {/* Panel — centered at composed size */}
               <div
                 className="flex-1 relative overflow-hidden flex items-center justify-center"
                 {...(!isExporting ? bindComicPinch() : {})}
-                onClick={(e) => {
-                  // Only double-tap on background (not bubbles)
-                  if (
-                    e.target === e.currentTarget ||
-                    (e.target as HTMLElement).closest("[data-panel-bg]")
-                  ) {
-                    const now = Date.now();
-                    if (
-                      lastTapRef.current?.id === "fs-exit" &&
-                      now - lastTapRef.current.time < 400
-                    ) {
-                      setFullscreenPanelId(null);
-                      setSelectedBubbleId(null);
-                      setIsBubbleEditing(false);
-                      lastTapRef.current = null;
-                    } else {
-                      lastTapRef.current = { id: "fs-exit", time: now };
-                    }
-                  }
-                }}
               >
                 <div
                   className="relative bg-black overflow-hidden"
