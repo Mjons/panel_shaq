@@ -259,6 +259,7 @@ const DraggableBubble: React.FC<{
     return () => el.removeEventListener("touchmove", prevent);
   }, []);
 
+  const isSticker = bubble.style === "sticker";
   const isSFX =
     bubble.style === "effect" ||
     bubble.style === "action" ||
@@ -287,7 +288,7 @@ const DraggableBubble: React.FC<{
             isSelected && !isExporting
               ? "ring-2 ring-primary ring-offset-2 ring-offset-transparent"
               : ""
-          } ${isSFX || isPopText ? "" : isNarration ? "px-4 py-3 border border-background/60 shadow-lg" : "px-5 py-3 bg-white border-2 border-background shadow-xl"}`}
+          } ${isSticker ? "" : isSFX || isPopText ? "" : isNarration ? "px-4 py-3 border border-background/60 shadow-lg" : "px-5 py-3 bg-white border-2 border-background shadow-xl"}`}
           style={{
             width: "max-content",
             maxWidth: isNarration ? "min(90vw, 400px)" : "min(80vw, 300px)",
@@ -296,24 +297,37 @@ const DraggableBubble: React.FC<{
               : bubble.text.length < 40
                 ? "nowrap"
                 : "normal",
-            ...(isSFX || isPopText
+            ...(isSticker
               ? {}
-              : isNarration
-                ? {
-                    borderRadius: "2px",
-                    backgroundColor: "rgba(255, 248, 220, 0.92)",
-                  }
-                : {
-                    borderRadius: bubble.style === "thought" ? "40%" : "9999px",
-                    borderStyle:
-                      bubble.style === "thought" ? "dashed" : "solid",
-                  }),
+              : isSFX || isPopText
+                ? {}
+                : isNarration
+                  ? {
+                      borderRadius: "2px",
+                      backgroundColor: "rgba(255, 248, 220, 0.92)",
+                    }
+                  : {
+                      borderRadius:
+                        bubble.style === "thought" ? "40%" : "9999px",
+                      borderStyle:
+                        bubble.style === "thought" ? "dashed" : "solid",
+                    }),
             fontSize: `${bubble.fontSize}px`,
             fontWeight: bubble.fontWeight,
             fontStyle: bubble.fontStyle,
           }}
         >
-          {isPopText ? (
+          {isSticker ? (
+            <span
+              style={{
+                fontSize: `${bubble.fontSize}px`,
+                lineHeight: 1,
+                userSelect: "none",
+              }}
+            >
+              {bubble.text}
+            </span>
+          ) : isPopText ? (
             <p
               className="leading-tight uppercase text-center font-black"
               style={{
@@ -575,6 +589,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
       eventOptions: { passive: false },
     },
   );
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [critiqueText, setCritiqueText] = useState<string | null>(null);
   const [isCritiquing, setIsCritiquing] = useState(false);
   const [exportHistory, setExportHistory] = useState<
@@ -653,6 +668,28 @@ export const EditorScreen: React.FC<EditorProps> = ({
     );
 
     setSelectedBubbleId(newBubble.id);
+  };
+
+  const addSticker = (emoji: string) => {
+    if (!selectedPanelId) return;
+    const newBubble: Bubble = {
+      id: crypto.randomUUID(),
+      text: emoji,
+      pos: { x: 50, y: 50 },
+      style: "sticker",
+      fontSize: 48,
+      fontWeight: "normal",
+      fontStyle: "normal",
+    };
+    setPanels((prev) =>
+      prev.map((p) =>
+        p.id === selectedPanelId
+          ? { ...p, bubbles: [...(p.bubbles || []), newBubble] }
+          : p,
+      ),
+    );
+    setSelectedBubbleId(newBubble.id);
+    setShowEmojiPicker(false);
   };
 
   const updateBubble = (bubbleId: string, updates: Partial<Bubble>) => {
@@ -1726,17 +1763,70 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     (step size in Settings)
                   </span>
                 </p>
+                {showEmojiPicker && (
+                  <div className="mb-2 bg-[#31394D]/80 backdrop-blur-xl rounded-2xl p-3 shadow-2xl">
+                    <div className="grid grid-cols-8 gap-1">
+                      {[
+                        "❤️",
+                        "💔",
+                        "😱",
+                        "😂",
+                        "😡",
+                        "💀",
+                        "😢",
+                        "💧",
+                        "💥",
+                        "⚡",
+                        "🔥",
+                        "✨",
+                        "💢",
+                        "⭐",
+                        "💨",
+                        "💫",
+                        "❗",
+                        "❓",
+                        "💡",
+                        "🎵",
+                        "💬",
+                        "💭",
+                        "➡️",
+                        "👆",
+                      ].map((e) => (
+                        <button
+                          key={e}
+                          onClick={() => addSticker(e)}
+                          className="w-9 h-9 flex items-center justify-center text-xl rounded-lg hover:bg-white/10 active:scale-90 transition-all"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
                   <button
                     onClick={() => {
                       setSelectedPanelId(fullscreenPanelId);
                       addBubble();
+                      setShowEmojiPicker(false);
                     }}
                     className="flex flex-col items-center justify-center p-3 rounded-xl text-[#FFF3D2] hover:bg-surface-container transition-all"
                   >
                     <Plus size={20} />
                     <span className="text-[8px] mt-0.5 uppercase tracking-widest">
                       Bubble
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedPanelId(fullscreenPanelId);
+                      setShowEmojiPicker((v) => !v);
+                    }}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all ${showEmojiPicker ? "bg-primary text-background shadow-[0_0_15px_rgba(255,145,0,0.5)] scale-110" : "text-[#FFF3D2] hover:bg-surface-container"}`}
+                  >
+                    <span className="text-lg">😀</span>
+                    <span className="text-[8px] mt-0.5 uppercase tracking-widest">
+                      Emoji
                     </span>
                   </button>
                   <button
