@@ -1576,6 +1576,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
             currentPage?.panelIds.indexOf(fullscreenPanelId) ?? -1;
           const isLocked = lockedPanelIds.has(fullscreenPanelId);
 
+          // Calculate proportional panel size from the layout template
+          const tmpl = currentPage ? getTemplate(currentPage.layoutId) : null;
+          const slot = tmpl?.slots[panelIdx];
+          const colSpan = slot ? slot.colEnd - slot.colStart : 1;
+          const rowSpan = slot ? slot.rowEnd - slot.rowStart : 1;
+          const totalCols = tmpl?.cols || 1;
+          const totalRows = tmpl?.rows || 1;
+          const widthPct = (colSpan / totalCols) * 100;
+          const heightPct = (rowSpan / totalRows) * 100;
+
           return (
             <div className="fixed inset-0 z-[90] bg-background flex flex-col">
               {/* Header */}
@@ -1598,9 +1608,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 </span>
               </div>
 
-              {/* Panel — full width, double-tap background to exit */}
+              {/* Panel — centered at composed size, double-tap background to exit */}
               <div
-                className="flex-1 relative overflow-hidden"
+                className="flex-1 relative overflow-hidden flex items-center justify-center"
                 {...(!isExporting ? bindComicPinch() : {})}
                 onClick={(e) => {
                   // Only double-tap on background (not bubbles)
@@ -1623,7 +1633,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   }
                 }}
               >
-                <div className="w-full h-full relative" data-panel-bg>
+                <div
+                  className="relative bg-black overflow-hidden"
+                  data-panel-bg
+                  style={{ width: `${widthPct}%`, height: `${heightPct}%` }}
+                >
                   {panel.image ? (
                     <PanelImage
                       panel={panel}
