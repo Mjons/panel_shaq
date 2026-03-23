@@ -376,7 +376,7 @@ const DraggableBubble: React.FC<{
           style={
             isFullscreen
               ? {
-                  top: "4rem",
+                  bottom: "calc(var(--sab, 0px) + 10rem)",
                   right: "1rem",
                 }
               : {
