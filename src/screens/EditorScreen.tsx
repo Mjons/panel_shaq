@@ -1688,7 +1688,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
               {/* Floating editing toolbar — matches bottom nav style */}
               <div
                 className="fixed left-1/2 -translate-x-1/2 w-[90%] max-w-lg z-[201]"
-                style={{ bottom: "calc(var(--sab, 0px) + 1.5rem)" }}
+                style={{ bottom: "calc(var(--sab, 0px) + 5.5rem)" }}
               >
                 <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl shadow-[0_20px_40px_rgba(6,14,32,0.4)] flex justify-around items-center py-2 px-2">
                   <button
