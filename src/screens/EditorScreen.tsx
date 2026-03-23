@@ -91,17 +91,19 @@ const PanelImage: React.FC<{
         if (last) onTransform(panel.id, { ...t });
       },
       onPinchStart: () => {
-        baseRotation.current = tRef.current.rotation || 0;
+        // Rotate 10° per second-finger tap
+        if (!isExporting && !locked) {
+          const newRotation = (tRef.current.rotation || 0) + 10;
+          tRef.current.rotation =
+            Math.abs(newRotation % 360) < 5 ? 0 : newRotation;
+          applyTransform();
+          onTransform(panel.id, { ...tRef.current });
+        }
       },
-      onPinch: ({ offset: [s], da: [, a], event, last }) => {
+      onPinch: ({ offset: [s], event, last }) => {
         if (isExporting || locked) return;
         event?.preventDefault();
         tRef.current.scale = Math.min(4.2, Math.max(0.5, s));
-        const rawAngle = baseRotation.current + a;
-        tRef.current.rotation =
-          Math.abs(rawAngle % 360) < 10 || Math.abs(rawAngle % 360) > 350
-            ? 0
-            : Math.round(rawAngle);
         applyTransform();
         if (last) onTransform(panel.id, { ...tRef.current });
       },
