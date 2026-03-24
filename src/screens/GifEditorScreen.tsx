@@ -51,32 +51,20 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
   const [activePreset, setActivePreset] = useState<GifPreset>("story-flow");
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
+  const [exportedBlob, setExportedBlob] = useState<Blob | null>(null);
 
   const fps = 10;
-
-  const handlePresetChange = useCallback((preset: GifPreset) => {
-    setActivePreset(preset);
-    if (preset !== "custom") {
-      setPanels((prev) => applyPreset(prev, preset));
-    }
-  }, []);
-
-  const handlePanelChange = useCallback((updated: GifPanelConfig) => {
-    setPanels((prev) =>
-      prev.map((p) => (p.panelId === updated.panelId ? updated : p)),
-    );
-    setActivePreset("custom");
-  }, []);
 
   const handleActivePanelChange = useCallback((idx: number) => {
     // Optionally highlight the active panel in timeline during playback
     // Keeping it light — not selecting on every frame to avoid re-renders
   }, []);
 
-  const handleExport = async () => {
+  const handleGenerate = async () => {
     if (isExporting) return;
     setIsExporting(true);
     setExportProgress(0);
+    setExportedBlob(null);
 
     try {
       const project = {
@@ -113,32 +101,60 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
 
       const blob = new Blob([gifBuffer], { type: "image/gif" });
       setExportProgress(100);
-
-      const filename = `Comic_GifEditor.gif`;
-      const file = new File([blob], filename, { type: "image/gif" });
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: "My Comic GIF",
-          text: "Made with Panelhaus",
-          files: [file],
-        });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = file.name;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
+      setExportedBlob(blob);
     } catch (error: any) {
       console.error("GIF export failed:", error);
       alert(`GIF export failed: ${error?.message || error}`);
     } finally {
       setIsExporting(false);
-      setExportProgress(0);
     }
   };
+
+  const handleDownload = () => {
+    if (!exportedBlob) return;
+    const url = URL.createObjectURL(exportedBlob);
+    const link = document.createElement("a");
+    link.download = "Comic_GifEditor.gif";
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShare = async () => {
+    if (!exportedBlob) return;
+    const file = new File([exportedBlob], "Comic_GifEditor.gif", {
+      type: "image/gif",
+    });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({
+        title: "My Comic GIF",
+        text: "Made with Panelhaus",
+        files: [file],
+      });
+    } else {
+      handleDownload();
+    }
+  };
+
+  // Re-generate needed when panels change
+  const handlePanelChangeAndInvalidate = useCallback(
+    (updated: GifPanelConfig) => {
+      setPanels((prev) =>
+        prev.map((p) => (p.panelId === updated.panelId ? updated : p)),
+      );
+      setActivePreset("custom");
+      setExportedBlob(null);
+    },
+    [],
+  );
+
+  const handlePresetChangeAndInvalidate = useCallback((preset: GifPreset) => {
+    setActivePreset(preset);
+    if (preset !== "custom") {
+      setPanels((prev) => applyPreset(prev, preset));
+    }
+    setExportedBlob(null);
+  }, []);
 
   const selectedPanel = selectedIndex !== null ? panels[selectedIndex] : null;
 
@@ -162,23 +178,43 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
             GIF Editor
           </h1>
 
-          <button
-            onClick={handleExport}
-            disabled={isExporting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-background font-headline font-bold text-xs uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
-          >
-            {isExporting ? (
+          <div className="flex items-center gap-1.5">
+            {exportedBlob ? (
               <>
-                <Loader2 size={14} className="animate-spin" />
-                {exportProgress}%
+                <button
+                  onClick={handleDownload}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-background font-headline font-bold text-xs uppercase tracking-wider active:scale-95 transition-all"
+                >
+                  <Download size={14} />
+                  Save
+                </button>
+                <button
+                  onClick={handleShare}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-accent/10 text-accent/70 font-headline font-bold text-xs active:scale-95 transition-all"
+                >
+                  <Share2 size={14} />
+                </button>
               </>
             ) : (
-              <>
-                <Share2 size={14} />
-                Export
-              </>
+              <button
+                onClick={handleGenerate}
+                disabled={isExporting}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-background font-headline font-bold text-xs uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    {exportProgress}%
+                  </>
+                ) : (
+                  <>
+                    <Film size={14} />
+                    Create GIF
+                  </>
+                )}
+              </button>
             )}
-          </button>
+          </div>
         </div>
       </div>
 
@@ -198,7 +234,7 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
           selectedIndex={selectedIndex}
           onSelectPanel={setSelectedIndex}
           activePreset={activePreset}
-          onPresetChange={handlePresetChange}
+          onPresetChange={handlePresetChangeAndInvalidate}
           fps={fps}
           width={gifWidth}
           height={gifHeight}
@@ -209,7 +245,7 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
           <GifPanelEditor
             panel={selectedPanel}
             index={selectedIndex}
-            onChange={handlePanelChange}
+            onChange={handlePanelChangeAndInvalidate}
           />
         )}
       </div>
