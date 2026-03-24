@@ -968,38 +968,44 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
       const frames: Array<{ data: ImageData; delay: number }> = [];
 
-      // Capture each panel slot from the DOM (includes crop, transform, bubbles)
+      // Capture full page once, then crop each panel from it
+      const fullPagePng = await captureRef(comicRef, "png");
+      const fullPageImg = await loadImg(fullPagePng);
+      const comicRect = comicRef.current!.getBoundingClientRect();
+
       const slotElements = Array.from(
         comicRef.current!.querySelectorAll("[data-panel-slot]"),
       ) as HTMLElement[];
       const totalSteps = slotElements.length + 1;
+      const capScale = fullPageImg.width / comicRect.width;
 
       for (let i = 0; i < slotElements.length; i++) {
-        const slotPng = await toPng(slotElements[i], {
-          pixelRatio: 1.5,
-          skipFonts: true,
-          cacheBust: true,
-        });
-        const img = await loadImg(slotPng);
-        const panelRatio = img.width / img.height;
+        const slotRect = slotElements[i].getBoundingClientRect();
+        const sx = (slotRect.left - comicRect.left) * capScale;
+        const sy = (slotRect.top - comicRect.top) * capScale;
+        const sw = slotRect.width * capScale;
+        const sh = slotRect.height * capScale;
+
+        if (sw <= 0 || sh <= 0) continue;
+
+        const panelRatio = sw / sh;
         const isWide = panelRatio > frameRatio * 1.5;
 
         if (isWide) {
-          // Pan across in 3 sub-frames
           const panSteps = 3;
-          const visibleW = img.height * frameRatio;
-          const maxOffsetX = img.width - visibleW;
+          const visibleW = sh * frameRatio;
+          const maxOffsetX = sw - visibleW;
           for (let step = 0; step < panSteps; step++) {
             const progress = step / (panSteps - 1);
-            const srcX = maxOffsetX * progress;
+            const cropX = sx + maxOffsetX * progress;
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, gifWidth, gifHeight);
             ctx.drawImage(
-              img,
-              srcX,
-              0,
+              fullPageImg,
+              cropX,
+              sy,
               visibleW,
-              img.height,
+              sh,
               0,
               0,
               gifWidth,
@@ -1011,15 +1017,24 @@ export const EditorScreen: React.FC<EditorProps> = ({
             });
           }
         } else {
-          // Fill frame (object-cover style)
-          const scale = Math.max(gifWidth / img.width, gifHeight / img.height);
-          const drawW = img.width * scale;
-          const drawH = img.height * scale;
+          const scale = Math.max(gifWidth / sw, gifHeight / sh);
+          const drawW = sw * scale;
+          const drawH = sh * scale;
           const offsetX = (gifWidth - drawW) / 2;
           const offsetY = (gifHeight - drawH) / 2;
           ctx.fillStyle = "#000";
           ctx.fillRect(0, 0, gifWidth, gifHeight);
-          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+          ctx.drawImage(
+            fullPageImg,
+            sx,
+            sy,
+            sw,
+            sh,
+            offsetX,
+            offsetY,
+            drawW,
+            drawH,
+          );
           frames.push({
             data: ctx.getImageData(0, 0, gifWidth, gifHeight),
             delay: 800,
