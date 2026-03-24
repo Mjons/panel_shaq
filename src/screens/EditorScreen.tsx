@@ -223,7 +223,7 @@ const PanelBorderWrapper: React.FC<{
       {children}
       {svgPath && (
         <svg
-          className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
+          className="absolute inset-0 w-full h-full pointer-events-none z-[25]"
           viewBox={`0 0 ${size.w} ${size.h}`}
           preserveAspectRatio="none"
         >
@@ -1576,17 +1576,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           ...(gifVisibleCount !== null && idx >= gifVisibleCount
                             ? { opacity: 0 }
                             : {}),
-                          ...(panel.borderColor &&
-                          panel.borderColor !== "none" &&
-                          !hasActiveBorderStyle(panel.borderStyle)
-                            ? {
-                                border: `${panel.borderWidth || 2}px solid ${panel.borderColor}`,
-                              }
-                            : {}),
                         }}
                       >
                         <PanelBorderWrapper
-                          active={hasActiveBorderStyle(panel.borderStyle)}
+                          active={
+                            hasActiveBorderStyle(panel.borderStyle) ||
+                            (!!panel.borderColor &&
+                              panel.borderColor !== "none")
+                          }
                           borderStyle={panel.borderStyle}
                           strokeColor={
                             panel.borderColor && panel.borderColor !== "none"
