@@ -1496,7 +1496,13 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           .filter((r) => r.startsWith("data:image/"))
           .slice(0, 5);
         const characterContext = selectedChars
-          .map((c) => `${c.name}: ${c.description || ""}`)
+          .map((c) => {
+            let ctx = `${c.name}: ${c.description || ""}`;
+            if (c.visualLook) ctx += `. Visual details: ${c.visualLook}`;
+            if (c.personality)
+              ctx += `. Personality/demeanor: ${c.personality}`;
+            return ctx;
+          })
           .join(". ");
 
         // Background reference
