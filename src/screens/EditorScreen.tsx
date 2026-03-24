@@ -30,6 +30,7 @@ import {
   RotateCcw,
   Sparkles,
   ArrowRight,
+  Dices,
 } from "lucide-react";
 import {
   PanelPrompt,
@@ -38,6 +39,13 @@ import {
   critiqueComic,
 } from "../services/geminiService";
 import { Page, getTemplate, PAGE_FORMATS } from "./LayoutScreen";
+import {
+  BORDER_PRESETS,
+  getCachedBorderPath,
+  borderPathToSVG,
+  hasActiveBorderStyle,
+  randomSeed,
+} from "../utils/borderStyles";
 import { toPng, toJpeg } from "html-to-image";
 import { encode as encodeGif } from "modern-gif";
 import jsPDF from "jspdf";
@@ -167,6 +175,59 @@ const PanelImage: React.FC<{
           transformOrigin: "center",
         }}
       />
+    </div>
+  );
+};
+
+/* ── Border Effect SVG Overlay ── */
+const BorderEffectOverlay: React.FC<{
+  borderStyle: {
+    seed: number;
+    layers: Array<{ effect: string; intensity: number }>;
+  };
+  strokeColor: string;
+  strokeWidth: number;
+}> = ({ borderStyle, strokeColor, strokeWidth }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new ResizeObserver(([entry]) => {
+      setSize({ w: entry.contentRect.width, h: entry.contentRect.height });
+    });
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  const svgPath =
+    size.w > 0 && size.h > 0
+      ? borderPathToSVG(
+          getCachedBorderPath(
+            size.w,
+            size.h,
+            borderStyle.layers as any,
+            borderStyle.seed,
+          ),
+        )
+      : "";
+
+  return (
+    <div ref={ref} className="absolute inset-0 pointer-events-none z-[5]">
+      {svgPath && (
+        <svg
+          className="w-full h-full"
+          viewBox={`0 0 ${size.w} ${size.h}`}
+          preserveAspectRatio="none"
+        >
+          <path
+            d={svgPath}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+          />
+        </svg>
+      )}
     </div>
   );
 };
@@ -1246,6 +1307,68 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   </span>
                 </div>
               )}
+
+            {/* Border Effect Presets */}
+            <label className="text-[9px] font-bold uppercase tracking-widest text-accent/40 block pt-1">
+              Border Effect
+            </label>
+            <div className="grid grid-cols-4 gap-1">
+              {BORDER_PRESETS.map((preset) => {
+                const isActive =
+                  preset.layers.length === 0
+                    ? !hasActiveBorderStyle(selectedPanel.borderStyle)
+                    : selectedPanel.borderStyle?.layers?.length ===
+                        preset.layers.length &&
+                      preset.layers.every(
+                        (pl, i) =>
+                          selectedPanel.borderStyle?.layers[i]?.effect ===
+                            pl.effect &&
+                          selectedPanel.borderStyle?.layers[i]?.intensity ===
+                            pl.intensity,
+                      );
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() =>
+                      updatePanel(selectedPanelId, {
+                        borderStyle:
+                          preset.layers.length === 0
+                            ? null
+                            : {
+                                seed:
+                                  selectedPanel.borderStyle?.seed ||
+                                  randomSeed(),
+                                layers: preset.layers,
+                              },
+                      })
+                    }
+                    className={`px-1.5 py-1.5 rounded text-[9px] font-bold uppercase tracking-wide transition-all text-center ${
+                      isActive
+                        ? "bg-primary text-background"
+                        : "bg-background text-accent/50 border border-outline/10"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() =>
+                  selectedPanel.borderStyle &&
+                  updatePanel(selectedPanelId, {
+                    borderStyle: {
+                      ...selectedPanel.borderStyle,
+                      seed: randomSeed(),
+                    },
+                  })
+                }
+                disabled={!hasActiveBorderStyle(selectedPanel.borderStyle)}
+                className="px-1.5 py-1.5 rounded text-[9px] font-bold transition-all text-center bg-background text-accent/50 border border-outline/10 disabled:opacity-30 flex items-center justify-center"
+                title="Randomize"
+              >
+                <Dices size={12} />
+              </button>
+            </div>
           </div>
         )}
 
@@ -1472,6 +1595,19 @@ export const EditorScreen: React.FC<EditorProps> = ({
                               <Unlock size={12} className="text-accent/40" />
                             )}
                           </button>
+                        )}
+
+                        {/* Border Effect SVG Overlay */}
+                        {hasActiveBorderStyle(panel.borderStyle) && (
+                          <BorderEffectOverlay
+                            borderStyle={panel.borderStyle!}
+                            strokeColor={
+                              panel.borderColor && panel.borderColor !== "none"
+                                ? panel.borderColor
+                                : "#000"
+                            }
+                            strokeWidth={panel.borderWidth || 2}
+                          />
                         )}
 
                         {/* Bubble Overlay */}

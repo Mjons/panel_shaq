@@ -53,6 +53,10 @@ export interface PanelPrompt {
   imageTransform?: { x: number; y: number; scale: number; rotation?: number };
   borderColor?: string;
   borderWidth?: number;
+  borderStyle?: {
+    seed: number;
+    layers: Array<{ effect: string; intensity: number }>;
+  } | null;
 }
 
 /** Ensure a panel always has valid bubbles and imageTransform fields */

@@ -191,6 +191,7 @@ export function exportAsComic(
           panel?.borderColor && panel.borderColor !== "none"
             ? panel.borderColor
             : "#000000",
+        borderStyle: panel?.borderStyle || null,
         showOutline: true,
         visible: true,
         locked: false,
