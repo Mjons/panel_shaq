@@ -1063,16 +1063,26 @@ export const EditorScreen: React.FC<EditorProps> = ({
       });
 
       setExportProgress(90);
-      const blob = await encodeGif({
+      console.log(
+        "GIF encoding:",
+        frames.length,
+        "frames at",
+        gifWidth,
+        "x",
+        gifHeight,
+      );
+      const gifBuffer = await encodeGif({
         width: gifWidth,
         height: gifHeight,
         frames: frames.map((f) => ({
+          width: gifWidth,
+          height: gifHeight,
           data: f.data.data,
           delay: f.delay,
         })),
         maxColors: 128,
-        format: "blob",
       });
+      const blob = new Blob([gifBuffer], { type: "image/gif" });
 
       setExportProgress(100);
       const file = new File([blob], `Comic_Page_${selectedPageIdx + 1}.gif`, {
