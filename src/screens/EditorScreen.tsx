@@ -1013,7 +1013,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
             );
             frames.push({
               data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-              delay: 500,
+              delay: 900,
             });
           }
         } else {
@@ -1179,6 +1179,73 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 Got it
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Border Color */}
+        {selectedPanelId && selectedPanel && (
+          <div className="bg-surface-container rounded-lg p-4 space-y-2">
+            <label className="text-[9px] font-bold uppercase tracking-widest text-accent/40 block">
+              Border
+            </label>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { color: "#000000", label: "Black" },
+                { color: "#FFFFFF", label: "White" },
+                { color: "#EF4444", label: "Red" },
+                { color: "#3B82F6", label: "Blue" },
+                { color: "#F5B119", label: "Gold" },
+                { color: "#10B981", label: "Green" },
+                { color: "#8B5CF6", label: "Purple" },
+                { color: "none", label: "None" },
+              ].map(({ color, label }) => (
+                <button
+                  key={color}
+                  title={label}
+                  onClick={() =>
+                    updatePanel(selectedPanelId, {
+                      borderColor: color,
+                      borderWidth:
+                        color === "none" ? 0 : selectedPanel.borderWidth || 2,
+                    })
+                  }
+                  className={`w-7 h-7 rounded-full border-2 transition-all ${
+                    (selectedPanel.borderColor || "none") === color
+                      ? "border-primary scale-110"
+                      : "border-outline/20"
+                  }`}
+                  style={{
+                    background:
+                      color === "none"
+                        ? "linear-gradient(135deg, transparent 45%, #EF4444 45%, #EF4444 55%, transparent 55%)"
+                        : color,
+                  }}
+                />
+              ))}
+            </div>
+            {selectedPanel.borderColor &&
+              selectedPanel.borderColor !== "none" && (
+                <div className="flex items-center gap-2">
+                  <label className="text-[9px] text-accent/30 shrink-0">
+                    Width
+                  </label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={6}
+                    value={selectedPanel.borderWidth || 2}
+                    onChange={(e) =>
+                      updatePanel(selectedPanelId, {
+                        borderWidth: parseInt(e.target.value),
+                      })
+                    }
+                    className="flex-1 accent-primary h-1"
+                  />
+                  <span className="text-[9px] text-accent/40 w-4 text-right">
+                    {selectedPanel.borderWidth || 2}
+                  </span>
+                </div>
+              )}
           </div>
         )}
 
@@ -1350,6 +1417,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             : {}),
                           ...(gifVisibleCount !== null && idx >= gifVisibleCount
                             ? { opacity: 0 }
+                            : {}),
+                          ...(panel.borderColor && panel.borderColor !== "none"
+                            ? {
+                                border: `${panel.borderWidth || 2}px solid ${panel.borderColor}`,
+                              }
                             : {}),
                         }}
                       >

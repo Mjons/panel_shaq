@@ -186,8 +186,11 @@ export function exportAsComic(
           flipH: false,
           flipV: false,
         },
-        strokeWidth: 2,
-        strokeColor: "#000000",
+        strokeWidth: panel?.borderWidth || 2,
+        strokeColor:
+          panel?.borderColor && panel.borderColor !== "none"
+            ? panel.borderColor
+            : "#000000",
         showOutline: true,
         visible: true,
         locked: false,

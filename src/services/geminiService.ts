@@ -51,6 +51,8 @@ export interface PanelPrompt {
   notes?: string;
   bubbles: Bubble[];
   imageTransform?: { x: number; y: number; scale: number; rotation?: number };
+  borderColor?: string;
+  borderWidth?: number;
 }
 
 /** Ensure a panel always has valid bubbles and imageTransform fields */
