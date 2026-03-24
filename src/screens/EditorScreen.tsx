@@ -31,6 +31,7 @@ import {
   Sparkles,
   ArrowRight,
   Dices,
+  Film,
 } from "lucide-react";
 import {
   PanelPrompt,
@@ -611,6 +612,7 @@ interface EditorProps {
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   onNavigate?: (tab: string) => void;
   pageFormat?: string;
+  onOpenGifEditor?: (images: { id: string; imageData: string }[]) => void;
 }
 
 export const EditorScreen: React.FC<EditorProps> = ({
@@ -619,6 +621,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   setPanels,
   onNavigate,
   pageFormat = "portrait",
+  onOpenGifEditor,
 }) => {
   const [selectedPageIdx, setSelectedPageIdx] = useState(0);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
@@ -2100,6 +2103,21 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   </button>
                 ))}
               </div>
+              {onOpenGifEditor && (
+                <button
+                  onClick={() => {
+                    const images = panels
+                      .filter((p) => p.image)
+                      .map((p) => ({ id: p.id, imageData: p.image! }));
+                    if (images.length > 0) onOpenGifEditor(images);
+                  }}
+                  disabled={isExporting}
+                  className="w-full py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary/20 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  <Film size={14} />
+                  GIF Editor
+                </button>
+              )}
               {isExporting && exportProgress > 0 && (
                 <div className="flex items-center gap-2 text-xs text-accent/50">
                   <Loader2 size={12} className="animate-spin" />

@@ -71,6 +71,11 @@ const SettingsScreen = lazyWithReload(() =>
 const ShareScreen = lazyWithReload(() =>
   import("./screens/ShareScreen").then((m) => ({ default: m.ShareScreen })),
 );
+const GifEditorScreen = lazyWithReload(() =>
+  import("./screens/GifEditorScreen").then((m) => ({
+    default: m.GifEditorScreen,
+  })),
+);
 
 // Character is now a VaultEntry with type "Character" — single source of truth
 export type Character = VaultEntry;
@@ -197,6 +202,9 @@ function AppInner() {
   }, [addToast]);
 
   const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
+  const [gifEditorImages, setGifEditorImages] = useState<
+    { id: string; imageData: string }[] | null
+  >(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
@@ -593,6 +601,7 @@ function AppInner() {
             setPanels={setPanels}
             onNavigate={guardedSetActiveTab}
             pageFormat={pageFormat}
+            onOpenGifEditor={setGifEditorImages}
           />
         );
       case "settings":
@@ -652,17 +661,35 @@ function AppInner() {
         onTabChange={guardedSetActiveTab}
       />
 
-      <main
-        {...bindSwipe()}
-        className="relative z-10"
-        style={{ touchAction: "pan-y" }}
-      >
-        <ErrorBoundary>
-          <Suspense fallback={<LoadingSkeleton />}>{renderScreen()}</Suspense>
-        </ErrorBoundary>
-      </main>
+      {gifEditorImages ? (
+        <main className="relative z-10">
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <GifEditorScreen
+                panelImages={gifEditorImages}
+                onBack={() => setGifEditorImages(null)}
+                pageFormat={pageFormat}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+      ) : (
+        <>
+          <main
+            {...bindSwipe()}
+            className="relative z-10"
+            style={{ touchAction: "pan-y" }}
+          >
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingSkeleton />}>
+                {renderScreen()}
+              </Suspense>
+            </ErrorBoundary>
+          </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={guardedSetActiveTab} />
+          <BottomNav activeTab={activeTab} onTabChange={guardedSetActiveTab} />
+        </>
+      )}
 
       <ProjectManager
         isOpen={isProjectManagerOpen}
