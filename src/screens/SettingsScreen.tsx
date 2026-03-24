@@ -22,6 +22,7 @@ export interface AppSettings {
   showRegenWarnings: boolean;
   showDataWarnings: boolean;
   rotationStep: number;
+  pageBackgroundColor: string;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -34,6 +35,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   showRegenWarnings: true,
   showDataWarnings: true,
   rotationStep: 10,
+  pageBackgroundColor: "#FFFFFF",
 };
 
 export const SettingsScreen = () => {
@@ -327,6 +329,41 @@ export const SettingsScreen = () => {
             </div>
             <p className="text-[9px] text-accent/30">
               Degrees per 2-finger tap on images and bubbles
+            </p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+              Page Background
+            </label>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { color: "#FFFFFF", label: "White" },
+                { color: "#000000", label: "Black" },
+                { color: "#FFF8E7", label: "Cream" },
+                { color: "#E5E7EB", label: "Gray" },
+                { color: "#DBEAFE", label: "Blue" },
+                { color: "transparent", label: "Transparent" },
+              ].map(({ color, label }) => (
+                <button
+                  key={color}
+                  title={label}
+                  onClick={() => updateSetting("pageBackgroundColor", color)}
+                  className={`w-8 h-8 rounded-lg border-2 transition-all ${
+                    (settings.pageBackgroundColor || "#FFFFFF") === color
+                      ? "border-primary scale-110"
+                      : "border-outline/20"
+                  }`}
+                  style={{
+                    background:
+                      color === "transparent"
+                        ? "repeating-conic-gradient(#808080 0% 25%, #c0c0c0 0% 50%) 50% / 12px 12px"
+                        : color,
+                  }}
+                />
+              ))}
+            </div>
+            <p className="text-[9px] text-accent/30">
+              Background color for comic pages and exports
             </p>
           </div>
         </section>

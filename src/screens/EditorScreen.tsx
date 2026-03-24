@@ -626,6 +626,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
       return 10;
     }
   }, []);
+  const pageBackgroundColor = useMemo(() => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).pageBackgroundColor || "#FFFFFF" : "#FFFFFF";
+    } catch {
+      return "#FFFFFF";
+    }
+  }, []);
   const [isRendering, setIsRendering] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
@@ -1250,6 +1258,37 @@ export const EditorScreen: React.FC<EditorProps> = ({
           </div>
         )}
 
+        {/* Panel Actions */}
+        {selectedPanelId && (
+          <div className="bg-surface-container rounded-lg p-4 flex gap-2">
+            <button
+              onClick={() =>
+                updatePanel(selectedPanelId, {
+                  imageTransform: { x: 0, y: 0, scale: 1 },
+                })
+              }
+              className="flex-1 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw size={12} />
+              Reset Position
+            </button>
+            {selectedPanel?.image && (
+              <button
+                onClick={() => {
+                  const link = document.createElement("a");
+                  link.download = `panel-${panels.findIndex((p) => p.id === selectedPanelId) + 1}.png`;
+                  link.href = selectedPanel.image!;
+                  link.click();
+                }}
+                className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <Download size={12} />
+                Save
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Border Color */}
         {selectedPanelId && selectedPanel && (
           <div className="bg-surface-container rounded-lg p-4 space-y-2">
@@ -1265,6 +1304,13 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 { color: "#F5B119", label: "Gold" },
                 { color: "#10B981", label: "Green" },
                 { color: "#8B5CF6", label: "Purple" },
+                {
+                  color:
+                    pageBackgroundColor === "transparent"
+                      ? "#FFFFFF"
+                      : pageBackgroundColor,
+                  label: "Page",
+                },
                 { color: "none", label: "None" },
               ].map(({ color, label }) => (
                 <button
@@ -1378,37 +1424,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
             </div>
           </div>
         )}
-
-        {/* Panel Actions */}
-        {selectedPanelId && (
-          <div className="bg-surface-container rounded-lg p-4 flex gap-2">
-            <button
-              onClick={() =>
-                updatePanel(selectedPanelId, {
-                  imageTransform: { x: 0, y: 0, scale: 1 },
-                })
-              }
-              className="flex-1 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-            >
-              <RotateCcw size={12} />
-              Reset Position
-            </button>
-            {selectedPanel?.image && (
-              <button
-                onClick={() => {
-                  const link = document.createElement("a");
-                  link.download = `panel-${panels.findIndex((p) => p.id === selectedPanelId) + 1}.png`;
-                  link.href = selectedPanel.image!;
-                  link.click();
-                }}
-                className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 hover:text-primary border border-outline/10 rounded-lg transition-colors flex items-center gap-1.5"
-              >
-                <Download size={12} />
-                Save
-              </button>
-            )}
-          </div>
-        )}
       </aside>
 
       {/* Center: Comic Canvas */}
@@ -1481,7 +1496,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
           >
             <div
               {...(!isExporting ? bindComicPinch() : {})}
-              className={`w-full h-full bg-background relative overflow-hidden ${isExporting ? "pointer-events-none" : ""} ${selectedBubbleId ? "touch-none" : ""}`}
+              className={`w-full h-full relative overflow-hidden ${isExporting ? "pointer-events-none" : ""} ${selectedBubbleId ? "touch-none" : ""}`}
+              style={{
+                backgroundColor:
+                  pageBackgroundColor === "transparent"
+                    ? "transparent"
+                    : pageBackgroundColor,
+                ...(pageBackgroundColor === "transparent" && !isExporting
+                  ? {
+                      backgroundImage:
+                        "repeating-conic-gradient(#808080 0% 25%, #c0c0c0 0% 50%)",
+                      backgroundSize: "16px 16px",
+                    }
+                  : {}),
+              }}
             >
               {currentPage ? (
                 <div
@@ -1537,7 +1565,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                             lastTapRef.current = { id: pid, time: now };
                           }
                         }}
-                        className={`bg-black relative cursor-pointer transition-all overflow-hidden group/panel ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
+                        className={`bg-black relative cursor-pointer overflow-hidden group/panel ${isExporting ? "!ring-0 !shadow-none" : `transition-all ${selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}`}
                         style={{
                           ...(slot
                             ? {
