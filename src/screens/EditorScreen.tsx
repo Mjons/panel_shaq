@@ -1185,20 +1185,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
           : `Comic_${mode}.gif`;
       const file = new File([blob], filename, { type: "image/gif" });
 
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: "My Comic",
-          text: "Made with Panelhaus",
-          files: [file],
-        });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = file.name;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
+      // Always download directly — navigator.share() fails here because
+      // the user gesture has expired during async GIF encoding
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = file.name;
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error("GIF export failed:", error);
       alert(`GIF export failed: ${error?.message || error}`);
