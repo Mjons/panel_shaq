@@ -947,48 +947,105 @@ export const EditorScreen: React.FC<EditorProps> = ({
     await waitForPaint();
 
     try {
-      const panelCount = currentPage.panelIds.length;
+      // Determine frame size from page format
+      const fmt = PAGE_FORMATS[pageFormat] || PAGE_FORMATS.portrait;
       const gifWidth = 480;
+      const gifHeight = Math.round(gifWidth * (fmt.ratio[1] / fmt.ratio[0]));
+      const frameRatio = gifWidth / gifHeight;
+
       const canvas = document.createElement("canvas");
+      canvas.width = gifWidth;
+      canvas.height = gifHeight;
       const ctx = canvas.getContext("2d")!;
 
-      const frames: Array<{ data: ImageData; delay: number }> = [];
-
-      for (let visible = 1; visible <= panelCount; visible++) {
-        setGifVisibleCount(visible);
-        await waitForPaint();
-        await new Promise((r) => setTimeout(r, 100)); // extra settle time
-
-        const imgData = await captureRef(comicRef, "png");
-        const img = new Image();
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve();
+      const loadImg = (src: string): Promise<HTMLImageElement> =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
           img.onerror = reject;
-          img.src = imgData;
+          img.src = src;
         });
 
-        const ratio = img.height / img.width;
-        const gifHeight = Math.round(gifWidth * ratio);
-        canvas.width = gifWidth;
-        canvas.height = gifHeight;
-        ctx.drawImage(img, 0, 0, gifWidth, gifHeight);
+      const frames: Array<{ data: ImageData; delay: number }> = [];
+      const orderedPanels = currentPage.panelIds
+        .map((pid) => panels.find((p) => p.id === pid))
+        .filter((p) => p?.image);
+      const totalSteps = orderedPanels.length + 1;
 
-        const frameData = ctx.getImageData(0, 0, gifWidth, gifHeight);
-        frames.push({
-          data: frameData,
-          delay: visible === panelCount ? 2000 : 800,
-        });
+      // Frame per panel — fill or pan
+      for (let i = 0; i < orderedPanels.length; i++) {
+        const panel = orderedPanels[i]!;
+        const img = await loadImg(panel.image!);
+        const panelRatio = img.width / img.height;
+        const isWide = panelRatio > frameRatio * 1.5;
 
-        setExportProgress(Math.round((visible / panelCount) * 80));
+        if (isWide) {
+          // Pan across in 3 sub-frames
+          const panSteps = 3;
+          const visibleW = img.height * frameRatio;
+          const maxOffsetX = img.width - visibleW;
+          for (let step = 0; step < panSteps; step++) {
+            const progress = step / (panSteps - 1);
+            const srcX = maxOffsetX * progress;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, gifWidth, gifHeight);
+            ctx.drawImage(
+              img,
+              srcX,
+              0,
+              visibleW,
+              img.height,
+              0,
+              0,
+              gifWidth,
+              gifHeight,
+            );
+            frames.push({
+              data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+              delay: 500,
+            });
+          }
+        } else {
+          // Fill frame (object-cover style)
+          const scale = Math.max(gifWidth / img.width, gifHeight / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const offsetX = (gifWidth - drawW) / 2;
+          const offsetY = (gifHeight - drawH) / 2;
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, gifWidth, gifHeight);
+          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+          frames.push({
+            data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+            delay: 800,
+          });
+        }
+
+        setExportProgress(Math.round(((i + 1) / totalSteps) * 80));
       }
 
+      // Final frame: full composed page
       setGifVisibleCount(null);
       await waitForPaint();
+      const pageImg = await loadImg(await captureRef(comicRef, "png"));
+      const pageScale = Math.max(
+        gifWidth / pageImg.width,
+        gifHeight / pageImg.height,
+      );
+      const pw = pageImg.width * pageScale;
+      const ph = pageImg.height * pageScale;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, gifWidth, gifHeight);
+      ctx.drawImage(pageImg, (gifWidth - pw) / 2, (gifHeight - ph) / 2, pw, ph);
+      frames.push({
+        data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+        delay: 2000,
+      });
 
       setExportProgress(90);
       const blob = await encodeGif({
-        width: canvas.width,
-        height: canvas.height,
+        width: gifWidth,
+        height: gifHeight,
         frames: frames.map((f) => ({
           data: f.data.data,
           delay: f.delay,
