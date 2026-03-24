@@ -1103,9 +1103,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
         link.click();
         URL.revokeObjectURL(url);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("GIF export failed:", error);
-      alert("GIF export failed.");
+      alert(`GIF export failed: ${error?.message || error}`);
     } finally {
       setGifVisibleCount(null);
       setIsExporting(false);
