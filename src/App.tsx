@@ -656,11 +656,6 @@ function AppInner() {
         <div className="w-full h-full bg-[radial-gradient(#FF9100_1px,transparent_1px)] [background-size:24px_24px]"></div>
       </div>
 
-      <TopNav
-        onCreate={() => setIsProjectManagerOpen(true)}
-        onTabChange={guardedSetActiveTab}
-      />
-
       {gifEditorImages ? (
         <main className="relative z-10">
           <ErrorBoundary>
@@ -675,6 +670,11 @@ function AppInner() {
         </main>
       ) : (
         <>
+          <TopNav
+            onCreate={() => setIsProjectManagerOpen(true)}
+            onTabChange={guardedSetActiveTab}
+          />
+
           <main
             {...bindSwipe()}
             className="relative z-10"

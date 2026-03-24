@@ -161,7 +161,10 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
   return (
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/90 backdrop-blur-md border-b border-outline/10">
+      <div
+        className="sticky top-0 z-20 bg-background/90 backdrop-blur-md border-b border-outline/10"
+        style={{ paddingTop: "var(--sat)" }}
+      >
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={onBack}
