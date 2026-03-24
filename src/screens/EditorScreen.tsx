@@ -279,6 +279,7 @@ const DraggableBubble: React.FC<{
       <div
         ref={containerRef}
         {...(!isExporting ? bindGesture() : {})}
+        onClick={(e) => e.stopPropagation()}
         className="absolute z-20 touch-none"
         style={{
           left: `${bubble.pos.x}%`,
@@ -401,6 +402,8 @@ const DraggableBubble: React.FC<{
       {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}
       {isSelected && isEditing && !isExporting && (
         <div
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           className={`fixed z-[210] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]`}
           style={
             isFullscreen
@@ -463,7 +466,12 @@ const DraggableBubble: React.FC<{
             </span>
             <button
               onClick={() =>
-                onUpdateBubble({ fontSize: Math.min(69, bubble.fontSize + 2) })
+                onUpdateBubble({
+                  fontSize: Math.min(
+                    bubble.style === "sticker" ? 138 : 69,
+                    bubble.fontSize + 2,
+                  ),
+                })
               }
               className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
             >
@@ -586,8 +594,12 @@ export const EditorScreen: React.FC<EditorProps> = ({
       onPinch: ({ offset: [s], last }) => {
         const panelIsLocked = lockedPanelIds.has(selectedPanelId || "");
         if (!selectedBubbleId || (!isBubbleEditing && !panelIsLocked)) return;
+        const selectedBubble = selectedPanel?.bubbles.find(
+          (b) => b.id === selectedBubbleId,
+        );
+        const maxSize = selectedBubble?.style === "sticker" ? 138 : 69;
         const newSize = Math.round(
-          Math.max(6, Math.min(69, bubblePinchBase.current * s)),
+          Math.max(6, Math.min(maxSize, bubblePinchBase.current * s)),
         );
 
         updateBubble(selectedBubbleId, {
@@ -1143,6 +1155,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           ) {
                             setFullscreenPanelId(pid);
                             setSelectedPanelId(pid);
+                            // Auto-lock panel in fullscreen so text is manipulable by default
+                            setLockedPanelIds((prev) => new Set(prev).add(pid));
                             lastTapRef.current = null;
                           } else {
                             setSelectedPanelId(pid);
