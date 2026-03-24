@@ -235,7 +235,7 @@ const PanelBorderWrapper: React.FC<{
       style={clipPath ? { clipPath: `path('${clipPath}')` } : undefined}
     >
       {children}
-      {svgPath && (
+      {svgPath && strokeColor !== "none" && (
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none z-[25]"
           viewBox={`0 0 ${size.w} ${size.h}`}
@@ -1318,6 +1318,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 { color: "#F5B119", label: "Gold" },
                 { color: "#10B981", label: "Green" },
                 { color: "#8B5CF6", label: "Purple" },
+                { color: "#1E3A5F", label: "Navy" },
                 {
                   color:
                     pageBackgroundColor === "transparent"

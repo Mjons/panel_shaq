@@ -342,6 +342,7 @@ export const SettingsScreen = () => {
                 { color: "#FFF8E7", label: "Cream" },
                 { color: "#E5E7EB", label: "Gray" },
                 { color: "#DBEAFE", label: "Blue" },
+                { color: "#1E3A5F", label: "Navy" },
                 { color: "transparent", label: "Transparent" },
               ].map(({ color, label }) => (
                 <button
