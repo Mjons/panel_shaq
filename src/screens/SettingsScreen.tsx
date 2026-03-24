@@ -35,7 +35,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   showRegenWarnings: true,
   showDataWarnings: true,
   rotationStep: 10,
-  pageBackgroundColor: "#FFFFFF",
+  pageBackgroundColor: "#000000",
 };
 
 export const SettingsScreen = () => {
@@ -342,7 +342,7 @@ export const SettingsScreen = () => {
                 { color: "#FFF8E7", label: "Cream" },
                 { color: "#E5E7EB", label: "Gray" },
                 { color: "#DBEAFE", label: "Blue" },
-                { color: "#1E3A5F", label: "Navy" },
+                { color: "#0B1326", label: "Navy" },
                 { color: "transparent", label: "Transparent" },
               ].map(({ color, label }) => (
                 <button
