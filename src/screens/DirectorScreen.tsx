@@ -14,6 +14,7 @@ import {
   Eye,
   Copy,
   ClipboardPaste,
+  Trash2,
 } from "lucide-react";
 import {
   generatePanelImage,
@@ -362,6 +363,7 @@ const PanelCard = React.memo(
     isFailed,
     onQueueGenerate,
     onPreview,
+    onDelete,
     copiedImage,
     onCopyImage,
     onPasteImage,
@@ -378,6 +380,7 @@ const PanelCard = React.memo(
     isFailed?: boolean;
     onQueueGenerate: (panelId: string) => void;
     onPreview: (index: number) => void;
+    onDelete: (index: number) => void;
     copiedImage?: string | null;
     onCopyImage?: (image: string) => void;
     onPasteImage?: () => void;
@@ -701,6 +704,18 @@ const PanelCard = React.memo(
                 </span>
               </div>
             </div>
+
+            {/* Delete button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(index);
+              }}
+              className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/60 backdrop-blur-sm text-accent/40 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors z-10"
+              title="Delete panel"
+            >
+              <Trash2 size={14} />
+            </button>
 
             {/* Queue status badges */}
             {isQueued && !isQueueGenerating && (
@@ -1344,6 +1359,23 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
     setDraftPanel(null);
   };
 
+  const handleDeletePanel = useCallback(
+    async (index: number) => {
+      const panel = panels[index];
+      if (panel?.image) {
+        const ok = await confirm({
+          title: "Delete Panel",
+          message: `Delete Panel ${index + 1}? This panel has a generated image that will be lost.`,
+          confirmText: "Delete",
+          danger: true,
+        });
+        if (!ok) return;
+      }
+      setPanels((prev) => prev.filter((_, i) => i !== index));
+    },
+    [panels, confirm],
+  );
+
   const handleUpdatePanel = useCallback(
     (index: number, updated: PanelPrompt) => {
       setPanels((prev) => prev.map((p, i) => (i === index ? updated : p)));
@@ -1671,6 +1703,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
                 isFailed={failedPanels.has(panel.id)}
                 onQueueGenerate={handleQueueGenerate}
                 onPreview={handlePreview}
+                onDelete={handleDeletePanel}
                 copiedImage={copiedImage}
                 onCopyImage={(img) => setCopiedImage(img)}
                 onPasteImage={() => {
