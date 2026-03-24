@@ -26,12 +26,9 @@ export interface BorderPreset {
 export const BORDER_PRESETS: BorderPreset[] = [
   { id: "none", label: "None", layers: [] },
   {
-    id: "comic-classic",
-    label: "Comic",
-    layers: [
-      { effect: "round", intensity: 30 },
-      { effect: "wobble", intensity: 20 },
-    ],
+    id: "rounded",
+    label: "Rounded",
+    layers: [{ effect: "round", intensity: 50 }],
   },
   {
     id: "indie-sketch",
@@ -43,11 +40,12 @@ export const BORDER_PRESETS: BorderPreset[] = [
     ],
   },
   {
-    id: "clean-ink",
+    id: "brush-ink",
     label: "Ink",
     layers: [
-      { effect: "round", intensity: 40 },
-      { effect: "ink", intensity: 15 },
+      { effect: "round", intensity: 10 },
+      { effect: "wobble", intensity: 10 },
+      { effect: "ink", intensity: 45 },
     ],
   },
   {

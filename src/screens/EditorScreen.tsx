@@ -179,44 +179,51 @@ const PanelImage: React.FC<{
   );
 };
 
-/* ── Border Effect SVG Overlay ── */
-const BorderEffectOverlay: React.FC<{
-  borderStyle: {
+/* ── Panel Border Wrapper — clip-path for outer edge + SVG stroke for visible line ── */
+const PanelBorderWrapper: React.FC<{
+  active: boolean;
+  borderStyle?: {
     seed: number;
     layers: Array<{ effect: string; intensity: number }>;
-  };
+  } | null;
   strokeColor: string;
   strokeWidth: number;
-}> = ({ borderStyle, strokeColor, strokeWidth }) => {
+  children: React.ReactNode;
+}> = ({ active, borderStyle, strokeColor, strokeWidth, children }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current || !active) return;
     const obs = new ResizeObserver(([entry]) => {
       setSize({ w: entry.contentRect.width, h: entry.contentRect.height });
     });
     obs.observe(ref.current);
     return () => obs.disconnect();
-  }, []);
+  }, [active]);
 
   const svgPath =
-    size.w > 0 && size.h > 0
+    active && borderStyle && size.w > 0 && size.h > 0
       ? borderPathToSVG(
           getCachedBorderPath(
             size.w,
             size.h,
-            borderStyle.layers as any,
+            borderStyle.layers,
             borderStyle.seed,
           ),
         )
       : "";
 
   return (
-    <div ref={ref} className="absolute inset-0 pointer-events-none z-[5]">
+    <div
+      ref={ref}
+      className="w-full h-full relative"
+      style={svgPath ? { clipPath: `path('${svgPath}')` } : undefined}
+    >
+      {children}
       {svgPath && (
         <svg
-          className="w-full h-full"
+          className="absolute inset-0 w-full h-full pointer-events-none z-[5]"
           viewBox={`0 0 ${size.w} ${size.h}`}
           preserveAspectRatio="none"
         >
@@ -1541,140 +1548,140 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           ...(gifVisibleCount !== null && idx >= gifVisibleCount
                             ? { opacity: 0 }
                             : {}),
-                          ...(panel.borderColor && panel.borderColor !== "none"
+                          ...(panel.borderColor &&
+                          panel.borderColor !== "none" &&
+                          !hasActiveBorderStyle(panel.borderStyle)
                             ? {
                                 border: `${panel.borderWidth || 2}px solid ${panel.borderColor}`,
                               }
                             : {}),
                         }}
                       >
-                        {panel.image ? (
-                          <PanelImage
-                            panel={panel}
-                            idx={idx}
-                            isSelected={selectedPanelId === pid}
-                            isExporting={isExporting}
-                            locked={
-                              !!selectedBubbleId || lockedPanelIds.has(pid)
-                            }
-                            rotationStep={rotationStep}
-                            onSelect={setSelectedPanelId}
-                            onTransform={(id, t) =>
-                              updatePanel(id, { imageTransform: t })
-                            }
-                          />
-                        ) : (
-                          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-surface-container">
-                            <ImageIcon
-                              size={24}
-                              className="text-outline opacity-20"
+                        <PanelBorderWrapper
+                          active={hasActiveBorderStyle(panel.borderStyle)}
+                          borderStyle={panel.borderStyle}
+                          strokeColor={
+                            panel.borderColor && panel.borderColor !== "none"
+                              ? panel.borderColor
+                              : "#000"
+                          }
+                          strokeWidth={panel.borderWidth || 2}
+                        >
+                          {panel.image ? (
+                            <PanelImage
+                              panel={panel}
+                              idx={idx}
+                              isSelected={selectedPanelId === pid}
+                              isExporting={isExporting}
+                              locked={
+                                !!selectedBubbleId || lockedPanelIds.has(pid)
+                              }
+                              rotationStep={rotationStep}
+                              onSelect={setSelectedPanelId}
+                              onTransform={(id, t) =>
+                                updatePanel(id, { imageTransform: t })
+                              }
                             />
-                            <span className="text-[8px] font-label uppercase text-accent/30">
-                              No Image
-                            </span>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-surface-container">
+                              <ImageIcon
+                                size={24}
+                                className="text-outline opacity-20"
+                              />
+                              <span className="text-[8px] font-label uppercase text-accent/30">
+                                No Image
+                              </span>
+                            </div>
+                          )}
 
-                        {/* Position lock toggle */}
-                        {!isExporting && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setLockedPanelIds((prev) => {
-                                const next = new Set(prev);
-                                if (next.has(pid)) next.delete(pid);
-                                else next.add(pid);
-                                return next;
-                              });
-                            }}
-                            className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
-                          >
-                            {lockedPanelIds.has(pid) ? (
-                              <Lock size={12} className="text-primary" />
-                            ) : (
-                              <Unlock size={12} className="text-accent/40" />
-                            )}
-                          </button>
-                        )}
-
-                        {/* Border Effect SVG Overlay */}
-                        {hasActiveBorderStyle(panel.borderStyle) && (
-                          <BorderEffectOverlay
-                            borderStyle={panel.borderStyle!}
-                            strokeColor={
-                              panel.borderColor && panel.borderColor !== "none"
-                                ? panel.borderColor
-                                : "#000"
-                            }
-                            strokeWidth={panel.borderWidth || 2}
-                          />
-                        )}
-
-                        {/* Bubble Overlay */}
-                        {(panel.bubbles || []).map((bubble) => (
-                          <DraggableBubble
-                            key={bubble.id}
-                            bubble={bubble}
-                            isSelected={
-                              selectedBubbleId === bubble.id && !isExporting
-                            }
-                            isExporting={isExporting}
-                            onSelect={() => {
-                              setSelectedPanelId(pid);
-                              setSelectedBubbleId(bubble.id);
-                            }}
-                            onDeselect={() => {
-                              setSelectedBubbleId(null);
-                              setIsBubbleEditing(false);
-                            }}
-                            onEditingChange={setIsBubbleEditing}
-                            panelLocked={lockedPanelIds.has(pid)}
-                            onMove={(pos) => {
-                              if (selectedPanelId !== pid)
-                                setSelectedPanelId(pid);
-                              updateBubble(bubble.id, { pos });
-                            }}
-                            onUpdateBubble={(updates) =>
-                              updateBubble(bubble.id, updates)
-                            }
-                            onRemove={() => removeBubble(bubble.id)}
-                            onBakeAll={handleFinalRender}
-                            isRendering={isRendering}
-                          />
-                        ))}
-
-                        {/* FAB: Add bubble button on selected panel */}
-                        {selectedPanelId === pid &&
-                          !isExporting &&
-                          !selectedBubbleId && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  addBubble();
-                                }}
-                                className="absolute bottom-2 right-2 z-30 w-8 h-8 bg-primary text-background rounded-full flex items-center justify-center shadow-lg hover:opacity-90 active:scale-90 transition-all"
-                                title="Add dialogue bubble"
-                              >
-                                <Plus size={18} />
-                              </button>
-                              {(!panel.bubbles ||
-                                panel.bubbles.length === 0) && (
-                                <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                                  <p className="text-accent/30 text-xs font-bold uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-lg">
-                                    Tap + to add dialogue
-                                  </p>
-                                </div>
+                          {/* Position lock toggle */}
+                          {!isExporting && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLockedPanelIds((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(pid)) next.delete(pid);
+                                  else next.add(pid);
+                                  return next;
+                                });
+                              }}
+                              className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
+                            >
+                              {lockedPanelIds.has(pid) ? (
+                                <Lock size={12} className="text-primary" />
+                              ) : (
+                                <Unlock size={12} className="text-accent/40" />
                               )}
-                            </>
+                            </button>
                           )}
 
-                        {/* Dim non-selected panels when one is selected */}
-                        {selectedPanelId &&
-                          selectedPanelId !== pid &&
-                          !isExporting && (
-                            <div className="absolute inset-0 bg-black/30 z-10 pointer-events-none" />
-                          )}
+                          {/* Bubble Overlay */}
+                          {(panel.bubbles || []).map((bubble) => (
+                            <DraggableBubble
+                              key={bubble.id}
+                              bubble={bubble}
+                              isSelected={
+                                selectedBubbleId === bubble.id && !isExporting
+                              }
+                              isExporting={isExporting}
+                              onSelect={() => {
+                                setSelectedPanelId(pid);
+                                setSelectedBubbleId(bubble.id);
+                              }}
+                              onDeselect={() => {
+                                setSelectedBubbleId(null);
+                                setIsBubbleEditing(false);
+                              }}
+                              onEditingChange={setIsBubbleEditing}
+                              panelLocked={lockedPanelIds.has(pid)}
+                              onMove={(pos) => {
+                                if (selectedPanelId !== pid)
+                                  setSelectedPanelId(pid);
+                                updateBubble(bubble.id, { pos });
+                              }}
+                              onUpdateBubble={(updates) =>
+                                updateBubble(bubble.id, updates)
+                              }
+                              onRemove={() => removeBubble(bubble.id)}
+                              onBakeAll={handleFinalRender}
+                              isRendering={isRendering}
+                            />
+                          ))}
+
+                          {/* FAB: Add bubble button on selected panel */}
+                          {selectedPanelId === pid &&
+                            !isExporting &&
+                            !selectedBubbleId && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    addBubble();
+                                  }}
+                                  className="absolute bottom-2 right-2 z-30 w-8 h-8 bg-primary text-background rounded-full flex items-center justify-center shadow-lg hover:opacity-90 active:scale-90 transition-all"
+                                  title="Add dialogue bubble"
+                                >
+                                  <Plus size={18} />
+                                </button>
+                                {(!panel.bubbles ||
+                                  panel.bubbles.length === 0) && (
+                                  <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                                    <p className="text-accent/30 text-xs font-bold uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-lg">
+                                      Tap + to add dialogue
+                                    </p>
+                                  </div>
+                                )}
+                              </>
+                            )}
+
+                          {/* Dim non-selected panels when one is selected */}
+                          {selectedPanelId &&
+                            selectedPanelId !== pid &&
+                            !isExporting && (
+                              <div className="absolute inset-0 bg-black/30 z-10 pointer-events-none" />
+                            )}
+                        </PanelBorderWrapper>
                       </div>
                     );
                   })}
