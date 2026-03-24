@@ -71,6 +71,12 @@ const PanelImage: React.FC<{
   const imgRef = useRef<HTMLImageElement>(null);
   const tRef = useRef({ ...initial, rotation: initial.rotation || 0 });
   const baseRotation = useRef(initial.rotation || 0);
+  const pinchCount = useRef(0);
+  const lastPinchEnd = useRef(0);
+
+  useEffect(() => {
+    pinchCount.current = 0;
+  }, [panel.id, isSelected]);
 
   // Sync ref when props change
   useEffect(() => {
@@ -99,8 +105,14 @@ const PanelImage: React.FC<{
         if (last) onTransform(panel.id, { ...t });
       },
       onPinchStart: () => {
-        // Rotate per second-finger tap
-        if (!isExporting && !locked) {
+        pinchCount.current += 1;
+        const timeSinceLast = Date.now() - lastPinchEnd.current;
+        if (
+          !isExporting &&
+          !locked &&
+          pinchCount.current > 1 &&
+          timeSinceLast > 500
+        ) {
           const newRotation = (tRef.current.rotation || 0) + rotationStep;
           tRef.current.rotation =
             Math.abs(newRotation % 360) < rotationStep / 2 ? 0 : newRotation;
@@ -113,7 +125,10 @@ const PanelImage: React.FC<{
         event?.preventDefault();
         tRef.current.scale = Math.min(4.2, Math.max(0.5, s));
         applyTransform();
-        if (last) onTransform(panel.id, { ...tRef.current });
+        if (last) {
+          onTransform(panel.id, { ...tRef.current });
+          lastPinchEnd.current = Date.now();
+        }
       },
     },
     {
@@ -555,6 +570,13 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const bubblePinchBase = useRef(12);
   const bubblePinchRotBase = useRef(0);
   const bubbleRotAccum = useRef(0);
+  const bubblePinchCount = useRef(0);
+  const bubbleLastPinchEnd = useRef(0);
+
+  useEffect(() => {
+    bubblePinchCount.current = 0;
+  }, [selectedBubbleId]);
+
   const bindComicPinch = useGesture(
     {
       onPinchStart: () => {
@@ -564,15 +586,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
           bubblePinchBase.current = b.fontSize;
-          // Rotate on each second-finger tap
-          const newRotation = (b.rotation || 0) + rotationStep;
-          updateBubble(selectedBubbleId, {
-            rotation:
-              Math.abs(newRotation % 360) < rotationStep / 2 ? 0 : newRotation,
-          });
+          bubblePinchCount.current += 1;
+          const timeSinceLast = Date.now() - bubbleLastPinchEnd.current;
+          if (bubblePinchCount.current > 1 && timeSinceLast > 500) {
+            const newRotation = (b.rotation || 0) + rotationStep;
+            updateBubble(selectedBubbleId, {
+              rotation:
+                Math.abs(newRotation % 360) < rotationStep / 2
+                  ? 0
+                  : newRotation,
+            });
+          }
         }
       },
-      onPinch: ({ offset: [s] }) => {
+      onPinch: ({ offset: [s], last }) => {
         const panelIsLocked = lockedPanelIds.has(selectedPanelId || "");
         if (!selectedBubbleId || (!isBubbleEditing && !panelIsLocked)) return;
         const newSize = Math.round(
@@ -582,6 +609,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
         updateBubble(selectedBubbleId, {
           fontSize: newSize,
         });
+        if (last) bubbleLastPinchEnd.current = Date.now();
       },
     },
     {
