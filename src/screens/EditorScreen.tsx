@@ -202,15 +202,29 @@ const PanelBorderWrapper: React.FC<{
     return () => obs.disconnect();
   }, [active]);
 
+  // Generate path at full size for the visible stroke
+  const hasEffect = active && borderStyle && borderStyle.layers.length > 0;
+  const layers = hasEffect ? borderStyle!.layers : [];
+  const seed = borderStyle?.seed || 0;
+
   const svgPath =
-    active && borderStyle && size.w > 0 && size.h > 0
+    active && size.w > 0 && size.h > 0
+      ? borderPathToSVG(getCachedBorderPath(size.w, size.h, layers, seed))
+      : "";
+
+  // Generate an inset path for clipping the image (inset by strokeWidth so image doesn't bleed past the border)
+  const clipPath =
+    active && size.w > 0 && size.h > 0
       ? borderPathToSVG(
           getCachedBorderPath(
-            size.w,
-            size.h,
-            borderStyle.layers,
-            borderStyle.seed,
-          ),
+            size.w - strokeWidth,
+            size.h - strokeWidth,
+            layers,
+            seed,
+          ).map((p) => ({
+            x: p.x + strokeWidth / 2,
+            y: p.y + strokeWidth / 2,
+          })),
         )
       : "";
 
@@ -218,7 +232,7 @@ const PanelBorderWrapper: React.FC<{
     <div
       ref={ref}
       className="w-full h-full relative"
-      style={svgPath ? { clipPath: `path('${svgPath}')` } : undefined}
+      style={clipPath ? { clipPath: `path('${clipPath}')` } : undefined}
     >
       {children}
       {svgPath && (
