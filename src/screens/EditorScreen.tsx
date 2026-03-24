@@ -967,15 +967,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
         });
 
       const frames: Array<{ data: ImageData; delay: number }> = [];
-      const orderedPanels = currentPage.panelIds
-        .map((pid) => panels.find((p) => p.id === pid))
-        .filter((p) => p?.image);
-      const totalSteps = orderedPanels.length + 1;
 
-      // Frame per panel — fill or pan
-      for (let i = 0; i < orderedPanels.length; i++) {
-        const panel = orderedPanels[i]!;
-        const img = await loadImg(panel.image!);
+      // Capture each panel slot from the DOM (includes crop, transform, bubbles)
+      const slotElements = Array.from(
+        comicRef.current!.querySelectorAll("[data-panel-slot]"),
+      ) as HTMLElement[];
+      const totalSteps = slotElements.length + 1;
+
+      for (let i = 0; i < slotElements.length; i++) {
+        const slotPng = await toPng(slotElements[i], {
+          pixelRatio: 1.5,
+          skipFonts: true,
+          cacheBust: true,
+        });
+        const img = await loadImg(slotPng);
         const panelRatio = img.width / img.height;
         const isWide = panelRatio > frameRatio * 1.5;
 
@@ -1290,6 +1295,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     return (
                       <div
                         key={pid}
+                        data-panel-slot={idx}
                         onClick={() => {
                           // Clear bubble selection when tapping a panel
                           setSelectedBubbleId(null);
