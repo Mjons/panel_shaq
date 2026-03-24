@@ -21,6 +21,7 @@
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.546.0",
+    "modern-gif": "^2.0.4",
     "motion": "^12.23.24",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

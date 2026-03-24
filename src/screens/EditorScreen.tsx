@@ -39,6 +39,7 @@ import {
 } from "../services/geminiService";
 import { Page, getTemplate, PAGE_FORMATS } from "./LayoutScreen";
 import { toPng, toJpeg } from "html-to-image";
+import { encode as encodeGif } from "modern-gif";
 import jsPDF from "jspdf";
 
 /* ── Gesture-enabled panel image ── */
@@ -562,6 +563,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [shouldCancelExport, setShouldCancelExport] = useState(false);
   // isFraming removed — selected panels automatically show overflow for transform
   const [exportProgress, setExportProgress] = useState(0);
+  const [gifVisibleCount, setGifVisibleCount] = useState<number | null>(null);
   const comicRef = useRef<HTMLDivElement>(null);
 
   // Panel-level pinch for bubble font resize — captures pinch from anywhere on the panel
@@ -937,6 +939,93 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   };
 
+  const handleCreateGif = async () => {
+    if (!comicRef.current || isExporting || !currentPage) return;
+    setIsExporting(true);
+    setSelectedPanelId(null);
+    setSelectedBubbleId(null);
+    await waitForPaint();
+
+    try {
+      const panelCount = currentPage.panelIds.length;
+      const gifWidth = 480;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d")!;
+
+      const frames: Array<{ data: ImageData; delay: number }> = [];
+
+      for (let visible = 1; visible <= panelCount; visible++) {
+        setGifVisibleCount(visible);
+        await waitForPaint();
+        await new Promise((r) => setTimeout(r, 100)); // extra settle time
+
+        const imgData = await captureRef(comicRef, "png");
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = reject;
+          img.src = imgData;
+        });
+
+        const ratio = img.height / img.width;
+        const gifHeight = Math.round(gifWidth * ratio);
+        canvas.width = gifWidth;
+        canvas.height = gifHeight;
+        ctx.drawImage(img, 0, 0, gifWidth, gifHeight);
+
+        const frameData = ctx.getImageData(0, 0, gifWidth, gifHeight);
+        frames.push({
+          data: frameData,
+          delay: visible === panelCount ? 2000 : 800,
+        });
+
+        setExportProgress(Math.round((visible / panelCount) * 80));
+      }
+
+      setGifVisibleCount(null);
+      await waitForPaint();
+
+      setExportProgress(90);
+      const blob = await encodeGif({
+        width: canvas.width,
+        height: canvas.height,
+        frames: frames.map((f) => ({
+          data: f.data.data,
+          delay: f.delay,
+        })),
+        maxColors: 128,
+        format: "blob",
+      });
+
+      setExportProgress(100);
+      const file = new File([blob], `Comic_Page_${selectedPageIdx + 1}.gif`, {
+        type: "image/gif",
+      });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: "My Comic",
+          text: "Made with Panelhaus",
+          files: [file],
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = file.name;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("GIF export failed:", error);
+      alert("GIF export failed.");
+    } finally {
+      setGifVisibleCount(null);
+      setIsExporting(false);
+      setExportProgress(0);
+    }
+  };
+
   const handleCritique = async (allPages: boolean) => {
     if (!comicRef.current || isCritiquing) return;
     setIsCritiquing(true);
@@ -1164,14 +1253,17 @@ export const EditorScreen: React.FC<EditorProps> = ({
                           }
                         }}
                         className={`bg-black relative cursor-pointer transition-all overflow-hidden group/panel ${isExporting ? "" : selectedPanelId === pid ? "ring-2 ring-primary ring-inset" : ""}`}
-                        style={
-                          slot
+                        style={{
+                          ...(slot
                             ? {
                                 gridColumn: `${slot.colStart} / ${slot.colEnd}`,
                                 gridRow: `${slot.rowStart} / ${slot.rowEnd}`,
                               }
-                            : undefined
-                        }
+                            : {}),
+                          ...(gifVisibleCount !== null && idx >= gifVisibleCount
+                            ? { opacity: 0 }
+                            : {}),
+                        }}
                       >
                         {panel.image ? (
                           <PanelImage
@@ -1616,6 +1708,20 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 Share All Pages
               </button>
             )}
+            <button
+              onClick={handleCreateGif}
+              disabled={isExporting || !currentPage?.panelIds.length}
+              className="w-full py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {isExporting && exportProgress > 0 && exportProgress < 100 ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <span className="text-sm">🎬</span>
+              )}
+              {isExporting && exportProgress > 0
+                ? `Creating GIF ${exportProgress}%`
+                : "Create GIF"}
+            </button>
           </div>
         </div>
 
