@@ -1058,84 +1058,46 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
       const frames: Array<{ data: ImageData; delay: number }> = [];
 
-      // Capture full page once, then crop each panel from it
-      const fullPagePng = await captureRef(comicRef, "png");
-      const fullPageImg = await loadImg(fullPagePng);
-      const comicRect = comicRef.current!.getBoundingClientRect();
-
+      // Capture each panel individually for accurate border effects
       const slotElements = Array.from(
         comicRef.current!.querySelectorAll("[data-panel-slot]"),
       ) as HTMLElement[];
       const totalSteps = slotElements.length + 1;
-      const capScale = fullPageImg.width / comicRect.width;
 
       for (let i = 0; i < slotElements.length; i++) {
-        const slotRect = slotElements[i].getBoundingClientRect();
-        const sx = (slotRect.left - comicRect.left) * capScale;
-        const sy = (slotRect.top - comicRect.top) * capScale;
-        const sw = slotRect.width * capScale;
-        const sh = slotRect.height * capScale;
+        const panelPng = await toPng(slotElements[i], {
+          pixelRatio: 2,
+          cacheBust: true,
+          skipFonts: true,
+        });
+        const panelImg = await loadImg(panelPng);
 
-        if (sw <= 0 || sh <= 0) continue;
+        if (panelImg.width <= 0 || panelImg.height <= 0) continue;
 
-        const panelRatio = sw / sh;
-        const isWide = panelRatio > frameRatio * 1.5;
-
-        if (isWide) {
-          const panSteps = 3;
-          const visibleW = sh * frameRatio;
-          const maxOffsetX = sw - visibleW;
-          for (let step = 0; step < panSteps; step++) {
-            const progress = step / (panSteps - 1);
-            const cropX = sx + maxOffsetX * progress;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, gifWidth, gifHeight);
-            ctx.drawImage(
-              fullPageImg,
-              cropX,
-              sy,
-              visibleW,
-              sh,
-              0,
-              0,
-              gifWidth,
-              gifHeight,
-            );
-            frames.push({
-              data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-              delay: 900,
-            });
-          }
-        } else {
-          const scale = Math.max(gifWidth / sw, gifHeight / sh);
-          const drawW = sw * scale;
-          const drawH = sh * scale;
-          const offsetX = (gifWidth - drawW) / 2;
-          const offsetY = (gifHeight - drawH) / 2;
-          ctx.fillStyle = "#000";
-          ctx.fillRect(0, 0, gifWidth, gifHeight);
-          ctx.drawImage(
-            fullPageImg,
-            sx,
-            sy,
-            sw,
-            sh,
-            offsetX,
-            offsetY,
-            drawW,
-            drawH,
-          );
-          frames.push({
-            data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-            delay: 800,
-          });
-        }
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, gifWidth, gifHeight);
+        const scale = Math.max(
+          gifWidth / panelImg.width,
+          gifHeight / panelImg.height,
+        );
+        const dw = panelImg.width * scale;
+        const dh = panelImg.height * scale;
+        ctx.drawImage(
+          panelImg,
+          (gifWidth - dw) / 2,
+          (gifHeight - dh) / 2,
+          dw,
+          dh,
+        );
+        frames.push({
+          data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+          delay: 800,
+        });
 
         setExportProgress(Math.round(((i + 1) / totalSteps) * 80));
       }
 
       // Final frame: full composed page
-      setGifVisibleCount(null);
       await waitForPaint();
       const pageImg = await loadImg(await captureRef(comicRef, "png"));
       const pageScale = Math.max(
@@ -1236,75 +1198,38 @@ export const EditorScreen: React.FC<EditorProps> = ({
         setSelectedPageIdx(pageIdx);
         await waitForPaint();
 
-        const fullPagePng = await captureRef(comicRef, "png");
-        const fullPageImg = await loadImg(fullPagePng);
-        const comicRect = comicRef.current!.getBoundingClientRect();
-
         const slotElements = Array.from(
           comicRef.current!.querySelectorAll("[data-panel-slot]"),
         ) as HTMLElement[];
-        const capScale = fullPageImg.width / comicRect.width;
 
         for (let i = 0; i < slotElements.length; i++) {
-          const slotRect = slotElements[i].getBoundingClientRect();
-          const sx = (slotRect.left - comicRect.left) * capScale;
-          const sy = (slotRect.top - comicRect.top) * capScale;
-          const sw = slotRect.width * capScale;
-          const sh = slotRect.height * capScale;
-          if (sw <= 0 || sh <= 0) continue;
+          const panelPng = await toPng(slotElements[i], {
+            pixelRatio: 2,
+            cacheBust: true,
+            skipFonts: true,
+          });
+          const panelImg = await loadImg(panelPng);
+          if (panelImg.width <= 0 || panelImg.height <= 0) continue;
 
-          const panelRatio = sw / sh;
-          const isWide = panelRatio > frameRatio * 1.5;
-
-          if (isWide) {
-            const panSteps = 3;
-            const visibleW = sh * frameRatio;
-            const maxOffsetX = sw - visibleW;
-            for (let step = 0; step < panSteps; step++) {
-              const progress = step / (panSteps - 1);
-              const cropX = sx + maxOffsetX * progress;
-              ctx.fillStyle = "#000";
-              ctx.fillRect(0, 0, gifWidth, gifHeight);
-              ctx.drawImage(
-                fullPageImg,
-                cropX,
-                sy,
-                visibleW,
-                sh,
-                0,
-                0,
-                gifWidth,
-                gifHeight,
-              );
-              frames.push({
-                data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-                delay: 900,
-              });
-            }
-          } else {
-            const scale = Math.max(gifWidth / sw, gifHeight / sh);
-            const drawW = sw * scale;
-            const drawH = sh * scale;
-            const offsetX = (gifWidth - drawW) / 2;
-            const offsetY = (gifHeight - drawH) / 2;
-            ctx.fillStyle = "#000";
-            ctx.fillRect(0, 0, gifWidth, gifHeight);
-            ctx.drawImage(
-              fullPageImg,
-              sx,
-              sy,
-              sw,
-              sh,
-              offsetX,
-              offsetY,
-              drawW,
-              drawH,
-            );
-            frames.push({
-              data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-              delay: 800,
-            });
-          }
+          ctx.fillStyle = "#000";
+          ctx.fillRect(0, 0, gifWidth, gifHeight);
+          const scale = Math.max(
+            gifWidth / panelImg.width,
+            gifHeight / panelImg.height,
+          );
+          const dw = panelImg.width * scale;
+          const dh = panelImg.height * scale;
+          ctx.drawImage(
+            panelImg,
+            (gifWidth - dw) / 2,
+            (gifHeight - dh) / 2,
+            dw,
+            dh,
+          );
+          frames.push({
+            data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+            delay: 800,
+          });
         }
 
         // Full page frame
