@@ -1029,8 +1029,15 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   };
 
-  const handleCreateGif = async () => {
-    if (!comicRef.current || isExporting || !currentPage) return;
+  type GifMode =
+    | "story-flow"
+    | "page-reveal"
+    | "slideshow"
+    | "cinematic"
+    | "this-page";
+
+  const handleCreateGif = async (mode: GifMode = "story-flow") => {
+    if (!comicRef.current || isExporting) return;
     setIsExporting(true);
     setSelectedPanelId(null);
     setSelectedBubbleId(null);
@@ -1056,208 +1063,103 @@ export const EditorScreen: React.FC<EditorProps> = ({
           img.src = src;
         });
 
-      const frames: Array<{ data: ImageData; delay: number }> = [];
-
-      // Capture each panel individually for accurate border effects
-      const slotElements = Array.from(
-        comicRef.current!.querySelectorAll("[data-panel-slot]"),
-      ) as HTMLElement[];
-      const totalSteps = slotElements.length + 1;
-
-      for (let i = 0; i < slotElements.length; i++) {
-        const panelPng = await toPng(slotElements[i], {
-          pixelRatio: 2,
-          cacheBust: true,
-          skipFonts: true,
-        });
-        const panelImg = await loadImg(panelPng);
-
-        if (panelImg.width <= 0 || panelImg.height <= 0) continue;
-
+      const drawFit = (
+        img: HTMLImageElement,
+        delay: number,
+        fr: typeof frames,
+      ) => {
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, gifWidth, gifHeight);
-        const scale = Math.max(
-          gifWidth / panelImg.width,
-          gifHeight / panelImg.height,
+        const s = Math.max(gifWidth / img.width, gifHeight / img.height);
+        const dw = img.width * s,
+          dh = img.height * s;
+        ctx.drawImage(img, (gifWidth - dw) / 2, (gifHeight - dh) / 2, dw, dh);
+        fr.push({ data: ctx.getImageData(0, 0, gifWidth, gifHeight), delay });
+      };
+
+      const capturePanel = async (el: HTMLElement) =>
+        loadImg(
+          await toPng(el, { pixelRatio: 2, cacheBust: true, skipFonts: true }),
         );
-        const dw = panelImg.width * scale;
-        const dh = panelImg.height * scale;
-        ctx.drawImage(
-          panelImg,
-          (gifWidth - dw) / 2,
-          (gifHeight - dh) / 2,
-          dw,
-          dh,
-        );
-        frames.push({
-          data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-          delay: 800,
-        });
 
-        setExportProgress(Math.round(((i + 1) / totalSteps) * 80));
-      }
-
-      // Final frame: full composed page
-      await waitForPaint();
-      const pageImg = await loadImg(await captureRef(comicRef, "png"));
-      const pageScale = Math.max(
-        gifWidth / pageImg.width,
-        gifHeight / pageImg.height,
-      );
-      const pw = pageImg.width * pageScale;
-      const ph = pageImg.height * pageScale;
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, gifWidth, gifHeight);
-      ctx.drawImage(pageImg, (gifWidth - pw) / 2, (gifHeight - ph) / 2, pw, ph);
-      frames.push({
-        data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-        delay: 2000,
-      });
-
-      setExportProgress(90);
-      console.log(
-        "GIF encoding:",
-        frames.length,
-        "frames at",
-        gifWidth,
-        "x",
-        gifHeight,
-      );
-      const gifBuffer = await encodeGif({
-        width: gifWidth,
-        height: gifHeight,
-        frames: frames.map((f) => ({
-          width: gifWidth,
-          height: gifHeight,
-          data: f.data.data,
-          delay: f.delay,
-        })),
-        maxColors: 128,
-      });
-      const blob = new Blob([gifBuffer], { type: "image/gif" });
-
-      setExportProgress(100);
-      const file = new File([blob], `Comic_Page_${selectedPageIdx + 1}.gif`, {
-        type: "image/gif",
-      });
-
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: "My Comic",
-          text: "Made with Panelhaus",
-          files: [file],
-        });
-      } else {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = file.name;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
-    } catch (error: any) {
-      console.error("GIF export failed:", error);
-      alert(`GIF export failed: ${error?.message || error}`);
-    } finally {
-      setGifVisibleCount(null);
-      setIsExporting(false);
-      setExportProgress(0);
-    }
-  };
-
-  const handleCreateGifAllPages = async () => {
-    if (!comicRef.current || isExporting || pages.length === 0) return;
-    setIsExporting(true);
-    setSelectedPanelId(null);
-    setSelectedBubbleId(null);
-    await waitForPaint();
-
-    try {
-      const fmt = PAGE_FORMATS[pageFormat] || PAGE_FORMATS.portrait;
-      const gifWidth = 480;
-      const gifHeight = Math.round(gifWidth * (fmt.ratio[1] / fmt.ratio[0]));
-      const frameRatio = gifWidth / gifHeight;
-
-      const canvas = document.createElement("canvas");
-      canvas.width = gifWidth;
-      canvas.height = gifHeight;
-      const ctx = canvas.getContext("2d")!;
-
-      const loadImg = (src: string): Promise<HTMLImageElement> =>
-        new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = src;
-        });
+      const capturePage = async () => {
+        await waitForPaint();
+        return loadImg(await captureRef(comicRef, "png"));
+      };
 
       const frames: Array<{ data: ImageData; delay: number }> = [];
       const originalPageIdx = selectedPageIdx;
+      const pagesToProcess =
+        mode === "this-page"
+          ? [selectedPageIdx]
+          : Array.from({ length: pages.length }, (_, i) => i);
 
-      for (let pageIdx = 0; pageIdx < pages.length; pageIdx++) {
-        setSelectedPageIdx(pageIdx);
-        await waitForPaint();
-
-        const slotElements = Array.from(
-          comicRef.current!.querySelectorAll("[data-panel-slot]"),
-        ) as HTMLElement[];
-
-        for (let i = 0; i < slotElements.length; i++) {
-          const panelPng = await toPng(slotElements[i], {
-            pixelRatio: 2,
-            cacheBust: true,
-            skipFonts: true,
-          });
-          const panelImg = await loadImg(panelPng);
-          if (panelImg.width <= 0 || panelImg.height <= 0) continue;
-
-          ctx.fillStyle = "#000";
-          ctx.fillRect(0, 0, gifWidth, gifHeight);
-          const scale = Math.max(
-            gifWidth / panelImg.width,
-            gifHeight / panelImg.height,
-          );
-          const dw = panelImg.width * scale;
-          const dh = panelImg.height * scale;
-          ctx.drawImage(
-            panelImg,
-            (gifWidth - dw) / 2,
-            (gifHeight - dh) / 2,
-            dw,
-            dh,
-          );
-          frames.push({
-            data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-            delay: 800,
-          });
+      for (let pi = 0; pi < pagesToProcess.length; pi++) {
+        const pageIdx = pagesToProcess[pi];
+        if (pageIdx !== selectedPageIdx || pi > 0) {
+          setSelectedPageIdx(pageIdx);
+          await waitForPaint();
         }
 
-        // Full page frame
-        const pageImg = await loadImg(await captureRef(comicRef, "png"));
-        const pageScale = Math.max(
-          gifWidth / pageImg.width,
-          gifHeight / pageImg.height,
-        );
-        const pw = pageImg.width * pageScale;
-        const ph = pageImg.height * pageScale;
-        ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, gifWidth, gifHeight);
-        ctx.drawImage(
-          pageImg,
-          (gifWidth - pw) / 2,
-          (gifHeight - ph) / 2,
-          pw,
-          ph,
-        );
-        frames.push({
-          data: ctx.getImageData(0, 0, gifWidth, gifHeight),
-          delay: 2000,
-        });
+        if (mode === "slideshow") {
+          drawFit(await capturePage(), 3000, frames);
+        } else {
+          const slots = Array.from(
+            comicRef.current!.querySelectorAll("[data-panel-slot]"),
+          ) as HTMLElement[];
 
-        setExportProgress(Math.round(((pageIdx + 1) / pages.length) * 80));
+          for (let i = 0; i < slots.length; i++) {
+            const panelImg = await capturePanel(slots[i]);
+
+            if (panelImg.width <= 0 || panelImg.height <= 0) continue;
+
+            if (mode === "cinematic") {
+              for (let step = 0; step < 3; step++) {
+                const zoom = 1 + step * 0.08;
+                const zw = panelImg.width / zoom,
+                  zh = panelImg.height / zoom;
+                const sx = (panelImg.width - zw) / 2,
+                  sy = (panelImg.height - zh) / 2;
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0, 0, gifWidth, gifHeight);
+                const s = Math.max(gifWidth / zw, gifHeight / zh);
+                const dw = zw * s,
+                  dh = zh * s;
+                ctx.drawImage(
+                  panelImg,
+                  sx,
+                  sy,
+                  zw,
+                  zh,
+                  (gifWidth - dw) / 2,
+                  (gifHeight - dh) / 2,
+                  dw,
+                  dh,
+                );
+                frames.push({
+                  data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+                  delay: 600,
+                });
+              }
+            } else {
+              drawFit(
+                panelImg,
+                mode === "story-flow" || mode === "this-page" ? 1200 : 800,
+                frames,
+              );
+            }
+          }
+
+          if (mode === "page-reveal") {
+            drawFit(await capturePage(), 2000, frames);
+          }
+        }
+
+        setExportProgress(Math.round(((pi + 1) / pagesToProcess.length) * 85));
       }
 
-      setSelectedPageIdx(originalPageIdx);
+      if (originalPageIdx !== selectedPageIdx)
+        setSelectedPageIdx(originalPageIdx);
       setExportProgress(90);
 
       const gifBuffer = await encodeGif({
@@ -1274,9 +1176,12 @@ export const EditorScreen: React.FC<EditorProps> = ({
       const blob = new Blob([gifBuffer], { type: "image/gif" });
       setExportProgress(100);
 
-      const file = new File([blob], "Comic_All_Pages.gif", {
-        type: "image/gif",
-      });
+      const filename =
+        mode === "this-page"
+          ? `Comic_Page_${selectedPageIdx + 1}.gif`
+          : `Comic_${mode}.gif`;
+      const file = new File([blob], filename, { type: "image/gif" });
+
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: "My Comic",
@@ -2149,29 +2054,58 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 Share All Pages
               </button>
             )}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={handleCreateGif}
-                disabled={isExporting || !currentPage?.panelIds.length}
-                className="py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isExporting && exportProgress > 0 && exportProgress < 100 ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <span className="text-sm">🎬</span>
-                )}
-                {isExporting && exportProgress > 0
-                  ? `${exportProgress}%`
-                  : "GIF Page"}
-              </button>
-              <button
-                onClick={handleCreateGifAllPages}
-                disabled={isExporting || pages.length < 2}
-                className="py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                <span className="text-sm">🎬</span>
-                GIF All
-              </button>
+            {/* GIF Export Modes */}
+            <div className="space-y-2">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-accent/40">
+                Animated GIF
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  {
+                    mode: "story-flow" as const,
+                    label: "Story Flow",
+                    desc: "Panels only",
+                  },
+                  {
+                    mode: "page-reveal" as const,
+                    label: "Page Reveal",
+                    desc: "Panels + page",
+                  },
+                  {
+                    mode: "slideshow" as const,
+                    label: "Slideshow",
+                    desc: "Pages only",
+                  },
+                  {
+                    mode: "cinematic" as const,
+                    label: "Cinematic",
+                    desc: "Zoom & pan",
+                  },
+                  {
+                    mode: "this-page" as const,
+                    label: "This Page",
+                    desc: "Current page",
+                  },
+                ].map(({ mode, label, desc }) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleCreateGif(mode)}
+                    disabled={isExporting}
+                    className="py-2 px-2 rounded-lg bg-accent/5 text-accent/70 border border-accent/10 font-headline font-bold text-[10px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
+                  >
+                    <span>{label}</span>
+                    <span className="text-[8px] text-accent/30 font-normal">
+                      {desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {isExporting && exportProgress > 0 && (
+                <div className="flex items-center gap-2 text-xs text-accent/50">
+                  <Loader2 size={12} className="animate-spin" />
+                  Creating GIF {exportProgress}%
+                </div>
+              )}
             </div>
           </div>
         </div>
