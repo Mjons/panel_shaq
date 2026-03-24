@@ -71,12 +71,7 @@ const PanelImage: React.FC<{
   const imgRef = useRef<HTMLImageElement>(null);
   const tRef = useRef({ ...initial, rotation: initial.rotation || 0 });
   const baseRotation = useRef(initial.rotation || 0);
-  const pinchCount = useRef(0);
-  const lastPinchEnd = useRef(0);
-
-  useEffect(() => {
-    pinchCount.current = 0;
-  }, [panel.id, isSelected]);
+  const lastPinchEndTime = useRef(0);
 
   // Sync ref when props change
   useEffect(() => {
@@ -105,14 +100,9 @@ const PanelImage: React.FC<{
         if (last) onTransform(panel.id, { ...t });
       },
       onPinchStart: () => {
-        pinchCount.current += 1;
-        const timeSinceLast = Date.now() - lastPinchEnd.current;
-        if (
-          !isExporting &&
-          !locked &&
-          pinchCount.current > 1 &&
-          timeSinceLast > 500
-        ) {
+        if (isExporting || locked) return;
+        const timeSinceEnd = Date.now() - lastPinchEndTime.current;
+        if (timeSinceEnd < 400 && timeSinceEnd > 50) {
           const newRotation = (tRef.current.rotation || 0) + rotationStep;
           tRef.current.rotation =
             Math.abs(newRotation % 360) < rotationStep / 2 ? 0 : newRotation;
@@ -127,7 +117,7 @@ const PanelImage: React.FC<{
         applyTransform();
         if (last) {
           onTransform(panel.id, { ...tRef.current });
-          lastPinchEnd.current = Date.now();
+          lastPinchEndTime.current = Date.now();
         }
       },
     },
@@ -570,12 +560,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const bubblePinchBase = useRef(12);
   const bubblePinchRotBase = useRef(0);
   const bubbleRotAccum = useRef(0);
-  const bubblePinchCount = useRef(0);
-  const bubbleLastPinchEnd = useRef(0);
-
-  useEffect(() => {
-    bubblePinchCount.current = 0;
-  }, [selectedBubbleId]);
+  const bubbleLastPinchEndTime = useRef(0);
 
   const bindComicPinch = useGesture(
     {
@@ -586,9 +571,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
         const b = selectedPanel.bubbles.find((b) => b.id === selectedBubbleId);
         if (b) {
           bubblePinchBase.current = b.fontSize;
-          bubblePinchCount.current += 1;
-          const timeSinceLast = Date.now() - bubbleLastPinchEnd.current;
-          if (bubblePinchCount.current > 1 && timeSinceLast > 500) {
+          const timeSinceEnd = Date.now() - bubbleLastPinchEndTime.current;
+          if (timeSinceEnd < 400 && timeSinceEnd > 50) {
             const newRotation = (b.rotation || 0) + rotationStep;
             updateBubble(selectedBubbleId, {
               rotation:
@@ -609,7 +593,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
         updateBubble(selectedBubbleId, {
           fontSize: newSize,
         });
-        if (last) bubbleLastPinchEnd.current = Date.now();
+        if (last) bubbleLastPinchEndTime.current = Date.now();
       },
     },
     {
