@@ -643,9 +643,9 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const pageBackgroundColor = useMemo(() => {
     try {
       const s = localStorage.getItem("panelshaq_settings");
-      return s ? JSON.parse(s).pageBackgroundColor || "#FFFFFF" : "#FFFFFF";
+      return s ? JSON.parse(s).pageBackgroundColor || "#000000" : "#000000";
     } catch {
-      return "#FFFFFF";
+      return "#000000";
     }
   }, []);
   const [isRendering, setIsRendering] = useState(false);
@@ -1203,6 +1203,179 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   };
 
+  const handleCreateGifAllPages = async () => {
+    if (!comicRef.current || isExporting || pages.length === 0) return;
+    setIsExporting(true);
+    setSelectedPanelId(null);
+    setSelectedBubbleId(null);
+    await waitForPaint();
+
+    try {
+      const fmt = PAGE_FORMATS[pageFormat] || PAGE_FORMATS.portrait;
+      const gifWidth = 480;
+      const gifHeight = Math.round(gifWidth * (fmt.ratio[1] / fmt.ratio[0]));
+      const frameRatio = gifWidth / gifHeight;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = gifWidth;
+      canvas.height = gifHeight;
+      const ctx = canvas.getContext("2d")!;
+
+      const loadImg = (src: string): Promise<HTMLImageElement> =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+
+      const frames: Array<{ data: ImageData; delay: number }> = [];
+      const originalPageIdx = selectedPageIdx;
+
+      for (let pageIdx = 0; pageIdx < pages.length; pageIdx++) {
+        setSelectedPageIdx(pageIdx);
+        await waitForPaint();
+
+        const fullPagePng = await captureRef(comicRef, "png");
+        const fullPageImg = await loadImg(fullPagePng);
+        const comicRect = comicRef.current!.getBoundingClientRect();
+
+        const slotElements = Array.from(
+          comicRef.current!.querySelectorAll("[data-panel-slot]"),
+        ) as HTMLElement[];
+        const capScale = fullPageImg.width / comicRect.width;
+
+        for (let i = 0; i < slotElements.length; i++) {
+          const slotRect = slotElements[i].getBoundingClientRect();
+          const sx = (slotRect.left - comicRect.left) * capScale;
+          const sy = (slotRect.top - comicRect.top) * capScale;
+          const sw = slotRect.width * capScale;
+          const sh = slotRect.height * capScale;
+          if (sw <= 0 || sh <= 0) continue;
+
+          const panelRatio = sw / sh;
+          const isWide = panelRatio > frameRatio * 1.5;
+
+          if (isWide) {
+            const panSteps = 3;
+            const visibleW = sh * frameRatio;
+            const maxOffsetX = sw - visibleW;
+            for (let step = 0; step < panSteps; step++) {
+              const progress = step / (panSteps - 1);
+              const cropX = sx + maxOffsetX * progress;
+              ctx.fillStyle = "#000";
+              ctx.fillRect(0, 0, gifWidth, gifHeight);
+              ctx.drawImage(
+                fullPageImg,
+                cropX,
+                sy,
+                visibleW,
+                sh,
+                0,
+                0,
+                gifWidth,
+                gifHeight,
+              );
+              frames.push({
+                data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+                delay: 900,
+              });
+            }
+          } else {
+            const scale = Math.max(gifWidth / sw, gifHeight / sh);
+            const drawW = sw * scale;
+            const drawH = sh * scale;
+            const offsetX = (gifWidth - drawW) / 2;
+            const offsetY = (gifHeight - drawH) / 2;
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, gifWidth, gifHeight);
+            ctx.drawImage(
+              fullPageImg,
+              sx,
+              sy,
+              sw,
+              sh,
+              offsetX,
+              offsetY,
+              drawW,
+              drawH,
+            );
+            frames.push({
+              data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+              delay: 800,
+            });
+          }
+        }
+
+        // Full page frame
+        const pageImg = await loadImg(await captureRef(comicRef, "png"));
+        const pageScale = Math.max(
+          gifWidth / pageImg.width,
+          gifHeight / pageImg.height,
+        );
+        const pw = pageImg.width * pageScale;
+        const ph = pageImg.height * pageScale;
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, gifWidth, gifHeight);
+        ctx.drawImage(
+          pageImg,
+          (gifWidth - pw) / 2,
+          (gifHeight - ph) / 2,
+          pw,
+          ph,
+        );
+        frames.push({
+          data: ctx.getImageData(0, 0, gifWidth, gifHeight),
+          delay: 2000,
+        });
+
+        setExportProgress(Math.round(((pageIdx + 1) / pages.length) * 80));
+      }
+
+      setSelectedPageIdx(originalPageIdx);
+      setExportProgress(90);
+
+      const gifBuffer = await encodeGif({
+        width: gifWidth,
+        height: gifHeight,
+        frames: frames.map((f) => ({
+          width: gifWidth,
+          height: gifHeight,
+          data: f.data.data,
+          delay: f.delay,
+        })),
+        maxColors: 128,
+      });
+      const blob = new Blob([gifBuffer], { type: "image/gif" });
+      setExportProgress(100);
+
+      const file = new File([blob], "Comic_All_Pages.gif", {
+        type: "image/gif",
+      });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          title: "My Comic",
+          text: "Made with Panelhaus",
+          files: [file],
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = file.name;
+        link.href = url;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (error: any) {
+      console.error("GIF export failed:", error);
+      alert(`GIF export failed: ${error?.message || error}`);
+    } finally {
+      setGifVisibleCount(null);
+      setIsExporting(false);
+      setExportProgress(0);
+    }
+  };
+
   const handleCritique = async (allPages: boolean) => {
     if (!comicRef.current || isCritiquing) return;
     setIsCritiquing(true);
@@ -1318,7 +1491,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 { color: "#F5B119", label: "Gold" },
                 { color: "#10B981", label: "Green" },
                 { color: "#8B5CF6", label: "Purple" },
-                { color: "#1E3A5F", label: "Navy" },
+                { color: "#0B1326", label: "Navy" },
                 {
                   color:
                     pageBackgroundColor === "transparent"
@@ -2051,20 +2224,30 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 Share All Pages
               </button>
             )}
-            <button
-              onClick={handleCreateGif}
-              disabled={isExporting || !currentPage?.panelIds.length}
-              className="w-full py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-            >
-              {isExporting && exportProgress > 0 && exportProgress < 100 ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleCreateGif}
+                disabled={isExporting || !currentPage?.panelIds.length}
+                className="py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isExporting && exportProgress > 0 && exportProgress < 100 ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <span className="text-sm">🎬</span>
+                )}
+                {isExporting && exportProgress > 0
+                  ? `${exportProgress}%`
+                  : "GIF Page"}
+              </button>
+              <button
+                onClick={handleCreateGifAllPages}
+                disabled={isExporting || pages.length < 2}
+                className="py-3 rounded-lg bg-accent/10 text-accent border border-accent/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
                 <span className="text-sm">🎬</span>
-              )}
-              {isExporting && exportProgress > 0
-                ? `Creating GIF ${exportProgress}%`
-                : "Create GIF"}
-            </button>
+                GIF All
+              </button>
+            </div>
           </div>
         </div>
 
