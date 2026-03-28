@@ -202,27 +202,15 @@ function AppInner() {
     return onApiError((msg) => addToast(msg, "error"));
   }, [addToast]);
 
-  // App mode: "byok" (user provides API key) or "hosted" (admin key + email gate)
-  const [appMode, setAppMode] = useState<"byok" | "hosted">("byok");
-  const [userEmail, setUserEmail] = useState<string | null>(() =>
-    localStorage.getItem("panelshaq_user_email"),
+  // Auth mode: user picks "byok" (own API key) or "hosted" (email + admin key)
+  // null = hasn't chosen yet → show the choice screen
+  const [authMode, setAuthMode] = useState<"byok" | "hosted" | null>(
+    () =>
+      (localStorage.getItem("panelshaq_auth_mode") as "byok" | "hosted") ||
+      null,
   );
 
-  useEffect(() => {
-    fetch("/api/config")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.mode === "hosted" || data.mode === "byok") {
-          setAppMode(data.mode);
-          localStorage.setItem("panelshaq_app_mode", data.mode);
-        }
-      })
-      .catch(() => {
-        // Default to byok if config endpoint fails
-      });
-  }, []);
-
-  const showEmailGate = appMode === "hosted" && !userEmail;
+  const showAuthGate = authMode === null;
 
   const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
   const [gifEditorImages, setGifEditorImages] = useState<
@@ -628,7 +616,7 @@ function AppInner() {
           />
         );
       case "settings":
-        return <SettingsScreen appMode={appMode} />;
+        return <SettingsScreen appMode={authMode || "byok"} />;
       case "share":
         return (
           <ShareScreen
@@ -722,9 +710,7 @@ function AppInner() {
         currentProjectId={currentProjectId}
       />
 
-      {showEmailGate && (
-        <EmailGate onComplete={(email) => setUserEmail(email)} />
-      )}
+      {showAuthGate && <EmailGate onComplete={(mode) => setAuthMode(mode)} />}
     </div>
   );
 }

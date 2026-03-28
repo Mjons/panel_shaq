@@ -117,7 +117,7 @@ export async function apiPost<T>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const isHosted = localStorage.getItem("panelshaq_app_mode") === "hosted";
+  const isHosted = localStorage.getItem("panelshaq_auth_mode") === "hosted";
   if (!isHosted) {
     const userKey = getUserApiKey();
     if (userKey) headers["x-api-key"] = userKey;
