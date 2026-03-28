@@ -117,8 +117,11 @@ export async function apiPost<T>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const userKey = getUserApiKey();
-  if (userKey) headers["x-api-key"] = userKey;
+  const isHosted = localStorage.getItem("panelshaq_app_mode") === "hosted";
+  if (!isHosted) {
+    const userKey = getUserApiKey();
+    if (userKey) headers["x-api-key"] = userKey;
+  }
 
   // Send user ID for usage tracking (non-blocking — don't break API calls if Supabase fails)
   try {

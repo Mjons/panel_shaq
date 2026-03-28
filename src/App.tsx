@@ -13,6 +13,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ConfirmProvider, useConfirm } from "./components/ConfirmDialog";
 import { ProjectManager } from "./components/ProjectManager";
+import { EmailGate } from "./components/EmailGate";
 import {
   PanelPrompt,
   onApiError,
@@ -200,6 +201,28 @@ function AppInner() {
   useEffect(() => {
     return onApiError((msg) => addToast(msg, "error"));
   }, [addToast]);
+
+  // App mode: "byok" (user provides API key) or "hosted" (admin key + email gate)
+  const [appMode, setAppMode] = useState<"byok" | "hosted">("byok");
+  const [userEmail, setUserEmail] = useState<string | null>(() =>
+    localStorage.getItem("panelshaq_user_email"),
+  );
+
+  useEffect(() => {
+    fetch("/api/config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.mode === "hosted" || data.mode === "byok") {
+          setAppMode(data.mode);
+          localStorage.setItem("panelshaq_app_mode", data.mode);
+        }
+      })
+      .catch(() => {
+        // Default to byok if config endpoint fails
+      });
+  }, []);
+
+  const showEmailGate = appMode === "hosted" && !userEmail;
 
   const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
   const [gifEditorImages, setGifEditorImages] = useState<
@@ -605,7 +628,7 @@ function AppInner() {
           />
         );
       case "settings":
-        return <SettingsScreen />;
+        return <SettingsScreen appMode={appMode} />;
       case "share":
         return (
           <ShareScreen
@@ -698,6 +721,10 @@ function AppInner() {
         onNewProject={handleCreateNew}
         currentProjectId={currentProjectId}
       />
+
+      {showEmailGate && (
+        <EmailGate onComplete={(email) => setUserEmail(email)} />
+      )}
     </div>
   );
 }

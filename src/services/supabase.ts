@@ -32,6 +32,23 @@ export async function getUserId(): Promise<string> {
   }
 }
 
+/** Save an email address for hosted-mode users */
+export async function saveEmail(email: string): Promise<boolean> {
+  if (!supabase) return false;
+  const userId = await getUserId();
+  try {
+    await supabase
+      .from("emails")
+      .upsert(
+        { email, user_id: userId || null, source: "hosted_mode" },
+        { onConflict: "email" },
+      );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Fetch today's usage for the current user */
 export async function getUsageToday(): Promise<{
   text: number;
