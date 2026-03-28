@@ -311,98 +311,11 @@ function AppInner() {
     localStorage.setItem("panelshaq_vault_migrated", "1");
   }, []);
 
-  // Check if user has an API key configured (BYOK or env var)
-  const [apiKeyInput, setApiKeyInput] = useState("");
-  const hasUserKey = (() => {
-    try {
-      const saved = localStorage.getItem("panelshaq_settings");
-      if (saved) {
-        const s = JSON.parse(saved);
-        if (s.geminiApiKey) return true;
-      }
-    } catch {
-      /* ignore */
-    }
-    return false;
-  })();
-
-  // Show setup screen if no key anywhere
-  // (env var is checked server-side, so we optimistically allow through if user has no local key
-  //  and let the 401 toast handle it if server also has no key)
-  const [showSetup, setShowSetup] = useState(!hasUserKey);
-  const [setupSaving, setSetupSaving] = useState(false);
-
-  const handleSetupSave = () => {
-    if (!apiKeyInput.trim()) return;
-    setSetupSaving(true);
-    try {
-      const existing = localStorage.getItem("panelshaq_settings");
-      const settings = existing ? JSON.parse(existing) : {};
-      settings.geminiApiKey = apiKeyInput.trim();
-      localStorage.setItem("panelshaq_settings", JSON.stringify(settings));
-      setShowSetup(false);
-    } catch {
-      /* ignore */
-    }
-    setSetupSaving(false);
-  };
-
-  if (showSetup) {
+  // Show auth gate if user hasn't chosen a mode yet
+  if (showAuthGate) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-surface-container p-8 rounded-2xl border border-outline/10 text-center space-y-6 shadow-2xl">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-            <img
-              src="/sample.png"
-              alt="Panel Shaq"
-              className="w-16 h-16 rounded-full object-cover"
-            />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-headline font-bold text-accent">
-              Welcome to Panel Shaq
-            </h1>
-            <p className="text-sm text-accent/60 leading-relaxed">
-              Enter your free Gemini API key to start creating comics. Google
-              gives generous free-tier credits.
-            </p>
-          </div>
-          <div className="space-y-3 text-left">
-            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
-              Gemini API Key
-            </label>
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSetupSave()}
-              placeholder="AIzaSy..."
-              className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent placeholder-accent/20 outline-none focus:border-primary/50"
-              autoFocus
-            />
-            <p className="text-[10px] text-accent/30 leading-relaxed">
-              Get yours free at{" "}
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline"
-              >
-                aistudio.google.com/apikey
-              </a>
-            </p>
-          </div>
-          <button
-            onClick={handleSetupSave}
-            disabled={!apiKeyInput.trim() || setupSaving}
-            className="w-full py-4 bg-primary text-background font-headline font-bold rounded-xl shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
-          >
-            Start Creating
-          </button>
-          <p className="text-[10px] text-accent/20">
-            Your key stays in your browser. Never sent to our servers.
-          </p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <EmailGate onComplete={(mode) => setAuthMode(mode)} />
       </div>
     );
   }
@@ -709,8 +622,6 @@ function AppInner() {
         onNewProject={handleCreateNew}
         currentProjectId={currentProjectId}
       />
-
-      {showAuthGate && <EmailGate onComplete={(mode) => setAuthMode(mode)} />}
     </div>
   );
 }
