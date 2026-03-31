@@ -13,14 +13,18 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         manifest: {
-          name: "Panelhaus",
+          id: "/",
+          name: "Panelhaus — AI Comic Studio",
           short_name: "Panelhaus",
-          description: "AI-powered comic book creation studio — panelhaus.app",
+          description:
+            "Create AI-powered comics on your phone. Write a story, generate panels, add speech bubbles, and export as PNG or GIF.",
           theme_color: "#0F172A",
           background_color: "#0F172A",
           display: "standalone",
           orientation: "portrait",
           start_url: "/",
+          categories: ["entertainment", "graphics", "productivity"],
+          prefer_related_applications: false,
           icons: [
             { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
             { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
@@ -29,6 +33,29 @@ export default defineConfig(({ mode }) => {
               sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
+            },
+          ],
+          screenshots: [
+            {
+              src: "/screenshots/workshop.png",
+              sizes: "863x1920",
+              type: "image/png",
+              form_factor: "narrow",
+              label: "Write your comic story in the Workshop",
+            },
+            {
+              src: "/screenshots/director.png",
+              sizes: "863x1920",
+              type: "image/png",
+              form_factor: "narrow",
+              label: "Generate AI panels in the Director",
+            },
+            {
+              src: "/screenshots/editor.png",
+              sizes: "863x1920",
+              type: "image/png",
+              form_factor: "narrow",
+              label: "Add speech bubbles and export in the Editor",
             },
           ],
         },
