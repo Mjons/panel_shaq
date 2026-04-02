@@ -232,7 +232,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/20"
+          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/40"
           placeholder="Untitled Project"
         />
       </section>
@@ -422,7 +422,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 })}
               </div>
             ) : (
-              <p className="text-[10px] text-accent/25 italic">
+              <p className="text-[10px] text-accent/50 italic">
                 Upload characters in step 1 first
               </p>
             )}
@@ -500,7 +500,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
               <textarea
                 ref={textareaRef}
-                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-base leading-relaxed resize-none placeholder:text-accent/20 outline-none"
+                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-base leading-relaxed resize-none placeholder:text-accent/40 outline-none"
                 placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
                 value={story}
                 onChange={(e) => setStory(e.target.value)}

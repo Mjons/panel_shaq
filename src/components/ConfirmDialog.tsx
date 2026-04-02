@@ -71,9 +71,9 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({
                   />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-headline font-bold text-accent text-base">
+                  <h2 className="font-headline font-bold text-accent text-base">
                     {dialog.title}
-                  </h3>
+                  </h2>
                   <p className="text-sm text-accent/60 leading-relaxed">
                     {dialog.message}
                   </p>

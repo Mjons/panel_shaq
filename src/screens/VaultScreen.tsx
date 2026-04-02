@@ -566,7 +566,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
                   </>
                 ) : (
                   <>
-                    <Upload size={32} className="text-accent/20 mb-2" />
+                    <Upload size={32} className="text-accent/40 mb-2" />
                     <span className="text-xs text-accent/40">Upload Image</span>
                   </>
                 )}

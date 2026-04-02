@@ -308,7 +308,7 @@ export const TopNav = ({
                   </span>
                   <span className="text-[8px] text-accent font-bold">.app</span>
                 </a>
-                <p className="text-[8px] text-accent/20 mt-1">
+                <p className="text-[8px] text-accent/40 mt-1">
                   AI Comic Studio
                 </p>
               </div>

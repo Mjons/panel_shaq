@@ -1014,7 +1014,7 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
                           alt="Panel"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-accent/20 italic text-xs min-h-[120px]">
+                        <div className="w-full h-full flex items-center justify-center bg-surface-container text-accent/40 italic text-xs min-h-[120px]">
                           No image generated
                         </div>
                       )}

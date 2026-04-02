@@ -1732,7 +1732,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-accent/20 italic">
+                <div className="w-full h-full flex items-center justify-center text-accent/40 italic">
                   No pages defined.
                 </div>
               )}
@@ -2173,7 +2173,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                 </div>
               ))
             ) : (
-              <div className="py-4 text-center text-accent/20 italic text-xs">
+              <div className="py-4 text-center text-accent/40 italic text-xs">
                 No recent exports
               </div>
             )}
@@ -2246,7 +2246,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       }
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-surface-container text-accent/20">
+                    <div className="w-full h-full flex items-center justify-center bg-surface-container text-accent/40">
                       <ImageIcon size={48} />
                     </div>
                   )}
@@ -2292,7 +2292,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       ? "Drag to move • 2-finger tap to rotate"
                       : "Tap a bubble to edit • 2-finger tap rotates"
                     : "Drag to reposition • 2-finger tap to rotate"}
-                  <span className="text-accent/20">
+                  <span className="text-accent/40">
                     {" "}
                     (step size in Settings)
                   </span>

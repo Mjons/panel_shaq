@@ -76,7 +76,7 @@ export function EmailGate({ onComplete }: EmailGateProps) {
                 </div>
                 <ArrowRight
                   size={16}
-                  className="text-accent/20 group-hover:text-primary transition-colors"
+                  className="text-accent/40 group-hover:text-primary transition-colors"
                 />
               </div>
             </button>
@@ -99,7 +99,7 @@ export function EmailGate({ onComplete }: EmailGateProps) {
                 </div>
                 <ArrowRight
                   size={16}
-                  className="text-accent/20 group-hover:text-primary transition-colors"
+                  className="text-accent/40 group-hover:text-primary transition-colors"
                 />
               </div>
             </button>
@@ -146,7 +146,7 @@ export function EmailGate({ onComplete }: EmailGateProps) {
             {error && (
               <p className="text-red-400 text-xs text-center">{error}</p>
             )}
-            <p className="text-accent/25 text-[10px] text-center leading-relaxed">
+            <p className="text-accent/50 text-[10px] text-center leading-relaxed">
               We'll only use your email to keep you updated on Panel Shaq. No
               spam, unsubscribe anytime.
             </p>
@@ -184,7 +184,7 @@ export function EmailGate({ onComplete }: EmailGateProps) {
               Get Started
               <ArrowRight size={18} />
             </button>
-            <p className="text-accent/25 text-[10px] text-center leading-relaxed">
+            <p className="text-accent/50 text-[10px] text-center leading-relaxed">
               Get a free key at{" "}
               <a
                 href="https://aistudio.google.com/apikey"

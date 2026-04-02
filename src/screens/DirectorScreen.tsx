@@ -143,12 +143,13 @@ function AspectRatioPicker({
           <div className="fixed inset-0 z-[81] flex items-start justify-center pointer-events-none pt-16 sm:pt-20 px-4">
             <div className="bg-surface border border-outline/20 rounded-2xl shadow-2xl p-5 w-full sm:max-w-md max-h-[75vh] overflow-y-auto pointer-events-auto">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-headline font-bold text-accent text-base">
+                <h2 className="font-headline font-bold text-accent text-base">
                   Aspect Ratio
-                </h3>
+                </h2>
                 <button
                   onClick={() => setOpen(false)}
                   className="text-accent/40 hover:text-accent"
+                  aria-label="Close aspect ratio picker"
                 >
                   <X size={18} />
                 </button>
@@ -815,7 +816,7 @@ const PanelCard = React.memo(
               <div className="flex items-center justify-between">
                 <p className="text-[8px] font-label text-accent/40 uppercase tracking-widest font-bold">
                   Characters
-                  <span className="text-accent/25 normal-case tracking-normal ml-1">
+                  <span className="text-accent/50 normal-case tracking-normal ml-1">
                     ({selectedCharIds.length})
                   </span>
                 </p>

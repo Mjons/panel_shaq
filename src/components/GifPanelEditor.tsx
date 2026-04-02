@@ -33,9 +33,9 @@ export const GifPanelEditor: React.FC<GifPanelEditorProps> = ({
     <div className="bg-surface-container rounded-xl p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-headline font-bold text-accent text-sm uppercase tracking-widest">
+        <h2 className="font-headline font-bold text-accent text-sm uppercase tracking-widest">
           Panel {index + 1}
-        </h3>
+        </h2>
         <label className="flex items-center gap-2 text-[10px] text-accent/50 cursor-pointer">
           <input
             type="checkbox"

@@ -146,7 +146,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
           <textarea
             value={panel.notes || ""}
             onChange={(e) => handleNotesChange(e.target.value)}
-            className="w-full bg-surface-container border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent focus:border-primary outline-none transition-colors resize-none h-20 placeholder:text-accent/20"
+            className="w-full bg-surface-container border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent focus:border-primary outline-none transition-colors resize-none h-20 placeholder:text-accent/40"
             placeholder="e.g. make the sky darker, add more detail to the background, zoom in on the character..."
           />
         </div>

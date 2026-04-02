@@ -89,10 +89,10 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
 
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-outline/10">
-              <h3 className="font-headline text-xl font-bold text-accent flex items-center gap-2">
+              <h2 className="font-headline text-xl font-bold text-accent flex items-center gap-2">
                 <FolderOpen size={20} className="text-primary" />
                 My Projects
-              </h3>
+              </h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-accent/10 rounded-full transition-colors"
@@ -137,7 +137,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                       />
                     ) : (
                       <div className="w-full h-full bg-surface-container-highest flex items-center justify-center">
-                        <FolderOpen size={32} className="text-accent/20" />
+                        <FolderOpen size={32} className="text-accent/40" />
                       </div>
                     )}
 

@@ -325,9 +325,9 @@ export const ShareScreen: React.FC<ShareProps> = ({
             </div>
           ) : (
             <div className="py-12 text-center">
-              <ImageIcon size={48} className="mx-auto text-accent/10 mb-4" />
+              <ImageIcon size={48} className="mx-auto text-accent/40 mb-4" />
               <p className="text-accent/30 text-sm">No exports yet</p>
-              <p className="text-accent/20 text-xs mt-1">
+              <p className="text-accent/40 text-xs mt-1">
                 Export from the Editor to see your comics here
               </p>
             </div>
