@@ -32,7 +32,64 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Static skeleton — painted immediately, replaced when React mounts -->
+      <div
+        style="
+          background: #0f172a;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <div style="text-align: center">
+          <h1
+            style="
+              font-family: &quot;Space Grotesk&quot;, sans-serif;
+              font-weight: 800;
+              font-style: italic;
+              color: #c8e6c9;
+              font-size: 1.5rem;
+              letter-spacing: -0.05em;
+              text-transform: uppercase;
+              margin: 0;
+            "
+          >
+            PANEL SHAQ
+          </h1>
+          <div
+            style="
+              width: 3rem;
+              height: 3rem;
+              border: 4px solid rgba(200, 230, 201, 0.2);
+              border-top-color: #c8e6c9;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+              margin: 1.5rem auto 1rem;
+            "
+          ></div>
+          <p
+            style="
+              font-size: 10px;
+              color: rgba(255, 255, 255, 0.3);
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              font-weight: 700;
+            "
+          >
+            Loading...
+          </p>
+        </div>
+      </div>
+      <style>
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
