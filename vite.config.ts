@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
           background_color: "#0F172A",
           display: "standalone",
           orientation: "portrait",
+          scope: "/",
+          lang: "en",
           start_url: "/",
           categories: ["entertainment", "graphics", "productivity"],
           prefer_related_applications: false,
@@ -29,7 +31,7 @@ export default defineConfig(({ mode }) => {
             { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
             { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
             {
-              src: "/icons/icon-512.png",
+              src: "/icons/icon-maskable-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
