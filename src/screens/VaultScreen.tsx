@@ -311,6 +311,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
               className="bg-transparent border-none focus:ring-0 text-sm text-accent placeholder-accent/30 w-48 outline-none"
               placeholder="Search entries..."
               type="text"
+              aria-label="Search entries"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -318,6 +319,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
           <button
             onClick={() => handleOpenModal()}
             className="bg-secondary text-background w-12 h-12 flex items-center justify-center rounded-lg hover:opacity-90 active:scale-95 transition-all"
+            aria-label="Add new entry"
           >
             <Plus size={24} />
           </button>
@@ -403,12 +405,14 @@ export const VaultScreen: React.FC<VaultProps> = ({
                           <button
                             onClick={() => handleOpenModal(entry)}
                             className="p-2 hover:bg-accent/10 rounded-full transition-colors"
+                            aria-label={`Edit ${entry.name}`}
                           >
                             <Edit2 size={16} className="text-accent/50" />
                           </button>
                           <button
                             onClick={() => handleDelete(entry.id)}
                             className="p-2 hover:bg-red-500/10 rounded-full transition-colors"
+                            aria-label={`Delete ${entry.name}`}
                           >
                             <Trash2 size={16} className="text-red-500/50" />
                           </button>
@@ -684,10 +688,14 @@ export const VaultScreen: React.FC<VaultProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+                <label
+                  htmlFor="vault-entry-name"
+                  className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2"
+                >
                   Name
                 </label>
                 <input
+                  id="vault-entry-name"
                   required
                   className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors"
                   placeholder="e.g. Commander Vex"
@@ -703,7 +711,10 @@ export const VaultScreen: React.FC<VaultProps> = ({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-widest">
+                  <label
+                    htmlFor="vault-entry-description"
+                    className="text-[10px] font-bold text-secondary uppercase tracking-widest"
+                  >
                     Description <span className="text-red-400">*</span>
                   </label>
                   <div className="flex items-center gap-3">
@@ -740,6 +751,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
                   </div>
                 </div>
                 <textarea
+                  id="vault-entry-description"
                   required
                   rows={3}
                   className="w-full bg-surface-container-highest border border-outline/10 rounded-lg px-4 py-3 text-accent placeholder-accent/20 outline-none focus:border-primary/50 transition-colors resize-none"

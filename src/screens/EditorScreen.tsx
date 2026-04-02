@@ -1647,6 +1647,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                                 });
                               }}
                               className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
+                              aria-label={
+                                lockedPanelIds.has(pid)
+                                  ? "Unlock panel position"
+                                  : "Lock panel position"
+                              }
                             >
                               {lockedPanelIds.has(pid) ? (
                                 <Lock size={12} className="text-primary" />

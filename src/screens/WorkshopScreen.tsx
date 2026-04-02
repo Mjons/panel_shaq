@@ -336,6 +336,8 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         className="w-full h-full object-cover transition-all duration-500 group-hover:opacity-100 opacity-90"
                         src={char.image}
                         alt={char.name}
+                        loading="lazy"
+                        decoding="async"
                       />
                     </div>
                     <button
@@ -344,6 +346,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         removeCharacter(char.id);
                       }}
                       className="absolute -top-1 -right-1 bg-background text-accent p-1 rounded-full border border-outline/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:text-primary"
+                      aria-label={`Remove ${char.name}`}
                     >
                       <X size={10} />
                     </button>
@@ -354,15 +357,17 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 ))}
               </AnimatePresence>
 
-              <div
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="aspect-square rounded-lg border-2 border-dashed border-outline/30 flex items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group"
+                aria-label="Add character"
               >
                 <UserPlus
                   size={24}
                   className="text-outline group-hover:text-primary transition-colors"
                 />
-              </div>
+              </button>
             </div>
 
             <input

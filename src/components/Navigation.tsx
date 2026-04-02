@@ -44,6 +44,7 @@ export const TopNav = ({
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"
+              aria-label="Open menu"
             >
               <Menu size={28} />
             </button>
@@ -56,6 +57,7 @@ export const TopNav = ({
               onClick={() => onTabChange("settings")}
               className="text-accent/40 hover:text-primary transition-colors active:scale-90 duration-200 p-2"
               title="Settings"
+              aria-label="Settings"
             >
               <Settings size={22} />
             </button>
@@ -101,6 +103,7 @@ export const TopNav = ({
                 <button
                   onClick={() => setIsMenuOpen(false)}
                   className="text-accent/60 hover:text-primary transition-colors"
+                  aria-label="Close menu"
                 >
                   <X size={24} />
                 </button>

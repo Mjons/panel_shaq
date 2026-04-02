@@ -167,6 +167,7 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
                   <button
                     onClick={() => setShowKey(!showKey)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/30 hover:text-accent transition-colors"
+                    aria-label={showKey ? "Hide API key" : "Show API key"}
                   >
                     {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -190,6 +191,7 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
                     }}
                     className="px-3 py-3 text-red-400/60 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all"
                     title="Remove API key"
+                    aria-label="Remove API key"
                   >
                     <Trash2 size={16} />
                   </button>
