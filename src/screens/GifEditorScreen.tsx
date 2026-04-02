@@ -176,10 +176,10 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
             </span>
           </button>
 
-          <h1 className="font-headline font-bold text-accent text-sm uppercase tracking-widest flex items-center gap-2">
+          <h2 className="font-headline font-bold text-accent text-sm uppercase tracking-widest flex items-center gap-2">
             <Film size={16} className="text-primary" />
             GIF Editor
-          </h1>
+          </h2>
 
           <div className="flex items-center gap-1.5">
             {exportedBlob ? (

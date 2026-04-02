@@ -96,6 +96,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-accent/10 rounded-full transition-colors"
+                aria-label="Close"
               >
                 <X size={20} className="text-accent/50" />
               </button>

@@ -522,9 +522,9 @@ export const VaultScreen: React.FC<VaultProps> = ({
       {filteredEntries.length === 0 && (
         <div className="mt-16 py-20 border-2 border-dashed border-primary/20 rounded-lg flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 transition-opacity">
           <Sparkles size={60} className="mb-4 text-secondary" />
-          <h4 className="font-headline text-2xl font-bold text-accent">
+          <h3 className="font-headline text-2xl font-bold text-accent">
             No entries found
-          </h4>
+          </h3>
           <p className="text-accent/60 text-sm mt-2 max-w-xs">
             Try adjusting your search or category filter, or create a new entry.
           </p>

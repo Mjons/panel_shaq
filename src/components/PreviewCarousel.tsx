@@ -85,6 +85,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
           <button
             onClick={() => go(-1)}
             className="absolute left-4 z-10 p-3 bg-black/40 hover:bg-black/60 rounded-full transition-colors backdrop-blur-sm"
+            aria-label="Previous panel"
           >
             <ChevronLeft size={24} className="text-white" />
           </button>
@@ -93,6 +94,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
           <button
             onClick={() => go(1)}
             className="absolute right-4 z-10 p-3 bg-black/40 hover:bg-black/60 rounded-full transition-colors backdrop-blur-sm"
+            aria-label="Next panel"
           >
             <ChevronRight size={24} className="text-white" />
           </button>
@@ -177,6 +179,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
                 setDirection(i > index ? 1 : -1);
                 setIndex(i);
               }}
+              aria-label={`Go to panel ${i + 1}`}
               className={`w-2 h-2 rounded-full transition-all ${
                 i === index
                   ? "bg-primary scale-125"

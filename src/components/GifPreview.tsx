@@ -137,6 +137,7 @@ export const GifPreview: React.FC<GifPreviewProps> = ({
       <button
         onClick={togglePlay}
         className="absolute bottom-4 right-4 p-2 rounded-full bg-background/70 text-accent/70 backdrop-blur-sm border border-accent/10 hover:bg-background/90 active:scale-95 transition-all"
+        aria-label={isPlaying ? "Pause" : "Play"}
       >
         {isPlaying ? <Pause size={18} /> : <Play size={18} />}
       </button>

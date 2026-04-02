@@ -61,6 +61,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-accent/10 rounded-full transition-colors"
+                  aria-label="Close"
                 >
                   <X size={20} className="text-accent/50" />
                 </button>

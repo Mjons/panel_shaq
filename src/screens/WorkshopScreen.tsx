@@ -336,7 +336,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         className="w-full h-full object-cover transition-all duration-500 group-hover:opacity-100 opacity-90"
                         src={char.image}
                         alt={char.name}
-                        loading="lazy"
+                        fetchpriority="high"
                         decoding="async"
                       />
                     </div>

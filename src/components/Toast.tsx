@@ -103,6 +103,7 @@ const ToastItem: React.FC<{
           setTimeout(() => onDismiss(toast.id), 300);
         }}
         className="text-accent/40 hover:text-accent shrink-0"
+        aria-label="Dismiss"
       >
         <X size={14} />
       </button>

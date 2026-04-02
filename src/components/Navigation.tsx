@@ -328,11 +328,11 @@ export const BottomNav = ({
   onTabChange: (tab: string) => void;
 }) => {
   const tabs = [
-    { id: "workshop", icon: "home" },
-    { id: "director", icon: "auto_stories" },
-    { id: "layout", icon: "auto_awesome_motion" },
-    { id: "editor", icon: "view_quilt" },
-    { id: "vault", icon: "public" },
+    { id: "workshop", icon: "home", label: "Workshop" },
+    { id: "director", icon: "auto_stories", label: "Director" },
+    { id: "layout", icon: "auto_awesome_motion", label: "Layout" },
+    { id: "editor", icon: "view_quilt", label: "Editor" },
+    { id: "vault", icon: "public", label: "Vault" },
   ];
 
   // Using Material Symbols for icons as seen in the screenshots
@@ -346,6 +346,7 @@ export const BottomNav = ({
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
+            aria-label={tab.label}
             className={cn(
               "flex items-center justify-center p-3 rounded-xl transition-all duration-300",
               activeTab === tab.id
