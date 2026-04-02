@@ -232,7 +232,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/40"
+          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/70"
           placeholder="Untitled Project"
         />
       </section>
@@ -246,7 +246,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             Create AI-generated comics in minutes. Upload character references,
             write a story, and let AI generate your panels.
           </p>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-accent/40">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-accent/70">
             <div className="flex items-center gap-2">
               <span className="w-5 h-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
                 5m
@@ -266,7 +266,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               </span>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-outline/10 flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-accent/30">
+          <div className="mt-3 pt-3 border-t border-outline/10 flex flex-wrap gap-x-6 gap-y-1 text-[11px] text-accent/70">
             <span>
               <strong className="text-primary">1.</strong> Add characters with
               reference images
@@ -305,17 +305,18 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           {/* STEP 1: Characters */}
           <div className="bg-surface-container p-5 rounded-lg border-t-2 border-primary shadow-2xl">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
+              <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
                 <span className="text-primary">1.</span> Characters
-              </h3>
+              </h2>
               <button
                 onClick={() => onNavigate?.("vault")}
                 className="text-primary hover:rotate-90 transition-transform duration-300"
+                aria-label="Add character from vault"
               >
                 <PlusCircle size={24} />
               </button>
             </div>
-            <p className="text-[10px] text-accent/40 mb-4">
+            <p className="text-[10px] text-accent/70 mb-4">
               Upload character images. Tap to edit name and description. These
               will be used as references during generation.
             </p>
@@ -381,10 +382,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
           {/* STEP 2: Style */}
           <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
-            <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight mb-2">
+            <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight mb-2">
               <span className="text-primary">2.</span> Style
-            </h3>
-            <p className="text-[10px] text-accent/40 mb-3">
+            </h2>
+            <p className="text-[10px] text-accent/70 mb-3">
               Tap the palette icon on a character to set it as the art style
               reference. Your comic will match that image's look.
             </p>
@@ -440,21 +441,21 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           <div className="bg-surface-container rounded-lg p-0.5 shadow-xl border border-outline/20">
             <div className="bg-background rounded-lg p-5 min-h-[300px] lg:min-h-[450px] flex flex-col">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
+                <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
                   <span className="text-primary">3.</span> Story
-                </h3>
-                <span className="text-accent/40 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
+                </h2>
+                <span className="text-accent/70 text-[10px] uppercase font-bold tracking-widest bg-surface-container px-2 py-1 rounded">
                   {story.length} / 2000
                 </span>
               </div>
-              <p className="text-[10px] text-accent/40 mb-3">
+              <p className="text-[10px] text-accent/70 mb-3">
                 Write your story. Mention character names to link them. Tap a
                 character tag below to insert their name.
               </p>
               {/* Character Tag Bar */}
               {characters.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10">
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/30 mr-1">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/70 mr-1">
                     Cast:
                   </span>
                   {getCharacterMentions().map((c) => (
@@ -466,7 +467,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
                         c.mentioned
                           ? "bg-primary/20 text-primary border border-primary/30"
-                          : "bg-surface-container text-accent/40 border border-outline/10 hover:border-primary/30 hover:text-accent/70 active:scale-95 cursor-pointer"
+                          : "bg-surface-container text-accent/70 border border-outline/10 hover:border-primary/30 hover:text-accent/70 active:scale-95 cursor-pointer"
                       }`}
                       title={
                         c.mentioned
@@ -500,7 +501,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
               <textarea
                 ref={textareaRef}
-                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-base leading-relaxed resize-none placeholder:text-accent/40 outline-none"
+                className="flex-grow bg-transparent border-none focus:ring-0 text-accent font-body text-base leading-relaxed resize-none placeholder:text-accent/70 outline-none"
                 placeholder="A neon-drenched city breathes in the rain, as a lone figure adjusts their metallic mask..."
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
@@ -522,12 +523,12 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               )}
               <span className="text-xs font-bold uppercase tracking-widest text-accent">
                 Polish{" "}
-                <span className="text-accent/30 normal-case tracking-normal">
+                <span className="text-accent/70 normal-case tracking-normal">
                   (optional)
                 </span>
               </span>
             </button>
-            <p className="text-[10px] text-accent/40 leading-relaxed">
+            <p className="text-[10px] text-accent/70 leading-relaxed">
               Optional. Rewrites your story with cinematic flair. Considers your
               cast from step 1 and uses your text as a guide.
             </p>
@@ -562,14 +563,14 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               className="bg-surface-container border border-outline/20 rounded-2xl p-8 max-w-md w-full shadow-2xl"
             >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-headline text-2xl font-bold text-accent">
+                <h2 className="font-headline text-2xl font-bold text-accent">
                   Edit <span className="text-primary italic">Character</span>
-                </h3>
+                </h2>
                 <button
                   onClick={() => setEditingCharacter(null)}
                   className="p-2 hover:bg-white/5 rounded-full transition-colors"
                 >
-                  <X size={20} className="text-accent/40" />
+                  <X size={20} className="text-accent/70" />
                 </button>
               </div>
 
@@ -585,7 +586,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-accent/70">
                     Name
                   </label>
                   <input
@@ -604,7 +605,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent/70">
                       Appearance & Role
                     </label>
                     {editingCharacter.image && editingCharacter.image && (
