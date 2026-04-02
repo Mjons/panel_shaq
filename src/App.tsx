@@ -187,7 +187,7 @@ const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
     id: "1",
     type: "Character",
     name: "Dev Guy",
-    image: "/sample.webp",
+    image: "/sample-304.webp",
     description:
       "A cute bald man with a brown beard, light skin. Wears a light blue t-shirt. Heavy brows. Cartoon round style with bold outlines.",
   },
