@@ -117,11 +117,8 @@ export async function apiPost<T>(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const isHosted = localStorage.getItem("panelshaq_auth_mode") === "hosted";
-  if (!isHosted) {
-    const userKey = getUserApiKey();
-    if (userKey) headers["x-api-key"] = userKey;
-  }
+  const userKey = getUserApiKey();
+  if (userKey) headers["x-api-key"] = userKey;
 
   // Send user ID for usage tracking (non-blocking — don't break API calls if Supabase fails)
   try {
@@ -365,5 +362,53 @@ export const critiqueComic = async (pageImages: string[]): Promise<string> => {
   } catch (error) {
     notifyError("Comic critique failed", error);
     return "Critique failed — check your API key in Settings.";
+  }
+};
+
+/* ── Dialogue Helper ── */
+
+export interface DialogueSuggestion {
+  panelIndex: number;
+  text: string;
+  speaker: string | null;
+  style: Bubble["style"];
+}
+
+const DIALOGUE_PROMPT = `You are a comic book dialogue writer. Look at this comic page and its panel descriptions, then suggest natural dialogue, thoughts, narration, or sound effects for each panel.
+
+Rules:
+- Return ONLY a JSON array — no markdown, no code fences, no explanation.
+- Each element: { "panelIndex": <number>, "text": "<dialogue>", "speaker": "<name or null>", "style": "<type>" }
+- style must be one of: "speech", "thought", "narration", "sfx-impact", "sfx-ambient", "action", "effect"
+- 1-3 suggestions per panel. Not every panel needs dialogue — action panels can have just SFX or nothing.
+- Keep dialogue SHORT and punchy — this is a comic, not a novel. Max 15 words per line.
+- Use character names as speaker when you can identify them. Use null for SFX/narration.
+- Match the tone of the story. If it's funny, be funny. If dramatic, be dramatic.
+- panelIndex is 0-based, matching the order of panels provided.`;
+
+export const suggestDialogue = async (
+  pageImages: string[],
+  story: string,
+  panelDescriptions: { index: number; description: string }[],
+  characters: { name: string; description?: string }[],
+): Promise<DialogueSuggestion[]> => {
+  try {
+    const { suggestions } = await apiPost<{
+      suggestions: DialogueSuggestion[];
+    }>(
+      "suggest-dialogue",
+      {
+        images: pageImages,
+        prompt: DIALOGUE_PROMPT,
+        story,
+        panels: panelDescriptions,
+        characters,
+      },
+      IMAGE_TIMEOUT,
+    );
+    return suggestions;
+  } catch (error) {
+    notifyError("Dialogue suggestion failed", error);
+    return [];
   }
 };

@@ -1,6 +1,6 @@
 {
   "buildCommand": "vite build",
-  "devCommand": "vite --port=4000 --host=0.0.0.0",
+  "devCommand": "vite --port=5173 --host=0.0.0.0",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }

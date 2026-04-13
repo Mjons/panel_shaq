@@ -47,6 +47,9 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
     "panelshaq_settings",
     DEFAULT_SETTINGS,
   );
+  const [tipsEnabled, setTipsEnabled] = useState(
+    () => localStorage.getItem("panelshaq_tips_disabled") !== "1",
+  );
   const [showKey, setShowKey] = useState(false);
   const [testStatus, setTestStatus] = useState<
     "idle" | "testing" | "success" | "error"
@@ -129,21 +132,18 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
 
       <div className="space-y-8">
         {/* API Configuration */}
-        {appMode === "hosted" ? (
+        {appMode === "hosted" && (
           <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-3">
-            <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
-              <Key size={18} />
-              API Configuration
-            </h3>
             <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
               <CheckCircle size={16} className="text-green-500 shrink-0" />
               <p className="text-sm text-accent/70">
-                You're using Panel Shaq's hosted service — no API key needed.
+                You're using Panel Shaq's hosted service.
+                {settings.geminiApiKey ? " Your own API key is active." : ""}
               </p>
             </div>
           </section>
-        ) : (
-          <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+        )}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
             <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
               <Key size={18} />
               API Configuration
@@ -222,7 +222,6 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
               </p>
             </div>
           </section>
-        )}
 
         {/* Image Model */}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
@@ -444,6 +443,30 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
               onChange={(e) =>
                 updateSetting("showDataWarnings", e.target.checked)
               }
+              className="accent-primary w-4 h-4"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-background/30 rounded-lg">
+            <div>
+              <span className="text-sm text-accent">Tooltips & Hints</span>
+              <p className="text-[10px] text-accent/30">
+                Show woodpecker tips throughout the app
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={tipsEnabled}
+              onChange={(e) => {
+                const on = e.target.checked;
+                setTipsEnabled(on);
+                if (on) {
+                  localStorage.removeItem("panelshaq_tips_disabled");
+                  localStorage.removeItem("panelshaq_tips_seen");
+                } else {
+                  localStorage.setItem("panelshaq_tips_disabled", "1");
+                }
+              }}
               className="accent-primary w-4 h-4"
             />
           </div>

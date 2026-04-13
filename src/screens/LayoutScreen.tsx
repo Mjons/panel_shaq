@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ArrowRight, Sparkles, X } from "lucide-react";
 import { PanelPrompt } from "../services/geminiService";
+import { Tip } from "../components/Tip";
 
 // ── Layout Template System ──
 
@@ -859,11 +860,12 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
         </p>
 
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 relative">
             <span className="text-[10px] text-accent/40 font-bold uppercase tracking-widest w-16 shrink-0">
               Format
             </span>
             <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
+              <Tip id="format-toggle" text="Comic: traditional grid pages. Webtoon: vertical scroll strip." mode="coach" position="bottom" align="left" />
               {Object.entries(PAGE_FORMATS).map(([key, fmt]) => (
                 <button
                   key={key}

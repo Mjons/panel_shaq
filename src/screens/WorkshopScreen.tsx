@@ -18,6 +18,7 @@ import {
   PanelPrompt,
 } from "../services/geminiService";
 import { useConfirm } from "../components/ConfirmDialog";
+import { Tip } from "../components/Tip";
 import { Character } from "../App";
 
 interface WorkshopProps {
@@ -227,12 +228,15 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
   return (
     <div className="pt-28 px-6 max-w-5xl mx-auto pb-32">
-      <section className="mb-8">
+      <section className="mb-6">
+        <label className="block text-[10px] font-bold uppercase tracking-widest text-accent/40 mb-1 md:hidden lg:hidden">
+          Project Title
+        </label>
         <input
           type="text"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className="bg-transparent border-none outline-none font-headline text-4xl md:text-7xl font-bold text-accent tracking-tighter mb-1 w-full placeholder:text-accent/70"
+          className="bg-transparent border-b border-outline/20 focus:border-primary/40 outline-none font-headline text-4xl md:text-4xl lg:text-7xl font-bold text-accent tracking-tighter pb-2 w-full placeholder:text-accent/70 transition-colors"
           placeholder="Untitled Project"
         />
       </section>
@@ -299,9 +303,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
         </div>
       )}
 
-      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-6 items-start">
-        {/* Characters + Style + Generate — shown first on mobile, right on desktop */}
-        <aside className="lg:col-span-4 lg:order-2 order-first flex flex-col gap-6 w-full">
+      <div className="flex flex-col md:grid md:grid-cols-12 gap-6 items-start">
+        {/* Characters + Style — shown first on mobile, left on tablet+ */}
+        <aside className="md:col-span-4 md:order-1 order-first flex flex-col gap-6 w-full">
           {/* STEP 1: Characters */}
           <div className="bg-surface-container p-5 rounded-lg border-t-2 border-primary shadow-2xl">
             <div className="flex items-center justify-between mb-2">
@@ -346,10 +350,10 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         e.stopPropagation();
                         removeCharacter(char.id);
                       }}
-                      className="absolute -top-1 -right-1 bg-background text-accent p-1 rounded-full border border-outline/20 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:text-primary"
+                      className="absolute -top-2 -right-2 bg-red-600 text-white p-1 rounded-full border-2 border-background opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity hover:bg-red-500 shadow-md"
                       aria-label={`Remove ${char.name}`}
                     >
-                      <X size={10} />
+                      <X size={14} />
                     </button>
                     <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-accent/50 group-hover:text-primary text-center truncate px-1">
                       {char.name}
@@ -381,10 +385,17 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           </div>
 
           {/* STEP 2: Style */}
-          <div className="bg-surface-container p-5 rounded-lg border border-outline/20">
+          <div className="bg-surface-container p-5 rounded-lg border border-outline/20 relative">
             <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight mb-2">
               <span className="text-primary">2.</span> Style
             </h2>
+            <Tip
+              id="style-ref"
+              text="Tap a character thumbnail to use their art style for all panels."
+              mode="coach"
+              position="bottom"
+              align="left"
+            />
             <p className="text-[10px] text-accent/70 mb-3">
               Tap the palette icon on a character to set it as the art style
               reference. Your comic will match that image's look.
@@ -437,9 +448,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
         </aside>
 
         {/* STEP 2: Story */}
-        <div className="lg:col-span-8 lg:order-1 order-2 flex flex-col gap-4 w-full">
+        <div className="md:col-span-8 md:order-2 order-2 flex flex-col gap-4 w-full">
           <div className="bg-surface-container rounded-lg p-0.5 shadow-xl border border-outline/20">
-            <div className="bg-background rounded-lg p-5 min-h-[300px] lg:min-h-[450px] flex flex-col">
+            <div className="bg-background rounded-lg p-5 min-h-[300px] md:min-h-[400px] lg:min-h-[450px] flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
                   <span className="text-primary">3.</span> Story
@@ -454,9 +465,16 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               </p>
               {/* Character Tag Bar */}
               {characters.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10">
-                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/70 mr-1">
+                <div className="flex flex-wrap items-center gap-1.5 mb-4 pb-3 border-b border-outline/10 relative">
+                  <span className="text-[8px] font-bold uppercase tracking-widest text-accent/70 mr-1 inline-flex items-center gap-1">
                     Cast:
+                    <Tip
+                      id="cast-tags"
+                      text="Tap a name to insert it into your story at the cursor."
+                      mode="help"
+                      position="bottom"
+                      align="left"
+                    />
                   </span>
                   {getCharacterMentions().map((c) => (
                     <button
@@ -510,7 +528,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           </div>
 
           {/* STEP 3: Polish */}
-          <div className="flex items-center gap-4 border border-outline/20 rounded-xl p-3">
+          <div className="flex items-center gap-4 border border-outline/20 rounded-xl p-3 relative">
             <button
               onClick={handlePolish}
               disabled={isPolishing || !story.trim()}
@@ -532,6 +550,13 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               Optional. Rewrites your story with cinematic flair. Considers your
               cast from step 1 and uses your text as a guide.
             </p>
+            <Tip
+              id="polish"
+              text="AI rewrites your story with cinematic flair. Your original text is replaced."
+              mode="coach"
+              position="top"
+              align="left"
+            />
           </div>
 
           <button
@@ -604,9 +629,16 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent/70">
+                  <div className="flex items-center justify-between relative">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-accent/70 inline-flex items-center gap-1">
                       Appearance & Role
+                      <Tip
+                        id="auto-describe"
+                        text="Analyzes the uploaded image to write a visual description for you."
+                        mode="help"
+                        position="bottom"
+                        align="left"
+                      />
                     </label>
                     {editingCharacter.image && editingCharacter.image && (
                       <button
@@ -660,6 +692,15 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   className="w-full bg-primary text-background font-bold uppercase tracking-widest py-4 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20"
                 >
                   Save Changes
+                </button>
+                <button
+                  onClick={() => {
+                    removeCharacter(editingCharacter.id);
+                    setEditingCharacter(null);
+                  }}
+                  className="w-full py-3 text-xs font-bold uppercase tracking-widest text-accent/40 hover:text-red-400 transition-colors active:scale-95"
+                >
+                  Remove Character
                 </button>
               </div>
             </motion.div>

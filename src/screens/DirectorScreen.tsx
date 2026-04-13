@@ -26,6 +26,7 @@ import { Character } from "../App";
 import { VaultEntry } from "./VaultScreen";
 import { useConfirm } from "../components/ConfirmDialog";
 import { PreviewCarousel } from "../components/PreviewCarousel";
+import { Tip } from "../components/Tip";
 
 // Lens type reference images
 import lensDefault from "../images/lens_types/Default.webp";
@@ -117,10 +118,17 @@ function AspectRatioPicker({
     ASPECT_RATIOS.find((r) => r.value === value) || ASPECT_RATIOS[0];
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 relative">
       <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
         Aspect Ratio
       </label>
+      <Tip
+        id="aspect-ratio"
+        text="Change panel shape: square, portrait, widescreen, and more."
+        mode="coach"
+        position="bottom"
+        align="left"
+      />
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -625,190 +633,206 @@ const PanelCard = React.memo(
     };
 
     const isWideRatio = ["16:9", "21:9", "3:2"].includes(aspectRatio);
+    // Full aspect ratio for desktop; on mobile/tablet, image uses max-h + object-contain instead
     const aspectClass =
       {
-        "1:1": "aspect-square",
-        "16:9": "aspect-video",
-        "9:16": "aspect-[9/16]",
-        "4:3": "aspect-[4/3]",
-        "3:4": "aspect-[3/4]",
-        "2:3": "aspect-[2/3]",
-        "3:2": "aspect-[3/2]",
-        "21:9": "aspect-[21/9]",
-      }[aspectRatio] || "aspect-video";
+        "1:1": "xl:aspect-square",
+        "16:9": "xl:aspect-video",
+        "9:16": "xl:aspect-[9/16]",
+        "4:3": "xl:aspect-[4/3]",
+        "3:4": "xl:aspect-[3/4]",
+        "2:3": "xl:aspect-[2/3]",
+        "3:2": "xl:aspect-[3/2]",
+        "21:9": "xl:aspect-[21/9]",
+      }[aspectRatio] || "xl:aspect-video";
 
     return (
       <div
-        className={isWideRatio ? "lg:col-span-8 group" : "lg:col-span-4 group"}
+        className={`md:col-span-2 ${isWideRatio ? "xl:col-span-8" : "xl:col-span-4"} group`}
       >
-        <div className="bg-surface rounded-lg overflow-hidden shadow-2xl transition-all duration-300 hover:translate-y-[-4px] border border-outline/10">
-          <div
-            className={`bg-surface-container relative overflow-hidden ${aspectClass}`}
-          >
-            {image ? (
-              <img
-                className="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer"
-                src={image}
-                alt={`Panel ${index + 1}`}
-                onClick={() => onPreview(index)}
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
-                {isQueueGenerating ? (
-                  <>
-                    <Loader2 size={36} className="text-primary animate-spin" />
-                    <span className="text-[10px] text-primary font-bold uppercase tracking-widest">
-                      Generating...
-                    </span>
-                  </>
-                ) : isQueued ? (
-                  <>
-                    <ImageIcon size={36} className="text-secondary/40" />
-                    <span className="text-[10px] text-secondary font-bold uppercase tracking-widest">
-                      Queued
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <ImageIcon size={48} className="text-outline opacity-20" />
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleGenerate}
-                        className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
-                      >
-                        Generate
-                      </button>
-                      <button
-                        onClick={() => uploadPanelRef.current?.click()}
-                        className="bg-accent/5 text-accent/60 border border-outline/20 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
-                      >
-                        Upload
-                      </button>
-                      {copiedImage && (
-                        <button
-                          onClick={() => onPasteImage?.()}
-                          className="bg-primary/80 text-background border border-primary px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary transition-all"
-                        >
-                          Paste
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1">
-              <div className="bg-background/80 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-lg border border-outline/20">
-                <span className="font-label text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-widest">
-                  Panel {String(index + 1).padStart(2, "0")}
-                </span>
-              </div>
-            </div>
-
-            {/* Delete button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(index);
-              }}
-              className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/60 backdrop-blur-sm text-accent/40 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors z-10"
-              title="Delete panel"
+        <div className="bg-surface rounded-lg overflow-hidden shadow-2xl transition-all duration-300 hover:translate-y-[-4px] border border-outline/10 md:flex xl:block">
+          <div className="md:w-[45%] md:shrink-0 xl:w-full">
+            <div
+              className={`bg-surface-container relative overflow-hidden ${image ? aspectClass : "aspect-video"}`}
             >
-              <Trash2 size={14} />
-            </button>
+              {image ? (
+                <img
+                  className="w-full max-h-[50vh] md:max-h-[400px] xl:max-h-none object-contain opacity-90 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  src={image}
+                  alt={`Panel ${index + 1}`}
+                  onClick={() => onPreview(index)}
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-tr from-background to-surface-container flex flex-col items-center justify-center gap-4">
+                  {isQueueGenerating ? (
+                    <>
+                      <Loader2
+                        size={36}
+                        className="text-primary animate-spin"
+                      />
+                      <span className="text-[10px] text-primary font-bold uppercase tracking-widest">
+                        Generating...
+                      </span>
+                    </>
+                  ) : isQueued ? (
+                    <>
+                      <ImageIcon size={36} className="text-secondary/40" />
+                      <span className="text-[10px] text-secondary font-bold uppercase tracking-widest">
+                        Queued
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon
+                        size={48}
+                        className="text-outline opacity-20"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleGenerate}
+                          className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
+                        >
+                          Generate
+                        </button>
+                        <button
+                          onClick={() => uploadPanelRef.current?.click()}
+                          className="bg-accent/5 text-accent/60 border border-outline/20 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:text-primary hover:border-primary/30 transition-all"
+                        >
+                          Upload
+                        </button>
+                        {copiedImage && (
+                          <button
+                            onClick={() => onPasteImage?.()}
+                            className="bg-primary/80 text-background border border-primary px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary transition-all"
+                          >
+                            Paste
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
-            {/* Queue status badges */}
-            {isQueued && !isQueueGenerating && (
-              <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
-                Queued
+              <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1">
+                <div className="bg-background/80 backdrop-blur-md px-2 py-0.5 md:px-3 md:py-1 rounded-md md:rounded-lg border border-outline/20">
+                  <span className="font-label text-[8px] md:text-[10px] text-primary uppercase font-bold tracking-widest">
+                    Panel {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
               </div>
-            )}
-            {isQueueGenerating && (
-              <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
-                <Loader2 size={10} className="animate-spin" /> Generating...
-              </div>
-            )}
-            {isFailed && !isQueued && !isQueueGenerating && (
+
+              {/* Delete button */}
               <button
-                onClick={handleGenerate}
-                className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(index);
+                }}
+                className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/60 backdrop-blur-sm text-accent/40 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors z-10"
+                title="Delete panel"
               >
-                <RefreshCw size={10} /> Failed — Retry
+                <Trash2 size={14} />
               </button>
-            )}
-            {image && !isQueued && !isQueueGenerating && !isFailed && (
-              <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-1 z-10">
+
+              {/* Queue status badges */}
+              {isQueued && !isQueueGenerating && (
+                <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
+                  Queued
+                </div>
+              )}
+              {isQueueGenerating && (
+                <div className="absolute top-4 right-4 bg-primary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10">
+                  <Loader2 size={10} className="animate-spin" /> Generating...
+                </div>
+              )}
+              {isFailed && !isQueued && !isQueueGenerating && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    uploadPanelRef.current?.click();
-                  }}
-                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
-                  title="Upload replacement image"
+                  onClick={handleGenerate}
+                  className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
                 >
-                  <Upload size={14} />
+                  <RefreshCw size={10} /> Failed — Retry
                 </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onCopyImage && image) onCopyImage(image);
-                  }}
-                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
-                  title="Copy image"
-                >
-                  <Copy size={14} />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const link = document.createElement("a");
-                    link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
-                    link.href = image;
-                    link.click();
-                  }}
-                  className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
-                  title="Download panel image"
-                >
-                  <Download size={14} />
-                </button>
-                {copiedImage && (
+              )}
+              {image && !isQueued && !isQueueGenerating && !isFailed && (
+                <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-1 z-10">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (onPasteImage) onPasteImage();
+                      uploadPanelRef.current?.click();
                     }}
-                    className="bg-primary/80 backdrop-blur-md text-background p-1.5 rounded-lg hover:bg-primary transition-all"
-                    title="Paste copied image"
+                    className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                    title="Upload replacement image"
                   >
-                    <ClipboardPaste size={14} />
+                    <Upload size={14} />
                   </button>
-                )}
-              </div>
-            )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onCopyImage && image) onCopyImage(image);
+                    }}
+                    className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                    title="Copy image"
+                  >
+                    <Copy size={14} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const link = document.createElement("a");
+                      link.download = `panel-${String(index + 1).padStart(2, "0")}.png`;
+                      link.href = image;
+                      link.click();
+                    }}
+                    className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-primary hover:bg-background/90 transition-all"
+                    title="Download panel image"
+                  >
+                    <Download size={14} />
+                  </button>
+                  {copiedImage && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onPasteImage) onPasteImage();
+                      }}
+                      className="bg-primary/80 backdrop-blur-md text-background p-1.5 rounded-lg hover:bg-primary transition-all"
+                      title="Paste copied image"
+                    >
+                      <ClipboardPaste size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
 
-            <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-              <button
-                onClick={handleGenerate}
-                disabled={isQueued || isQueueGenerating}
-                className="bg-primary/90 backdrop-blur-sm text-background px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-headline font-bold text-[10px] md:text-xs flex items-center gap-1 disabled:opacity-50 pointer-events-auto shadow-lg"
-              >
-                {isQueueGenerating ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <Sparkles size={12} />
-                )}
-                {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
-              </button>
+              <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isQueued || isQueueGenerating}
+                  className="bg-primary/90 backdrop-blur-sm text-background px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-headline font-bold text-[10px] md:text-xs flex items-center gap-1 disabled:opacity-50 pointer-events-auto shadow-lg"
+                >
+                  {isQueueGenerating ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="p-5 space-y-3">
+          <div className="p-5 space-y-3 md:flex-1 md:min-w-0 md:overflow-y-auto md:max-h-[600px] xl:max-h-none xl:overflow-visible">
             {/* Reference count */}
             <div
-              className={`text-[8px] font-label uppercase tracking-widest font-bold px-1 ${atRefLimit ? "text-primary" : "text-accent/30"}`}
+              className={`text-[8px] font-label uppercase tracking-widest font-bold px-1 inline-flex items-center gap-1.5 relative ${atRefLimit ? "text-primary" : "text-accent/30"}`}
             >
               References: {totalRefs}/{MAX_TOTAL_REFS}
+              <Tip
+                id="ref-limit"
+                text="Max 5 references per panel. Deselect one to add more."
+                mode="help"
+                position="bottom"
+                align="left"
+              />
             </div>
 
             {/* Character References — compact */}
@@ -890,7 +914,14 @@ const PanelCard = React.memo(
 
             {/* Backgrounds — collapsible */}
             {backgrounds.length > 0 && (
-              <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5">
+              <div className="p-2.5 bg-background/30 rounded-lg border border-outline/5 relative">
+                <Tip
+                  id="collapsed-refs"
+                  text="Tap to see your backgrounds, props, and vehicles from the Vault."
+                  mode="help"
+                  position="bottom"
+                  align="right"
+                />
                 <button
                   onClick={() => setShowBackgrounds(!showBackgrounds)}
                   className="flex items-center justify-between w-full"
@@ -1121,7 +1152,7 @@ const PanelCard = React.memo(
               )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
                   Camera Angle
@@ -1153,10 +1184,17 @@ const PanelCard = React.memo(
                   </optgroup>
                 </select>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 relative">
                 <label className="font-label text-[9px] text-accent/50 uppercase tracking-widest font-bold">
                   Camera Lens
                 </label>
+                <Tip
+                  id="camera-lens"
+                  text="Changes the virtual camera — try Portrait for close-ups, Fish-eye for drama."
+                  mode="coach"
+                  position="bottom"
+                  align="left"
+                />
                 <button
                   type="button"
                   onClick={() => setShowLensDropdown(true)}
@@ -1676,7 +1714,7 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-start pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-8 items-start pb-12">
           {/* Insert before first panel */}
           {draftPanel && draftPanel.insertIndex === 0 ? (
             <PanelDraftCard
@@ -1688,11 +1726,20 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               }
             />
           ) : (
-            <InsertPanelButton
-              onClick={() => handleInsertPanel(0)}
-              label="Add Prelude"
-              isLoading={insertingAt === 0}
-            />
+            <div className="relative col-span-full">
+              <InsertPanelButton
+                onClick={() => handleInsertPanel(0)}
+                label="Add Prelude"
+                isLoading={insertingAt === 0}
+              />
+              <Tip
+                id="insert-panel"
+                text="Add new panels between existing ones to expand your story."
+                mode="help"
+                position="bottom"
+                align="center"
+              />
+            </div>
           )}
 
           {panels.map((panel, index) => (

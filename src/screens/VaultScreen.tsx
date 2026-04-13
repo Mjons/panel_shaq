@@ -15,6 +15,7 @@ import {
 
 import { Loader2 } from "lucide-react";
 import { BottomSheet } from "../components/BottomSheet";
+import { Tip } from "../components/Tip";
 import {
   generateReferenceImage,
   analyzeCharacterImage,
@@ -627,7 +628,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 relative">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -636,6 +637,13 @@ export const VaultScreen: React.FC<VaultProps> = ({
                   <Upload size={12} />
                   Upload
                 </button>
+                <Tip
+                  id="vault-generate"
+                  text="AI creates a reference image from your name and description."
+                  mode="help"
+                  position="bottom"
+                  align="right"
+                />
                 <button
                   type="button"
                   onClick={handleGenerateImage}
@@ -770,9 +778,10 @@ export const VaultScreen: React.FC<VaultProps> = ({
 
           {/* Detailed Info */}
           <div className="space-y-6 pt-6 border-t border-outline/10">
-            <div>
-              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest block mb-2">
+            <div className="relative">
+              <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 inline-flex items-center gap-1">
                 Personality / Lore (Optional)
+                <Tip id="personality-vs-desc" text="Description = how they look. Personality = how they act (optional, for story context)." mode="help" position="bottom" align="left" />
               </label>
               <textarea
                 rows={3}

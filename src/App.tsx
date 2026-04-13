@@ -526,6 +526,8 @@ function AppInner() {
             onNavigate={guardedSetActiveTab}
             pageFormat={pageFormat}
             onOpenGifEditor={setGifEditorImages}
+            story={story}
+            characters={characters}
           />
         );
       case "settings":

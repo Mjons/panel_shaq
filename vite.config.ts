@@ -2,12 +2,53 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
+
+/** Serves api/*.ts handlers in dev so `vite dev` works without `vercel dev`. */
+function vercelApiDev(): Plugin {
+  return {
+    name: "vercel-api-dev",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith("/api/")) return next();
+        const endpoint = req.url.replace("/api/", "").split("?")[0];
+        let body = "";
+        for await (const chunk of req) body += chunk;
+        const mockReq = {
+          method: req.method,
+          headers: req.headers,
+          body: body ? JSON.parse(body) : {},
+        };
+        const mockRes = {
+          statusCode: 200,
+          status(code: number) {
+            this.statusCode = code;
+            return this;
+          },
+          json(data: unknown) {
+            res.statusCode = this.statusCode;
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify(data));
+          },
+        };
+        try {
+          const mod = await server.ssrLoadModule(`/api/${endpoint}.ts`);
+          await mod.default(mockReq, mockRes);
+        } catch (e: any) {
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, ".", "");
   return {
     plugins: [
+      vercelApiDev(),
       react(),
       tailwindcss(),
       VitePWA({

@@ -32,12 +32,16 @@ import {
   ArrowRight,
   Dices,
   Film,
+  Check,
+  RefreshCw,
 } from "lucide-react";
 import {
   PanelPrompt,
   finalNaturalRender,
   Bubble,
   critiqueComic,
+  suggestDialogue,
+  DialogueSuggestion,
 } from "../services/geminiService";
 import { Page, getTemplate, PAGE_FORMATS } from "./LayoutScreen";
 import {
@@ -50,6 +54,7 @@ import {
 import { toPng, toJpeg } from "html-to-image";
 import { encode as encodeGif } from "modern-gif";
 import jsPDF from "jspdf";
+import { Tip } from "../components/Tip";
 
 /* ── Gesture-enabled panel image ── */
 /* ── Gesture-enabled panel image ──
@@ -613,6 +618,8 @@ interface EditorProps {
   onNavigate?: (tab: string) => void;
   pageFormat?: string;
   onOpenGifEditor?: (images: { id: string; imageData: string }[]) => void;
+  story?: string;
+  characters?: { name: string; description?: string }[];
 }
 
 export const EditorScreen: React.FC<EditorProps> = ({
@@ -622,6 +629,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
   onNavigate,
   pageFormat = "portrait",
   onOpenGifEditor,
+  story = "",
+  characters = [],
 }) => {
   const [selectedPageIdx, setSelectedPageIdx] = useState(0);
   const [selectedPanelId, setSelectedPanelId] = useState<string | null>(null);
@@ -711,6 +720,13 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [critiqueText, setCritiqueText] = useState<string | null>(null);
   const [isCritiquing, setIsCritiquing] = useState(false);
+  const [dialogueSuggestions, setDialogueSuggestions] = useState<
+    DialogueSuggestion[]
+  >([]);
+  const [isGeneratingDialogue, setIsGeneratingDialogue] = useState(false);
+  const [appliedSuggestions, setAppliedSuggestions] = useState<Set<number>>(
+    new Set(),
+  );
   const [exportHistory, setExportHistory] = useState<
     {
       id: string;
@@ -1235,6 +1251,78 @@ export const EditorScreen: React.FC<EditorProps> = ({
     setIsCritiquing(false);
   };
 
+  const handleSuggestDialogue = async () => {
+    if (!comicRef.current || isGeneratingDialogue) return;
+    setIsGeneratingDialogue(true);
+    setDialogueSuggestions([]);
+    setAppliedSuggestions(new Set());
+    setSelectedPanelId(null);
+    setSelectedBubbleId(null);
+    await waitForPaint();
+
+    try {
+      const capture = await captureRef(comicRef, "png");
+      const currentPage = pages[selectedPageIdx];
+      const pagePanels = currentPage.panelIds
+        .map((id) => panels.find((p) => p.id === id))
+        .filter(Boolean) as PanelPrompt[];
+
+      const panelDescriptions = pagePanels.map((p, i) => ({
+        index: i,
+        description: p.description,
+      }));
+
+      const charContext = characters.map((c) => ({
+        name: c.name,
+        description: c.description,
+      }));
+
+      const suggestions = await suggestDialogue(
+        [capture],
+        story,
+        panelDescriptions,
+        charContext,
+      );
+      setDialogueSuggestions(suggestions);
+    } catch (err) {
+      console.error("Dialogue suggestion failed:", err);
+    }
+    setIsGeneratingDialogue(false);
+  };
+
+  const applyDialogueSuggestion = (
+    suggestion: DialogueSuggestion,
+    suggestionIdx: number,
+  ) => {
+    const currentPage = pages[selectedPageIdx];
+    const targetPanelId = currentPage.panelIds[suggestion.panelIndex];
+    if (!targetPanelId) return;
+
+    const newBubble: Bubble = {
+      id: crypto.randomUUID(),
+      text: suggestion.text,
+      pos: { x: 50, y: 20 + (suggestionIdx % 3) * 15 },
+      style: suggestion.style || "speech",
+      fontSize: suggestion.style?.startsWith("sfx") ? 18 : 12,
+      fontWeight: "bold",
+      fontStyle: "normal",
+      tailPos:
+        suggestion.style === "speech" || suggestion.style === "thought"
+          ? { x: 50, y: 40 + (suggestionIdx % 3) * 10 }
+          : undefined,
+    };
+
+    setPanels((prev) =>
+      prev.map((p) =>
+        p.id === targetPanelId
+          ? { ...p, bubbles: [...(p.bubbles || []), newBubble] }
+          : p,
+      ),
+    );
+
+    setAppliedSuggestions((prev) => new Set(prev).add(suggestionIdx));
+  };
+
   return (
     <main className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* Left Sidebar: Tools & Assets */}
@@ -1442,7 +1530,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
       </aside>
 
       {/* Center: Comic Canvas */}
-      <section className="lg:col-span-6 space-y-6">
+      <section className="lg:col-span-6 space-y-6 relative">
+        <Tip
+          id="editor-gestures"
+          text="Drag to move image. Pinch to zoom. Two-finger tap to rotate. Double-tap for fullscreen."
+          mode="coach"
+          position="bottom"
+          align="center"
+        />
         <div className="flex items-center justify-between bg-surface-container p-4 rounded-lg border border-outline/10">
           <button
             disabled={selectedPageIdx === 0}
@@ -1636,29 +1731,45 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
                           {/* Position lock toggle */}
                           {!isExporting && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setLockedPanelIds((prev) => {
-                                  const next = new Set(prev);
-                                  if (next.has(pid)) next.delete(pid);
-                                  else next.add(pid);
-                                  return next;
-                                });
-                              }}
-                              className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
-                              aria-label={
-                                lockedPanelIds.has(pid)
-                                  ? "Unlock panel position"
-                                  : "Lock panel position"
-                              }
-                            >
-                              {lockedPanelIds.has(pid) ? (
-                                <Lock size={12} className="text-primary" />
-                              ) : (
-                                <Unlock size={12} className="text-accent/40" />
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setLockedPanelIds((prev) => {
+                                    const next = new Set(prev);
+                                    if (next.has(pid)) next.delete(pid);
+                                    else next.add(pid);
+                                    return next;
+                                  });
+                                }}
+                                className="absolute top-1.5 left-1.5 z-10 p-1.5 rounded"
+                                aria-label={
+                                  lockedPanelIds.has(pid)
+                                    ? "Unlock panel position"
+                                    : "Lock panel position"
+                                }
+                              >
+                                {lockedPanelIds.has(pid) ? (
+                                  <Lock size={12} className="text-primary" />
+                                ) : (
+                                  <Unlock
+                                    size={12}
+                                    className="text-accent/40"
+                                  />
+                                )}
+                              </button>
+                              {idx === 0 && (
+                                <div className="absolute top-8 left-1.5 z-10">
+                                  <Tip
+                                    id="panel-lock"
+                                    text="Lock prevents accidental dragging. Bubbles still move freely."
+                                    mode="coach"
+                                    position="bottom"
+                                    align="left"
+                                  />
+                                </div>
                               )}
-                            </button>
+                            </>
                           )}
 
                           {/* Bubble Overlay */}
@@ -1831,12 +1942,115 @@ export const EditorScreen: React.FC<EditorProps> = ({
             Permanently renders bubbles into artwork
           </span>
         </button>
+        <div className="relative">
+          <Tip
+            id="bake-btn"
+            text="Permanently burns all bubbles and text into the image. Can't be undone."
+            mode="coach"
+            position="top"
+            align="center"
+          />
+        </div>
+
+        {/* Dialogue Helper */}
+        <div className="bg-surface-container rounded-lg p-6 space-y-4">
+          <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
+            <MessageSquare size={18} />
+            DIALOGUE HELPER
+          </h3>
+
+          {dialogueSuggestions.length === 0 ? (
+            <div className="space-y-3">
+              <p className="text-xs text-accent/50">
+                Suggest dialogue for your panels based on the story and visuals.
+              </p>
+              <button
+                onClick={handleSuggestDialogue}
+                disabled={isGeneratingDialogue}
+                className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+              >
+                {isGeneratingDialogue ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <MessageSquare size={14} />
+                )}
+                {isGeneratingDialogue ? "GENERATING..." : "SUGGEST DIALOGUE"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {dialogueSuggestions.map((s, i) => {
+                const applied = appliedSuggestions.has(i);
+                return (
+                  <div
+                    key={i}
+                    className={`p-3 rounded-lg border transition-all ${
+                      applied
+                        ? "bg-primary/5 border-primary/20 opacity-60"
+                        : "bg-background/50 border-outline/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-primary">
+                        Panel {String(s.panelIndex + 1).padStart(2, "0")}
+                      </span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-accent/30 bg-surface-container px-1.5 py-0.5 rounded">
+                        {s.style}
+                      </span>
+                    </div>
+                    {s.speaker && (
+                      <p className="text-[9px] text-accent/40 font-bold mb-0.5">
+                        {s.speaker}:
+                      </p>
+                    )}
+                    <p className="text-xs text-accent/80 italic leading-relaxed mb-2">
+                      "{s.text}"
+                    </p>
+                    {applied ? (
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-primary flex items-center gap-1">
+                        <Check size={10} />
+                        Applied
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => applyDialogueSuggestion(s, i)}
+                        className="text-[9px] font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+                      >
+                        <Plus size={10} />
+                        Apply to Panel
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+              <button
+                onClick={handleSuggestDialogue}
+                disabled={isGeneratingDialogue}
+                className="w-full py-2 text-[10px] font-bold uppercase tracking-widest text-accent/40 hover:text-primary transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {isGeneratingDialogue ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <RefreshCw size={10} />
+                )}
+                {isGeneratingDialogue ? "Generating..." : "Try Again"}
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Comic Critique Corner */}
-        <div className="bg-surface-container rounded-lg p-6 space-y-4">
+        <div className="bg-surface-container rounded-lg p-6 space-y-4 relative">
           <h3 className="font-headline text-primary text-lg font-bold flex items-center gap-2">
             <Sparkles size={18} />
             CRITIQUE CORNER
+            <Tip
+              id="ai-critique"
+              text="Get AI feedback on your page's pacing, composition, and dialogue."
+              mode="help"
+              position="bottom"
+              align="left"
+            />
           </h3>
 
           {!critiqueText ? (
@@ -2297,6 +2511,55 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     (step size in Settings)
                   </span>
                 </p>
+                {/* Rotation slider */}
+                {panel.image && (
+                  <div className="bg-[#31394D]/60 backdrop-blur-xl rounded-2xl px-4 py-2.5 mb-2 flex items-center gap-3">
+                    <RotateCcw size={14} className="text-accent/40 shrink-0" />
+                    <input
+                      type="range"
+                      min={-180}
+                      max={180}
+                      step={1}
+                      value={panel.imageTransform?.rotation ?? 0}
+                      onChange={(e) => {
+                        const deg = Number(e.target.value);
+                        updatePanel(panel.id, {
+                          imageTransform: {
+                            ...(panel.imageTransform || {
+                              x: 0,
+                              y: 0,
+                              scale: 1,
+                            }),
+                            rotation: deg,
+                          },
+                        });
+                      }}
+                      className="flex-1 h-1 accent-primary bg-outline/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-md"
+                    />
+                    <span className="text-[10px] font-mono text-accent/40 w-8 text-right shrink-0">
+                      {panel.imageTransform?.rotation ?? 0}°
+                    </span>
+                    {(panel.imageTransform?.rotation ?? 0) !== 0 && (
+                      <button
+                        onClick={() =>
+                          updatePanel(panel.id, {
+                            imageTransform: {
+                              ...(panel.imageTransform || {
+                                x: 0,
+                                y: 0,
+                                scale: 1,
+                              }),
+                              rotation: 0,
+                            },
+                          })
+                        }
+                        className="text-[8px] font-bold uppercase tracking-widest text-accent/40 hover:text-primary transition-colors px-1.5 py-0.5 rounded border border-outline/10 shrink-0"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                )}
                 {showEmojiPicker && (
                   <div className="mb-2 bg-[#31394D]/80 backdrop-blur-xl rounded-2xl p-3 shadow-2xl">
                     <div className="grid grid-cols-8 gap-1">
