@@ -228,7 +228,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
   return (
     <div className="pt-28 px-6 max-w-5xl mx-auto pb-32">
-      <section className="mb-6">
+      <section className="mb-6 relative">
         <label className="block text-[10px] font-bold uppercase tracking-widest text-accent/40 mb-1 md:hidden lg:hidden">
           Project Title
         </label>
@@ -238,6 +238,16 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
           onChange={(e) => setProjectName(e.target.value)}
           className="bg-transparent border-b border-outline/20 focus:border-primary/40 outline-none font-headline text-4xl md:text-4xl lg:text-7xl font-bold text-accent tracking-tighter pb-2 w-full placeholder:text-accent/70 transition-colors"
           placeholder="Untitled Project"
+        />
+        <Tip
+          id="smudge-intro"
+          text={
+            "Hey, I'm Smudge — the sponge. I'll pop up with tips as you go. First things first: don't forget to give your project a title up top!\n\nTap 'Got it' to dismiss me. You can turn tips off anytime in Settings."
+          }
+          mode="coach"
+          position="bottom"
+          align="left"
+          pose="waving"
         />
       </section>
 
@@ -312,13 +322,22 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
               <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight">
                 <span className="text-primary">1.</span> Characters
               </h2>
-              <button
-                onClick={() => onNavigate?.("vault")}
-                className="text-primary hover:rotate-90 transition-transform duration-300"
-                aria-label="Add character from vault"
-              >
-                <PlusCircle size={24} />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => onNavigate?.("vault")}
+                  className="text-primary hover:rotate-90 transition-transform duration-300 block"
+                  aria-label="Add character from vault"
+                >
+                  <PlusCircle size={24} />
+                </button>
+                <Tip
+                  id="style-ref"
+                  text="Tap the orange + to create a new character blueprint. The more detail you add (name, look, personality), the more consistent your character will stay across every panel."
+                  mode="coach"
+                  position="right"
+                  pose="cheering"
+                />
+              </div>
             </div>
             <p className="text-[10px] text-accent/70 mb-4">
               Upload character images. Tap to edit name and description. These
@@ -389,13 +408,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             <h2 className="font-headline text-lg font-bold text-accent uppercase tracking-tight mb-2">
               <span className="text-primary">2.</span> Style
             </h2>
-            <Tip
-              id="style-ref"
-              text="Tap a character thumbnail to use their art style for all panels."
-              mode="coach"
-              position="bottom"
-              align="left"
-            />
             <p className="text-[10px] text-accent/70 mb-3">
               Tap the palette icon on a character to set it as the art style
               reference. Your comic will match that image's look.
@@ -552,10 +564,11 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             </p>
             <Tip
               id="polish"
-              text="AI rewrites your story with cinematic flair. Your original text is replaced."
+              text="Optional — Polish runs your draft through AI to add cinematic flair (mood, sensory detail, pacing) while keeping your characters and intent. Your original text gets replaced, so save a copy if you love it."
               mode="coach"
               position="top"
               align="left"
+              pose="spinning"
             />
           </div>
 

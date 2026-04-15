@@ -144,84 +144,84 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
           </section>
         )}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
-            <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
-              <Key size={18} />
-              API Configuration
-            </h3>
+          <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <Key size={18} />
+            API Configuration
+          </h3>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
-                Gemini API Key
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type={showKey ? "text" : "password"}
-                    value={settings.geminiApiKey}
-                    onChange={(e) =>
-                      updateSetting("geminiApiKey", e.target.value)
-                    }
-                    placeholder="AIzaSy..."
-                    className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent placeholder-accent/20 outline-none focus:border-primary/50 pr-10"
-                  />
-                  <button
-                    onClick={() => setShowKey(!showKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/30 hover:text-accent transition-colors"
-                    aria-label={showKey ? "Hide API key" : "Show API key"}
-                  >
-                    {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">
+              Gemini API Key
+            </label>
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <input
+                  type={showKey ? "text" : "password"}
+                  value={settings.geminiApiKey}
+                  onChange={(e) =>
+                    updateSetting("geminiApiKey", e.target.value)
+                  }
+                  placeholder="AIzaSy..."
+                  className="w-full bg-background border border-outline/20 rounded-lg px-4 py-3 text-sm text-accent placeholder-accent/20 outline-none focus:border-primary/50 pr-10"
+                />
                 <button
-                  onClick={handleTestConnection}
-                  disabled={testStatus === "testing" || !settings.geminiApiKey}
-                  className="px-4 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50"
+                  onClick={() => setShowKey(!showKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/30 hover:text-accent transition-colors"
+                  aria-label={showKey ? "Hide API key" : "Show API key"}
                 >
-                  {testStatus === "testing" ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    "Test"
-                  )}
+                  {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-                {settings.geminiApiKey && (
-                  <button
-                    onClick={() => {
-                      updateSetting("geminiApiKey", "");
-                      setTestStatus("idle");
-                    }}
-                    className="px-3 py-3 text-red-400/60 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all"
-                    title="Remove API key"
-                    aria-label="Remove API key"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
               </div>
-              {testStatus === "success" && (
-                <p className="text-xs text-green-500 flex items-center gap-1">
-                  <CheckCircle size={12} /> Connected successfully
-                </p>
-              )}
-              {testStatus === "error" && (
-                <p className="text-xs text-red-500 flex items-center gap-1">
-                  <XCircle size={12} /> Connection failed — check your key
-                </p>
-              )}
-              <p className="text-[10px] text-accent/30 leading-relaxed">
-                Get a free key at{" "}
-                <a
-                  href="https://aistudio.google.com/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline"
+              <button
+                onClick={handleTestConnection}
+                disabled={testStatus === "testing" || !settings.geminiApiKey}
+                className="px-4 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50"
+              >
+                {testStatus === "testing" ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  "Test"
+                )}
+              </button>
+              {settings.geminiApiKey && (
+                <button
+                  onClick={() => {
+                    updateSetting("geminiApiKey", "");
+                    setTestStatus("idle");
+                  }}
+                  className="px-3 py-3 text-red-400/60 border border-red-500/20 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all"
+                  title="Remove API key"
+                  aria-label="Remove API key"
                 >
-                  aistudio.google.com/apikey
-                </a>
-                . Your key is stored locally in your browser — never sent to our
-                servers.
-              </p>
+                  <Trash2 size={16} />
+                </button>
+              )}
             </div>
-          </section>
+            {testStatus === "success" && (
+              <p className="text-xs text-green-500 flex items-center gap-1">
+                <CheckCircle size={12} /> Connected successfully
+              </p>
+            )}
+            {testStatus === "error" && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <XCircle size={12} /> Connection failed — check your key
+              </p>
+            )}
+            <p className="text-[10px] text-accent/30 leading-relaxed">
+              Get a free key at{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline"
+              >
+                aistudio.google.com/apikey
+              </a>
+              . Your key is stored locally in your browser — never sent to our
+              servers.
+            </p>
+          </div>
+        </section>
 
         {/* Image Model */}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
@@ -451,7 +451,8 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
             <div>
               <span className="text-sm text-accent">Tooltips & Hints</span>
               <p className="text-[10px] text-accent/30">
-                Show woodpecker tips throughout the app
+                Show Smudge tips throughout the app. Toggling on resets all
+                dismissed tips so you can see them again.
               </p>
             </div>
             <input

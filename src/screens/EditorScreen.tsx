@@ -1533,10 +1533,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
       <section className="lg:col-span-6 space-y-6 relative">
         <Tip
           id="editor-gestures"
-          text="Drag to move image. Pinch to zoom. Two-finger tap to rotate. Double-tap for fullscreen."
+          text="On any panel: drag to reposition, pinch to zoom, two-finger tap to rotate by your step size, double-tap to open it fullscreen for fine detail work."
           mode="coach"
           position="bottom"
           align="center"
+          pose="dancing"
         />
         <div className="flex items-center justify-between bg-surface-container p-4 rounded-lg border border-outline/10">
           <button
@@ -1762,10 +1763,11 @@ export const EditorScreen: React.FC<EditorProps> = ({
                                 <div className="absolute top-8 left-1.5 z-10">
                                   <Tip
                                     id="panel-lock"
-                                    text="Lock prevents accidental dragging. Bubbles still move freely."
+                                    text="Lock a panel to freeze its position and zoom — handy when you've got it framed just right and don't want to bump it. Bubbles on top still move freely."
                                     mode="coach"
                                     position="bottom"
                                     align="left"
+                                    pose="standing"
                                   />
                                 </div>
                               )}
@@ -1915,40 +1917,41 @@ export const EditorScreen: React.FC<EditorProps> = ({
         </div>
 
         {/* Bake Dialogue */}
-        <button
-          onClick={() => {
-            if (
-              window.confirm(
-                "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
-              )
-            ) {
-              handleFinalRender();
-            }
-          }}
-          disabled={
-            !selectedPanelId || isRendering || !selectedPanel?.bubbles?.length
-          }
-          className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
-        >
-          <div className="flex items-center gap-2">
-            {isRendering ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <Wand2 size={20} />
-            )}
-            <span>Bake Dialogue Into Image</span>
-          </div>
-          <span className="text-[8px] opacity-70 uppercase tracking-widest">
-            Permanently renders bubbles into artwork
-          </span>
-        </button>
         <div className="relative">
+          <button
+            onClick={() => {
+              if (
+                window.confirm(
+                  "This will permanently bake ALL text elements on the selected panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+                )
+              ) {
+                handleFinalRender();
+              }
+            }}
+            disabled={
+              !selectedPanelId || isRendering || !selectedPanel?.bubbles?.length
+            }
+            className="w-full py-4 rounded-lg bg-primary text-background font-headline font-bold flex flex-col items-center justify-center gap-1 shadow-[0_4px_14px_rgba(255,145,0,0.39)] active:scale-95 transition-transform disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2">
+              {isRendering ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Wand2 size={20} />
+              )}
+              <span>Bake Dialogue Into Image</span>
+            </div>
+            <span className="text-[8px] opacity-70 uppercase tracking-widest">
+              Permanently renders bubbles into artwork
+            </span>
+          </button>
           <Tip
             id="bake-btn"
-            text="Permanently burns all bubbles and text into the image. Can't be undone."
+            text="Once you're happy with your bubbles, hit Bake to fuse them permanently into the panel image. Download a clean copy first if you want to keep the bubble-free version."
             mode="coach"
             position="top"
             align="center"
+            pose="jumping"
           />
         </div>
 
@@ -1964,18 +1967,27 @@ export const EditorScreen: React.FC<EditorProps> = ({
               <p className="text-xs text-accent/50">
                 Suggest dialogue for your panels based on the story and visuals.
               </p>
-              <button
-                onClick={handleSuggestDialogue}
-                disabled={isGeneratingDialogue}
-                className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isGeneratingDialogue ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <MessageSquare size={14} />
-                )}
-                {isGeneratingDialogue ? "GENERATING..." : "SUGGEST DIALOGUE"}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={handleSuggestDialogue}
+                  disabled={isGeneratingDialogue}
+                  className="w-full py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                >
+                  {isGeneratingDialogue ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <MessageSquare size={14} />
+                  )}
+                  {isGeneratingDialogue ? "GENERATING..." : "SUGGEST DIALOGUE"}
+                </button>
+                <Tip
+                  id="suggest-dialogue"
+                  text="Press this and I'll review your laid-out comic, then suggest dialogue, thoughts and SFX for each panel. Tap Apply on any line to drop it in as a bubble — then bake it right into the image."
+                  mode="coach"
+                  position="left"
+                  pose="thinking"
+                />
+              </div>
             </div>
           ) : (
             <div className="space-y-3">

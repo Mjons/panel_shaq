@@ -124,10 +124,11 @@ function AspectRatioPicker({
       </label>
       <Tip
         id="aspect-ratio"
-        text="Change panel shape: square, portrait, widescreen, and more."
+        text="Pick the panel's shape — Tall (9:16) for vertical drama, Square (1:1) for balance, Wide (16:9) for cinematic moments. Shape changes the whole feel of the shot."
         mode="coach"
         position="bottom"
         align="left"
+        pose="balancing"
       />
       <button
         type="button"
@@ -1190,8 +1191,9 @@ const PanelCard = React.memo(
                 </label>
                 <Tip
                   id="camera-lens"
-                  text="Changes the virtual camera — try Portrait for close-ups, Fish-eye for drama."
+                  text="Pick the lens like a real photographer would — Portrait 85mm for tight close-ups with creamy backgrounds, Fish-eye for chaotic drama, Wide for sweeping establishing shots."
                   mode="coach"
+                  pose="thinking"
                   position="bottom"
                   align="left"
                 />

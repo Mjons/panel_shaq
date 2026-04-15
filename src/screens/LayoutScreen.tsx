@@ -865,7 +865,14 @@ export const LayoutScreen: React.FC<LayoutScreenProps> = ({
               Format
             </span>
             <div className="bg-surface-container p-1 rounded-lg flex gap-1 border border-outline/10">
-              <Tip id="format-toggle" text="Comic: traditional grid pages. Webtoon: vertical scroll strip." mode="coach" position="bottom" align="left" />
+              <Tip
+                id="format-toggle"
+                text="Comic mode lays panels out as traditional grid pages — perfect for print or static reading. Webtoon mode flows everything into a single vertical strip — built for endless mobile scrolling."
+                mode="coach"
+                position="bottom"
+                align="left"
+                pose="stretching"
+              />
               {Object.entries(PAGE_FORMATS).map(([key, fmt]) => (
                 <button
                   key={key}

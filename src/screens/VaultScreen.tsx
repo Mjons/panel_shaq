@@ -781,7 +781,13 @@ export const VaultScreen: React.FC<VaultProps> = ({
             <div className="relative">
               <label className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-2 inline-flex items-center gap-1">
                 Personality / Lore (Optional)
-                <Tip id="personality-vs-desc" text="Description = how they look. Personality = how they act (optional, for story context)." mode="help" position="bottom" align="left" />
+                <Tip
+                  id="personality-vs-desc"
+                  text="Description = how they look. Personality = how they act (optional, for story context)."
+                  mode="help"
+                  position="bottom"
+                  align="left"
+                />
               </label>
               <textarea
                 rows={3}

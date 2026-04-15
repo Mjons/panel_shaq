@@ -9,3 +9,18 @@ coverage/
 
 .vercel
 .env*.local
+
+# Android / TWA build
+.gradle/
+app/
+gradle/
+gradlew
+gradlew.bat
+build.gradle
+settings.gradle
+gradle.properties
+*.keystore
+*.apk
+*.aab
+*.idsig
+manifest-checksum.txt

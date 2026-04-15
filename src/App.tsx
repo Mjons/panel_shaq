@@ -191,6 +191,17 @@ const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
     description:
       "A cute bald man with a brown beard, light skin. Wears a light blue t-shirt. Heavy brows. Cartoon round style with bold outlines.",
   },
+  {
+    id: "2",
+    type: "Character",
+    name: "Smudge",
+    image: "/Smudge_the_dirty_sponge/02-standing.webp",
+    description:
+      "A grimy yellow kitchen sponge with bulging cartoon eyes and tiny brown boots. Pores and stains cover his body. Cartoon style with bold outlines.",
+    personality: "Wise-cracking, sarcastic veteran. Tired but sharp-witted.",
+    visualLook:
+      "Rectangular yellow sponge body with darker brown grime patches. Small pores dotting the surface. Small brown boots. Cartoon proportions with oversized eyes.",
+  },
 ];
 
 function AppInner() {
