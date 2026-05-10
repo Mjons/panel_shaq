@@ -57,6 +57,7 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
   const [usage, setUsage] = useState<{ text: number; image: number } | null>(
     null,
   );
+  const userEmail = localStorage.getItem("panelshaq_user_email") || "";
 
   useEffect(() => {
     getUsageToday().then((u) => {
@@ -141,6 +142,16 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
                 {settings.geminiApiKey ? " Your own API key is active." : ""}
               </p>
             </div>
+            {userEmail && (
+              <div className="flex items-baseline gap-2 px-4">
+                <span className="text-[10px] font-bold text-accent/50 uppercase tracking-widest">
+                  Signed in as
+                </span>
+                <span className="text-sm text-accent/80 break-all">
+                  {userEmail}
+                </span>
+              </div>
+            )}
           </section>
         )}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">

@@ -1,5 +1,18 @@
 # Changelog
 
+## May 10, 2026 — Share Polish & Settings
+
+### Sharing
+
+- **Editor share buttons now include a real share message** — both "Share This Page" and "Share All Pages" pass `text: "Made this with panelhaus.app — AI comic creator"` so X (and other recipients) get usable tweet copy with the URL. Previously was just "Made with Panelhaus".
+- **iOS fallback applied to editor share** — both buttons now fall through to download when `navigator.share()` rejects with anything other than user-cancel. Matches the same pattern applied to ShareScreen earlier today.
+- **Page-numbered share titles** — "Share This Page" now uses `Comic Page N` as the share title instead of generic `My Comic`, so the page number travels with the share.
+- **Share analytics in editor** — both buttons fire `share_completed` events (`surface: editor_current_page` / `editor_all_pages`, with `_download` suffix on fallback) so the funnel covers all share paths.
+
+### Settings
+
+- **"Signed in as: {email}" display** — hosted-mode users now see their saved email in Settings, below the existing hosted-service banner. Read from the `panelshaq_user_email` localStorage key set during email-gate signup. BYOK users see nothing extra (no email is collected in BYOK mode).
+
 ## May 10, 2026 — Spike Prep
 
 ### Observability

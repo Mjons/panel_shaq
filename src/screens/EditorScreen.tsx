@@ -55,6 +55,9 @@ import { toPng, toJpeg } from "html-to-image";
 import { encode as encodeGif } from "modern-gif";
 import jsPDF from "jspdf";
 import { Tip } from "../components/Tip";
+import { track } from "../services/analytics";
+
+const SHARE_TEXT = "Made this with panelhaus.app — AI comic creator";
 
 /* ── Gesture-enabled panel image ── */
 /* ── Gesture-enabled panel image ──
@@ -2194,25 +2197,38 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   const imgData = await captureRef(comicRef, "png");
                   const res = await fetch(imgData);
                   const blob = await res.blob();
-                  const file = new File(
-                    [blob],
-                    `Comic_Page_${selectedPageIdx + 1}.png`,
-                    { type: "image/png" },
-                  );
+                  const pageNum = selectedPageIdx + 1;
+                  const file = new File([blob], `Comic_Page_${pageNum}.png`, {
+                    type: "image/png",
+                  });
+                  let shared = false;
                   if (navigator.canShare?.({ files: [file] })) {
-                    await navigator.share({
-                      title: "My Comic",
-                      text: "Made with Panelhaus",
-                      files: [file],
-                    });
-                  } else {
+                    try {
+                      await navigator.share({
+                        title: `Comic Page ${pageNum}`,
+                        text: SHARE_TEXT,
+                        files: [file],
+                      });
+                      track("share_completed", {
+                        surface: "editor_current_page",
+                      });
+                      shared = true;
+                    } catch (e) {
+                      if ((e as Error).name === "AbortError") shared = true;
+                      // otherwise fall through to download
+                    }
+                  }
+                  if (!shared) {
                     const link = document.createElement("a");
                     link.download = file.name;
                     link.href = imgData;
                     link.click();
+                    track("share_completed", {
+                      surface: "editor_current_page_download",
+                    });
                   }
-                } catch {
-                  /* user cancelled */
+                } catch (e) {
+                  console.error("Share page failed:", e);
                 }
                 setIsExporting(false);
               }}
@@ -2250,13 +2266,25 @@ export const EditorScreen: React.FC<EditorProps> = ({
                       );
                     }
                     setSelectedPageIdx(originalIdx);
+                    let shared = false;
                     if (navigator.canShare?.({ files })) {
-                      await navigator.share({
-                        title: "My Comic",
-                        text: "Made with Panelhaus",
-                        files,
-                      });
-                    } else {
+                      try {
+                        await navigator.share({
+                          title: "My Comic",
+                          text: SHARE_TEXT,
+                          files,
+                        });
+                        track("share_completed", {
+                          surface: "editor_all_pages",
+                          count: files.length,
+                        });
+                        shared = true;
+                      } catch (e) {
+                        if ((e as Error).name === "AbortError") shared = true;
+                        // otherwise fall through to download
+                      }
+                    }
+                    if (!shared) {
                       files.forEach((f) => {
                         const url = URL.createObjectURL(f);
                         const link = document.createElement("a");
@@ -2265,9 +2293,13 @@ export const EditorScreen: React.FC<EditorProps> = ({
                         link.click();
                         URL.revokeObjectURL(url);
                       });
+                      track("share_completed", {
+                        surface: "editor_all_pages_download",
+                        count: files.length,
+                      });
                     }
-                  } catch {
-                    /* user cancelled */
+                  } catch (e) {
+                    console.error("Share all failed:", e);
                   }
                   setIsExporting(false);
                 }}
