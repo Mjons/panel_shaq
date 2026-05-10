@@ -57,7 +57,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
   const [editingCharacter, setEditingCharacter] = useState<Character | null>(
     null,
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("panelshaq_workshop_onboarding_dismissed"),
@@ -195,33 +194,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
     }
   };
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-  const handleAddCharacter = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        alert("Image too large. Please use an image under 5MB.");
-        if (e.target) e.target.value = "";
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newChar: Character = {
-          id: Date.now().toString(),
-          type: "Character",
-          name: `New Character ${characters.length + 1}`,
-          image: reader.result as string,
-          description: "A new character in your story.",
-        };
-        setCharacters([...characters, newChar]);
-      };
-      reader.readAsDataURL(file);
-    }
-    // Reset input
-    if (e.target) e.target.value = "";
-  };
-
   const removeCharacter = (id: string) => {
     setCharacters(characters.filter((c) => c.id !== id));
   };
@@ -332,7 +304,19 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 </button>
                 <Tip
                   id="style-ref"
-                  text="Tap the orange + to create a new character blueprint. The more detail you add (name, look, personality), the more consistent your character will stay across every panel."
+                  text={
+                    <>
+                      Tap the orange{" "}
+                      <PlusCircle
+                        size={22}
+                        strokeWidth={2.75}
+                        className="inline-block align-[-5px] mx-0.5 bg-background text-primary rounded-full"
+                      />{" "}
+                      to create a new character blueprint. The more detail you
+                      add (name, look, personality), the more consistent your
+                      character will stay across every panel.
+                    </>
+                  }
                   mode="coach"
                   position="right"
                   pose="cheering"
@@ -360,7 +344,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                         className="w-full h-full object-cover transition-all duration-500 group-hover:opacity-100 opacity-90"
                         src={char.image}
                         alt={char.name}
-                        fetchpriority="high"
+                        fetchPriority="high"
                         decoding="async"
                       />
                     </div>
@@ -383,9 +367,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
 
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => onNavigate?.("vault")}
                 className="aspect-square rounded-lg border-2 border-dashed border-outline/30 flex items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group"
-                aria-label="Add character"
+                aria-label="Add character from vault"
               >
                 <UserPlus
                   size={24}
@@ -393,14 +377,6 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                 />
               </button>
             </div>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleAddCharacter}
-              className="hidden"
-              accept="image/*"
-            />
           </div>
 
           {/* STEP 2: Style */}

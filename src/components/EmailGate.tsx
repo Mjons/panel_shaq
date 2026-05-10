@@ -22,13 +22,19 @@ export function EmailGate({ onComplete }: EmailGateProps) {
     setSaving(true);
     setError("");
 
+    const result = await saveEmail(email);
+    if (result.ok === false) {
+      setError(`Couldn't save your email: ${result.error}`);
+      setSaving(false);
+      return;
+    }
+
     try {
-      await saveEmail(email);
       localStorage.setItem("panelshaq_user_email", email);
       localStorage.setItem("panelshaq_auth_mode", "hosted");
       onComplete("hosted");
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Couldn't save locally. Please try again.");
     } finally {
       setSaving(false);
     }

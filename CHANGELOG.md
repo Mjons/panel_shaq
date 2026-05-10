@@ -1,5 +1,17 @@
 # Changelog
 
+## May 10, 2026 — Vault Add Flow & Email Gate Hardening
+
+### Workshop
+
+- **Both `+` buttons now go to the Vault** — the larger dashed-border character slot used to open a file picker that created a placeholder character with default name and description. It now navigates to the Vault to create a real entry, matching the behavior of the smaller orange `+` button. Net: one consistent path for adding characters.
+- **Tip text shows the actual icon** — the `style-ref` coach tip now renders the `PlusCircle` icon inline ("Tap the orange ⊕ to create a new character blueprint") instead of describing it in text, so the user sees what they're looking for.
+- **React 19 prop casing fix** — `fetchpriority` → `fetchPriority` on character images.
+
+### Email Gate
+
+- **Surface the real `saveEmail` error** — when Supabase rejects the email save, the gate now shows the actual error message ("Couldn't save your email: {reason}") instead of a generic "Something went wrong." Keeps the generic fallback only for the localStorage save step.
+
 ## May 10, 2026 — Share Polish & Settings
 
 ### Sharing
