@@ -129,6 +129,9 @@ export async function apiPost<T>(
     /* Supabase not available — skip usage tracking */
   }
 
+  const { track } = await import("./analytics");
+  track("generation_started", { type: endpoint });
+
   try {
     const res = await fetch(`/api/${endpoint}`, {
       method: "POST",
@@ -142,6 +145,13 @@ export async function apiPost<T>(
     }
     return res.json();
   } catch (error) {
+    const reason =
+      error instanceof DOMException && error.name === "AbortError"
+        ? "timeout"
+        : error instanceof Error
+          ? error.message.slice(0, 80)
+          : "unknown";
+    track("generation_failed", { type: endpoint, reason });
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error(
         `Request timed out after ${Math.round(timeoutMs / 1000)}s`,

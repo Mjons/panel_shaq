@@ -1,5 +1,25 @@
 # Changelog
 
+## May 10, 2026 — Spike Prep
+
+### Observability
+
+- **Vercel Web Analytics integrated** — `@vercel/analytics` v2 mounted in app root, custom-event wrapper at `src/services/analytics.ts`.
+- **5 custom events wired** — `cold_landing` (with `first_visit` flag), `editor_first_open`, `generation_started`, `generation_failed`, `share_completed` (with `surface` tag). Funnel data for the upcoming traffic spike.
+- **ErrorBoundary now reports client errors** — `componentDidCatch` fires `client_error` event with truncated message and retry count, instead of silently logging to console.
+
+### Reliability
+
+- **Anon-vs-BYOK throttling** — `checkUsage` now distinguishes BYOK users (50 text / 20 image / day, unchanged) from anon users (env-tunable via `ANON_LIMIT_TEXT` / `ANON_LIMIT_IMAGE`, defaults 10 / 5). Applied across `generate-image`, `generate-panels`, `insert-panel`, `final-render`, `polish-story`.
+- **Share fallback on iOS rejection** — all three Share screen handlers (single export, batch, single panel) now fall through to download when `navigator.share()` rejects with anything other than user-cancel. Previously failed silently when iOS Safari rejected the share post-`canShare()`.
+- **Crash fix in `.comic` file share fallback** — `URL.createObjectURL(file)` no longer crashes when no file config passed `canShare`; builds a fresh blob from the JSON instead.
+
+### Documents
+
+- **Traffic spike prep plan** — `documents/traffic-spike-prep.md` captures the spike strategy: image-first sharing, NFT/X audience profile, 3-day sequencing.
+- **Analytics audit & plan** — `documents/analytics-audit-and-plan.md` covers Phase 1/2/3 instrumentation roadmap with status tracking.
+- **Tooltip catalog** — `documents/tooltips-current.md` snapshot of all 17 tips (10 coach, 7 help) by screen.
+
 ## March 20–22, 2026
 
 ### Comic Creation

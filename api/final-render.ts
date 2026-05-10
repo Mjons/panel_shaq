@@ -46,8 +46,6 @@ async function geminiImage(
   return null;
 }
 
-const LIMITS = { text: 50, image: 20 };
-
 async function checkUsage(
   req: any,
   type: "text" | "image",
@@ -59,12 +57,21 @@ async function checkUsage(
   const userId = (req.headers["x-user-id"] as string) || "";
   if (!userId) return null;
 
+  // BYOK users spend their own quota; anon users spend ours — throttle harder.
+  const isBYOK = !!(req.headers["x-api-key"] as string);
+  const limits = isBYOK
+    ? { text: 50, image: 20 }
+    : {
+        text: parseInt(process.env.ANON_LIMIT_TEXT || "10", 10),
+        image: parseInt(process.env.ANON_LIMIT_IMAGE || "5", 10),
+      };
+
   const supabase = createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const today = new Date().toISOString().split("T")[0];
   const col = type === "image" ? "image_generations" : "text_generations";
-  const limit = type === "image" ? LIMITS.image : LIMITS.text;
+  const limit = type === "image" ? limits.image : limits.text;
 
   const { data: existing } = await supabase
     .from("usage")

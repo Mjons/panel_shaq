@@ -16,6 +16,7 @@ import {
   exportAsComic,
   downloadComicFile,
 } from "../services/exportComicService";
+import { track } from "../services/analytics";
 
 interface ExportItem {
   id: string;
@@ -75,19 +76,29 @@ export const ShareScreen: React.FC<ShareProps> = ({
       });
 
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({
-          title: "Panel Shaq Comic",
-          files: [file],
-        });
-      } else {
-        // Fallback: download
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = item.name;
-        a.click();
-        URL.revokeObjectURL(url);
+        try {
+          await navigator.share({
+            title: "Panel Shaq Comic",
+            files: [file],
+          });
+          track("share_completed", { surface: "export_item", kind: item.type });
+          return;
+        } catch (e) {
+          if ((e as Error).name === "AbortError") return;
+          // Share rejected post-canShare (iOS file size, OS deny, etc.) — fall through
+        }
       }
+      // Fallback: download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = item.name;
+      a.click();
+      URL.revokeObjectURL(url);
+      track("share_completed", {
+        surface: "export_item_download",
+        kind: item.type,
+      });
     } catch (err) {
       console.error("Share failed:", err);
     }
@@ -137,13 +148,27 @@ export const ShareScreen: React.FC<ShareProps> = ({
                         });
                       }),
                     );
+                    let shared = false;
                     if (navigator.canShare?.({ files })) {
-                      await navigator.share({
-                        title: projectName || "My Comic",
-                        text: "Made with Panelhaus",
-                        files,
-                      });
-                    } else {
+                      try {
+                        await navigator.share({
+                          title: projectName || "My Comic",
+                          text: "Made with Panelhaus",
+                          files,
+                        });
+                        track("share_completed", {
+                          surface: "all_panels",
+                          count: files.length,
+                        });
+                        shared = true;
+                      } catch (e) {
+                        if ((e as Error).name === "AbortError") {
+                          shared = true; // user cancelled — don't auto-download
+                        }
+                        // Otherwise fall through to download
+                      }
+                    }
+                    if (!shared) {
                       // Fallback: download each
                       panelsWithImages.forEach((p, i) => {
                         const link = document.createElement("a");
@@ -151,9 +176,13 @@ export const ShareScreen: React.FC<ShareProps> = ({
                         link.href = p.image!;
                         link.click();
                       });
+                      track("share_completed", {
+                        surface: "all_panels_download",
+                        count: files.length,
+                      });
                     }
                   } catch (e) {
-                    // User cancelled share — that's fine
+                    console.error("Batch share failed:", e);
                   }
                   setSharing(false);
                 }}
@@ -178,19 +207,35 @@ export const ShareScreen: React.FC<ShareProps> = ({
                         const file = new File([blob], `panel-${i + 1}.png`, {
                           type: "image/png",
                         });
+                        let shared = false;
                         if (navigator.canShare?.({ files: [file] })) {
-                          await navigator.share({
-                            title: `Panel ${i + 1}`,
-                            files: [file],
-                          });
-                        } else {
+                          try {
+                            await navigator.share({
+                              title: `Panel ${i + 1}`,
+                              files: [file],
+                            });
+                            track("share_completed", {
+                              surface: "single_panel",
+                            });
+                            shared = true;
+                          } catch (e) {
+                            if ((e as Error).name === "AbortError") {
+                              shared = true;
+                            }
+                            // Otherwise fall through to download
+                          }
+                        }
+                        if (!shared) {
                           const link = document.createElement("a");
                           link.download = file.name;
                           link.href = p.image!;
                           link.click();
+                          track("share_completed", {
+                            surface: "single_panel_download",
+                          });
                         }
-                      } catch {
-                        /* cancelled */
+                      } catch (e) {
+                        console.error("Panel share failed:", e);
                       }
                     }}
                     className="aspect-video rounded-lg overflow-hidden border border-outline/20 hover:border-primary transition-all relative group"

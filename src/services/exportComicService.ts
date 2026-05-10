@@ -289,8 +289,14 @@ export async function downloadComicFile(json: string, projectName: string) {
     }
   }
 
-  // Fallback: direct download
-  const url = URL.createObjectURL(file);
+  // Fallback: direct download. `file` may be null if no config passed canShare —
+  // build a fresh blob from the JSON so the download still works.
+  const downloadFile =
+    file ??
+    new File([json], `${safeName}.comic`, {
+      type: "application/octet-stream",
+    });
+  const url = URL.createObjectURL(downloadFile);
   const link = document.createElement("a");
   link.href = url;
   link.download = `${safeName}.comic`;

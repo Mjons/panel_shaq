@@ -22,6 +22,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("ErrorBoundary caught:", error, info);
+    import("../services/analytics").then(({ track }) =>
+      track("client_error", {
+        message: error.message.slice(0, 120),
+        retry: this.state.retryCount,
+      }),
+    );
     // Auto-retry once silently (handles race conditions on initial load)
     if (this.state.retryCount < 2) {
       setTimeout(() => {

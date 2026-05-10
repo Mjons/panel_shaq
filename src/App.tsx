@@ -186,14 +186,6 @@ const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
   {
     id: "1",
     type: "Character",
-    name: "Dev Guy",
-    image: "/sample-304.webp",
-    description:
-      "A cute bald man with a brown beard, light skin. Wears a light blue t-shirt. Heavy brows. Cartoon round style with bold outlines.",
-  },
-  {
-    id: "2",
-    type: "Character",
     name: "Smudge",
     image: "/Smudge_the_dirty_sponge/02-standing.webp",
     description:
@@ -251,6 +243,11 @@ function AppInner() {
 
   useEffect(() => {
     if (activeTab !== "vault") setVaultAutoOpen(false);
+    if (activeTab === "editor") {
+      import("./services/analytics").then(({ trackOnce }) =>
+        trackOnce("editor_first_open"),
+      );
+    }
   }, [activeTab]);
 
   // Warn on browser close/refresh during generation
