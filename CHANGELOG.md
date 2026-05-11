@@ -1,5 +1,9 @@
 # Changelog
 
+## May 10, 2026 — BottomSheet Nav Clearance
+
+- **BottomSheet bottom padding bumped to `pb-28`** so the floating BottomNav no longer visually overlaps the last form action (e.g. the "Create Vault Entry" button). Affects all BottomSheet uses; visible impact today is the Vault new-entry / edit-entry forms.
+
 ## May 10, 2026 — Vault Add Flow & Email Gate Hardening
 
 ### Workshop

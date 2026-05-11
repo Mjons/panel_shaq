@@ -68,8 +68,11 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
               </div>
             )}
 
-            {/* Content */}
-            <div className="overflow-y-auto flex-1 p-6">{children}</div>
+            {/* Content — extra bottom padding so the floating BottomNav
+                doesn't sit visually on top of the last form action. */}
+            <div className="overflow-y-auto flex-1 px-6 pt-6 pb-28">
+              {children}
+            </div>
           </motion.div>
         </>
       )}
