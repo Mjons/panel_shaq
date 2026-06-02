@@ -35,6 +35,93 @@ Net effect: **V1 is dramatically simpler** — a creditless, AI-less, email-less
 
 ---
 
+## V1 implementation decisions (2026-06-02, locked at plan time)
+
+These refine the strategy into the build that is now in progress. The executable, file-level plan lives at `~/.claude/plans/you-are-a-professional-graceful-knuth.md`.
+
+### Action bar (mobile-friendly)
+Primary row — **Share · Copy · Download** (mirrors PanelHaus desktop guest mode):
+- **Share** → Web Share API with files (`navigator.canShare?.({files})` → `navigator.share({files})`), reusing Panel Shaq's existing pattern in `src/screens/ShareScreen.tsx:69-105`. This is the mobile-correct path. (PanelHaus's own "share" is a desktop-only "copy + paste Ctrl+V into X" flow — **not** mobile-viable — so we do NOT replicate that; only its Copy is replicated.)
+- **Copy** → image to clipboard via `navigator.clipboard.write([new ClipboardItem({"image/png": blob})])`, replicating `Comic-Pro2/src/services/shareService.js:169` (feature-detect guard + download fallback). The flattened PNG blob is **pre-rendered on edit (debounced)** so the clipboard write fires within the user-gesture (mobile Safari loses the gesture if we flatten inside the tap).
+- **Download** → anchor download of the flattened PNG.
+
+Secondary row — two CTAs:
+- **Make another meme** → links back to MemeGen (`memegen.panelhaus.app`); keeps the meme loop.
+- **Make a new comic** → saves the finished meme into Panel Shaq's **Vault** as a `VaultEntry` of type **`Prop`** (neutral type; does not pollute the Character-consistency filter), then opens the main app on the Workshop tab. Hitting the `EmailGate` there is acceptable (this is the "commit to the real product" moment).
+
+Desktop upsell stays a small **informational** note (wallet-aware via `originUser`): "Open the full studio at panelhaus.app and connect this wallet." No reverse-handoff.
+
+### Build architecture
+- **Separate root, no router:** `src/main.tsx` branches on `window.location.pathname === "/c/from-meme"` to render a new `<FromMemeRoot/>` (wrapped in `ConfirmProvider`+`ToastProvider`) instead of `<App/>`. This bypasses `AppInner`'s `EmailGate` entirely. `vercel.json` already serves the SPA for that path.
+- **Consume:** browser-side cross-origin `POST https://panelhaus.app/api/handoff/consume` (no secret; CORS `*`). Single-use → cache payload **and edited captions** to `sessionStorage`, hydrate cache-first, guard with a ref (React 19 StrictMode).
+- **Text zones:** a one-time Node generator (`scripts/generateMemeTextZones.mjs`) reads PanelHaus's `memeTemplates.js` + `memeFontPresets.js`, runs the real `resolveMemeBubbleStyle`, normalizes px→0-1 (incl. `fontSizeRatio` and the `modern-slab` white box), and emits a **static committed** `src/data/memeTextZones.ts`. The shipped app has zero Comic-Pro2 dependency. Rendering ports MemeGen's `TextZonesOverlay.jsx` to TSX.
+- **Export:** manual canvas flatten (not html-to-image — its `skipFonts:true` breaks meme fonts): `crossOrigin='anonymous'` image, `document.fonts.load` + `ready`, per-zone word-wrapped `fillText`/`strokeText` matching the overlay, then the watermark (port of `getMemeWatermarkBubbles`).
+- **Fonts added** (`index.html` Google Fonts): Anton (Impact substitute — Impact is not a web font), Bricolage Grotesque, Bangers (watermark), Permanent Marker, Special Elite.
+
+### Admin calibrator (easy path)
+`?admin=<secret>` URL param (→ `localStorage.panelshaq_admin`) reveals the overlay in editable mode (move/rotate/resize handles, round 3dp/1dp) with add/remove/label-zone controls and a **Copy JSON** button. The admin pastes the JSON back into `src/data/memeTextZones.ts` and commits. No Supabase override layer in V1.
+
+---
+
+## As built — final V1 (2026-06-02) — AUTHORITATIVE
+
+This section reflects the **actual shipped code** and supersedes the plan-time sections above wherever they differ (a few decisions evolved during implementation — noted as deltas).
+
+### Files (Panel Shaq, this repo)
+- `src/main.tsx` — branches on `window.location.pathname === "/c/from-meme"` → renders `<FromMemeRoot/>` instead of `<App/>` (bypasses `EmailGate`).
+- `src/from-meme/`
+  - `FromMemeRoot.tsx` — providers (`ToastProvider`), status states (loading / 410 / network / no-token), routes to gallery / calibrator / editor.
+  - `useHandoffPayload.ts` — cross-origin consume of `${VITE_PANELHAUS_API_BASE}/api/handoff/consume`, sessionStorage cache-first, StrictMode ref-guard, typed errors, dev stub (`?stub=1&template=&img=&w=&h=`).
+  - `MemeEditor.tsx` — the guest editor (viewport-fit, tap-to-edit, font/size, move/rotate/resize, delete + restore-chip, share/copy/download, CTAs).
+  - `TextZonesOverlay.tsx` — normalized DOM overlay; read + editable (handles); `onlySelectedHandles` for users; box hidden when empty.
+  - `memeFontPresets.ts` — the 5 presets (Impact/Wojak/Slab/Marker/Type) as `MemeZoneStyle`.
+  - `memeFlatten.ts` / `memeWatermark.ts` — canvas flatten (crossOrigin, font preload, word-wrap, outline stroke, box) + `panelhaus.app` watermark.
+  - `memeShare.ts` — Web Share (files) / `ClipboardItem` copy / download, each with fallbacks.
+  - `makeComic.ts` — saves meme to Vault as a `Prop` (`panelshaq_vault_entries`), opens Workshop tab.
+  - `adminGate.ts` — `?admin=<VITE_MEME_ADMIN_SECRET>` gate.
+  - `AdminCalibrator.tsx` — positioning + Copy JSON (+ optional `onBack`).
+  - `AdminGallery.tsx` — grid of all templates → opens any in the calibrator.
+  - `useFit.ts` — shared `useElementSize` + `fitRect` (used by editor AND calibrator so they never drift).
+  - `zoneTypes.ts` — `MemeZone`/`MemeTemplateZones` (+ `image`, `fontSizeRatio`, em-relative outline).
+- `src/data/memeTextZones.ts` — generated, committed registry: **56 templates / 98 zones**, each with `aspect`, `image` (filename), and normalized zones.
+- `scripts/generateMemeTextZones.mjs` — one-time generator (reads Comic-Pro2 data via temp `.mjs`; output committed).
+- `public/templates/` — all **56 template images** (for the admin gallery + stub). Production users never fetch these (they get the handoff image).
+- `src/hooks/useIndexedDBState.ts` — `idbGet`/`idbSet` exported (for `makeComic`).
+- `index.html` — meme fonts (Anton, Bangers, Bricolage Grotesque, Permanent Marker, Special Elite).
+
+### Behavior (final)
+- **Viewport-fit, no scroll** for both the editor and the calibrator: area measured via ResizeObserver, image fitted (object-contain math) with aspect read from the actual loaded image; overlay aligns exactly; refits on rotate / keyboard.
+- **User editor controls:** tap a caption → orange selection ring + slim docked toolbar (never covers the meme) with: text input, 5 font presets (live restyle), size `A−/A+`, **Delete**, plus **✥/↻/⤡ handles on the selected caption** for move/rotate/resize. Tap background to deselect.
+- **Delete = clean preview** (no on-image ghost). Hidden captions are restored via a contextual **`＋ <text>` chip row** in the action bar (delete/re-add the seed initials only — no inventing new zones). Modern-Slab's box auto-hides when its text is empty.
+- **Action bar:** **Share** (Web Share files) · **Copy** (`ClipboardItem`) · **Download**; second row **Make another** (→ MemeGen) · **Make a comic** (→ Vault as Prop + Workshop). Flattened PNG carries the watermark and is pre-rendered (debounced) so Share/Copy fire within the user gesture.
+- **Desktop CTA = non-tappable text** (`💻 Even better on desktop — visit panelhaus.app on a computer`). A tappable link would bounce a phone back here via PanelHaus's mobile-blocker, so it's intentionally not a link. Desktop conversion is passive (watermark + the user opening panelhaus.app on a real computer with the same wallet).
+- **Admin tools** (`?admin=<secret>`): per-handoff calibrator, plus `&gallery=1` → a grid of all 56 templates to calibrate any of them (no handoff needed) → Copy JSON.
+
+### Deltas from the plan-time decisions
+- **Users CAN reposition** (move/rotate/resize), not just admin — handles show only on the selected caption (admin shows all).
+- **Users get font presets + size**, not just text.
+- **Delete/restore** uses **clean-preview + chip** (not on-image ghosts) — better WYSIWYG.
+- Added the **admin gallery** + **all 56 template images** committed to `public/templates/`.
+- Desktop CTA demoted to **non-tappable text**.
+
+### Environment variables (all optional; `.env.example` updated)
+- `VITE_PANELHAUS_API_BASE` (default `https://panelhaus.app`) — consume origin.
+- `VITE_MEMEGEN_URL` (default `https://memegen.panelhaus.app`) — "make another meme".
+- `VITE_MEME_ADMIN_SECRET` (default `panelshaq-admin` — **change for prod**) — admin gate.
+- `COMIC_PRO2_DATA` — dev-only path override for the generator (not a runtime var).
+
+### Cross-repo status
+- **Comic-Pro2 guard: DONE** — mobile guard added to `src/pages/FromMemeHandoff.jsx` (forwards the live token to Shaq before consuming). Documented in `Comic-Pro2/documentation/changelog/954_MOBILE_HANDOFF_FORWARD_TO_PANEL_SHAQ.md`. Needs deploy on the Comic-Pro2 side.
+- **MemeGen: nothing required.** The optional click-time mobile fast-path was deliberately not built (the guard is the robust single source of truth).
+
+### Testing notes
+- `?stub=1` (+ `&template=` / `&img=&w=&h=`) renders without a real token (dev only).
+- **Copy / Share / Copy-JSON need a secure context** (HTTPS or `localhost`). On a plain-HTTP LAN IP they correctly **fall back to download** — not a bug.
+- Real end-to-end needs the Comic-Pro2 guard deployed + a minted token (or the `&img=` override to preview alignment on a real generated image).
+- Repo has no automated tests; `npm run lint` (`tsc --noEmit`) is the only gate.
+
+---
+
 ## TL;DR
 
 1. **The bug:** On mobile, MemeGen's "Edit in Panel Haus" hands off to the **desktop** site. The desktop page **consumes the single-use token immediately** (it's now dead), stores the project in the wrong origin's IndexedDB, then the mobile blocker bounces the phone to `shaq.panelhaus.app` with **no token and no data**. Every mobile tap is a silent credit-sink. **Decision: build the receiver on Panel Shaq (Option A).**

@@ -136,6 +136,13 @@ export default defineConfig(({ mode }) => {
     define: {
       // API key is now server-side only (Vercel env vars)
     },
+    optimizeDeps: {
+      // @google/genai is only ever loaded via a lazy `await import()` in
+      // SettingsScreen. Its nested conditional `exports` map trips Vite's
+      // esbuild dep-scanner ("Failed to resolve entry"), so skip pre-bundling
+      // it — Vite's runtime resolver handles it fine. Dev-only; no build impact.
+      exclude: ["@google/genai"],
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),

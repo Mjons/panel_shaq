@@ -18,7 +18,7 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-function idbGet<T>(key: string): Promise<T | undefined> {
+export function idbGet<T>(key: string): Promise<T | undefined> {
   return openDB().then(
     (db) =>
       new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ function idbGet<T>(key: string): Promise<T | undefined> {
   );
 }
 
-function idbSet<T>(key: string, value: T): Promise<void> {
+export function idbSet<T>(key: string, value: T): Promise<void> {
   return openDB().then(
     (db) =>
       new Promise((resolve, reject) => {
