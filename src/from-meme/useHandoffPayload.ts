@@ -8,8 +8,10 @@ import { useEffect, useRef, useState } from "react";
 // cache the payload to sessionStorage so refresh / back-button / StrictMode
 // double-mount don't trigger a second (410) consume.
 
-const PANELHAUS_API_BASE =
-  import.meta.env.VITE_PANELHAUS_API_BASE || "https://panelhaus.app";
+// Consume goes through our own same-origin serverless proxy (api/handoff-consume),
+// which calls panelhaus.app server-to-server. This avoids the cross-origin CORS
+// preflight that the upstream consume endpoint rejects (it 405s OPTIONS).
+const CONSUME_URL = "/api/handoff-consume";
 
 const CACHE_KEY = "panelshaq_meme_handoff";
 
@@ -129,7 +131,7 @@ export function useHandoffPayload(): HandoffState {
 
     (async () => {
       try {
-        const res = await fetch(`${PANELHAUS_API_BASE}/api/handoff/consume`, {
+        const res = await fetch(CONSUME_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token }),

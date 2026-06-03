@@ -26,10 +26,11 @@ npm run clean        # rm -rf dist
 
 Client (must be `VITE_`-prefixed and present **at build time** — they're baked into the bundle):
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — anonymous auth, usage display, email capture. Optional; app degrades gracefully if absent.
-- `VITE_PANELHAUS_API_BASE` (default `https://panelhaus.app`), `VITE_MEMEGEN_URL` (default `https://memegen.panelhaus.app`) — the MemeGen meme-handoff receiver (`src/from-meme/`); optional with prod defaults.
+- `VITE_MEMEGEN_URL` (default `https://memegen.panelhaus.app`) — "make another meme" target for the MemeGen meme-handoff receiver (`src/from-meme/`); optional.
 - `VITE_MEME_ADMIN_SECRET` — unlocks the admin calibrator. In **prod**, set a private value to enable it, or **leave empty to disable admin entirely** (no public fallback). In **dev** it defaults to `panelshaq-admin`.
 
 Server (Vercel env, runtime):
+- `PANELHAUS_API_BASE` (default `https://panelhaus.app`) — upstream the `api/handoff-consume` proxy calls server-to-server. Optional.
 - `GEMINI_API_KEY` — the shared key used by "hosted" mode, and the fallback when a BYOK user hasn't supplied their own.
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` — service-role client for usage enforcement. The service-role client **must** be created with `{ auth: { autoRefreshToken: false, persistSession: false } }` to bypass RLS correctly.
 
@@ -57,7 +58,7 @@ On first launch `App.tsx` shows `EmailGate` (`src/components/EmailGate.tsx`) whe
 
 This SPA has **no router**, so `src/main.tsx` branches on `window.location.pathname`: when it's `/c/from-meme` it renders `src/from-meme/FromMemeRoot.tsx` **instead of** `<App/>`, bypassing `EmailGate` entirely. This is the mobile half of MemeGen's "add text" handoff (desktop half is Panelhaus). Flow + reasoning: `documents/MEMEGEN_HANDOFF_AND_DESKTOP_UPSELL_STRATEGY.md`.
 
-- **Consume:** `useHandoffPayload.ts` reads `?h=<token>` and POSTs cross-origin to `${VITE_PANELHAUS_API_BASE}/api/handoff/consume` (no secret; PH serves CORS `*`). Single-use → it caches the payload to `sessionStorage` and ref-guards against StrictMode double-consume. Dev stub: `?stub=1&template=<id>&img=&w=&h=`.
+- **Consume:** `useHandoffPayload.ts` reads `?h=<token>` and POSTs same-origin to `api/handoff-consume`, a serverless proxy that calls `${PANELHAUS_API_BASE}/api/handoff/consume` server-to-server (the upstream 405s the cross-origin OPTIONS preflight, so a direct browser call fails — the proxy sidesteps CORS). Single-use → it caches the payload to `sessionStorage` and ref-guards against StrictMode double-consume. Dev stub: `?stub=1&template=<id>&img=&w=&h=`.
 - **Editor (`MemeEditor.tsx`):** the meme image full-bleed, fitted to the viewport via `useFit.ts` (no scroll, aspect from the loaded image), with `TextZonesOverlay.tsx` captions on top. Users edit text, pick one of 5 fonts (`memeFontPresets.ts`), resize, move/rotate/resize (handles on the selected zone), and delete/restore. Export = a manual canvas flatten (`memeFlatten.ts` + `memeWatermark.ts`), then Share/Copy/Download (`memeShare.ts`). **Copy/Share need a secure context** (HTTPS/localhost) — they fall back to download on plain-HTTP LAN.
 - **Caption positions** live in the generated, committed registry `src/data/memeTextZones.ts` (56 templates, normalized 0–1, keyed by `templateId`). Generated once by `scripts/generateMemeTextZones.mjs` from the desktop repo — **do not re-run it after hand-calibrating; it overwrites everything.** Template images for the admin tools live in `public/templates/`.
 - **Admin calibrator/gallery:** `?admin=<VITE_MEME_ADMIN_SECRET>` (+ `&gallery=1`) opens `AdminCalibrator.tsx` / `AdminGallery.tsx` to position zones and "Copy JSON" back into the registry. See `documents/MEME_TEMPLATE_CALIBRATION_GUIDE.md`.
