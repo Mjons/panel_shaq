@@ -96,7 +96,7 @@ interface TipProps {
   /** Unique key — persisted in localStorage for coach mode. */
   id: string;
   /** Tooltip body text. */
-  text: string;
+  text: React.ReactNode;
   /** coach = auto-shows once then remembers dismissal. help = persistent ? icon. */
   mode: "coach" | "help";
   /** Which side of the parent the card appears on. */
@@ -137,9 +137,11 @@ export const Tip: React.FC<TipProps> = ({
     };
   }, [id, mode]);
 
-  // Dismiss on outside tap — but not when clicking inside another tip
+  // Help tips (the "?" popovers) dismiss on outside tap.
+  // Coach tips stay until the user presses "Got it" — they shouldn't vanish
+  // just because the user interacted with the page.
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || mode !== "help") return;
     const handler = (e: PointerEvent) => {
       const target = e.target as Node;
       if (cardRef.current && !cardRef.current.contains(target)) {
@@ -156,7 +158,7 @@ export const Tip: React.FC<TipProps> = ({
       clearTimeout(t);
       document.removeEventListener("pointerdown", handler);
     };
-  }, [visible]);
+  }, [visible, mode]);
 
   const dismiss = () => {
     setVisible(false);
