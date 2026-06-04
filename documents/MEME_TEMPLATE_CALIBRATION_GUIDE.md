@@ -9,6 +9,35 @@ required to *calibrate* — only to *paste the result back* into the data file.
 
 ---
 
+## TL;DR — adding a new meme template (for other devs)
+
+The whole flow, in order. Steps 1–2 and 5 are code (hand to Claude/an agent or do
+by hand); steps 3–4 are the visual part only you can do by eye.
+
+1. **Confirm the template exists on MemeGen.** Templates originate there — Panel
+   Shaq only renders captions for ids it already knows.
+2. **Wire it up (code):** drop the image into `public/templates/<templateId>.<ext>`
+   and add a stub entry to `src/data/memeTextZones.ts` with the right `aspect`,
+   `image`, and empty `zones: []` (see §5 for the exact shape).
+3. **Run it so the template shows up:** restart `npm run dev` (or, if calibrating on
+   prod, commit + deploy first — the gallery only lists templates that exist in the
+   running build).
+4. **Calibrate (visual, by eye):** open the gallery → tap the new template → **Add
+   zone** per caption → drag/rotate/resize, type the default label, **A− / A+** for
+   size → **Copy JSON** (full flow in §2).
+5. **Bake it in (code):** paste the JSON back into the entry, **preserving the
+   `image` line** (§3), then `npm run lint` and commit.
+
+> ⚠️ **The calibrator is disabled in production** unless `VITE_MEME_ADMIN_SECRET` is
+> set at build time (`adminGate.ts`). The easy path is to **calibrate in local dev**,
+> where the secret defaults to `panelshaq-admin` — see §1.
+
+**Analytics:** nothing to do. This repo uses Vercel Analytics only, and no event is
+per-template — adding a template needs zero analytics work. (There is no PostHog
+here.)
+
+---
+
 ## ⚠️ Read first — the one rule that can destroy your work
 
 **Do NOT re-run `scripts/generateMemeTextZones.mjs` after you've calibrated.**
