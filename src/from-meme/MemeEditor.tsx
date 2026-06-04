@@ -16,6 +16,7 @@ import { useToast } from "../components/Toast";
 import { TextZonesOverlay } from "./TextZonesOverlay";
 import { MEME_TEXT_ZONES } from "../data/memeTextZones";
 import { MEME_FONT_PRESETS, detectPresetId } from "./memeFontPresets";
+import type { MemeFontPreset } from "./memeFontPresets";
 import { flattenMeme, blobToDataURL } from "./memeFlatten";
 import { shareImage, copyImage, downloadImage } from "./memeShare";
 import { makeNewComic } from "./makeComic";
@@ -148,8 +149,12 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
       zones: w.zones.map((z) => updated.find((u) => u.id === z.id) ?? z),
     }));
 
-  const applyFont = (id: string, style: MemeZone["style"]) =>
-    updateZone(id, { style: JSON.parse(JSON.stringify(style)) });
+  const applyFont = (id: string, preset: MemeFontPreset) =>
+    updateZone(id, {
+      style: JSON.parse(JSON.stringify(preset.style)),
+      // Some presets (Impact) carry a default size so they render big on pick.
+      ...(preset.fontSizeRatio ? { fontSizeRatio: preset.fontSizeRatio } : {}),
+    });
 
   const bumpSize = (id: string, factor: number) =>
     setWork((w) => ({
@@ -334,7 +339,7 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
             {MEME_FONT_PRESETS.map((p) => (
               <button
                 key={p.id}
-                onClick={() => applyFont(selectedZone.id, p.style)}
+                onClick={() => applyFont(selectedZone.id, p)}
                 style={{ fontFamily: p.style.fontFamily }}
                 className={`shrink-0 px-4 py-2 rounded-full text-sm border whitespace-nowrap transition-colors ${
                   selectedPresetId === p.id

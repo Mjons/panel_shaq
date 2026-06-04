@@ -11,17 +11,20 @@ import type { MemeZone, MemeZoneStyle } from "./zoneTypes";
 // rotate / resize zones over the real meme, edit labels, add/remove zones, then
 // "Copy JSON" the registry entry to paste into src/data/memeTextZones.ts.
 
+// New zones default to the big-Impact look (matches the user editor's Impact
+// font preset: big white text + thick black stroke).
 const DEFAULT_STYLE: MemeZoneStyle = {
   color: "#ffffff",
-  fontFamily: "Anton, 'Arial Black', sans-serif",
+  fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
   fontWeight: 700,
   italic: false,
   allCaps: true,
   textAlign: "center",
   lineHeight: 1.1,
-  outline: { color: "#000000", widthEm: 0.045 },
+  outline: { color: "#000000", widthEm: 0.09 },
   box: null,
 };
+const DEFAULT_FONT_RATIO = 0.06;
 
 export function AdminCalibrator({
   payload,
@@ -71,7 +74,7 @@ export function AdminCalibrator({
         y: Math.min(0.1 + zs.length * 0.12, 0.85),
         width: 0.8,
         height: 0.12,
-        fontSizeRatio: 0.06,
+        fontSizeRatio: DEFAULT_FONT_RATIO,
         text: "Your text",
         style: { ...DEFAULT_STYLE },
       },

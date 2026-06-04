@@ -77,6 +77,10 @@ export function TextZonesOverlay({
 }: TextZonesOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
+  // For body-initiated moves: distinguish a tap (select) from a drag (move)
+  // by a small displacement threshold.
+  const movedRef = useRef(false);
+  const fromBodyRef = useRef(false);
 
   useEffect(() => {
     if (!editable) return;
@@ -84,6 +88,14 @@ export function TextZonesOverlay({
       if (!drag || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
+
+      // A body-drag only starts moving once it passes the tap threshold.
+      if (drag.kind === "move" && fromBodyRef.current && !movedRef.current) {
+        if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) {
+          return;
+        }
+        movedRef.current = true;
+      }
 
       const next = zones.map((z, i) => {
         if (i !== drag.idx) return z;
@@ -123,7 +135,14 @@ export function TextZonesOverlay({
       onChange?.(next);
     }
     function onUp() {
+      // A body press that never moved = a tap → select the zone.
+      if (drag && fromBodyRef.current && !movedRef.current) {
+        const id = zones[drag.idx]?.id;
+        if (id) onSelect?.(id);
+      }
       setDrag(null);
+      movedRef.current = false;
+      fromBodyRef.current = false;
       document.body.style.userSelect = "";
     }
     window.addEventListener("pointermove", onMove);
@@ -132,12 +151,19 @@ export function TextZonesOverlay({
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-  }, [editable, drag, zones, onChange]);
+  }, [editable, drag, zones, onChange, onSelect]);
 
-  function startDrag(e: ReactPointerEvent, idx: number, kind: DragKind) {
+  function startDrag(
+    e: ReactPointerEvent,
+    idx: number,
+    kind: DragKind,
+    fromBody = false,
+  ) {
     if (!editable) return;
     e.preventDefault();
     e.stopPropagation();
+    fromBodyRef.current = fromBody;
+    movedRef.current = false;
     const zone = zones[idx];
     const base: DragState = {
       idx,
@@ -171,9 +197,16 @@ export function TextZonesOverlay({
         return (
           <div
             key={zone.id}
+            // Editable: press anywhere on the box to drag (move); a press that
+            // doesn't move is treated as a tap → select. Read-only: click selects.
+            onPointerDown={
+              editable ? (e) => startDrag(e, i, "move", true) : undefined
+            }
             onClick={(e) => {
+              // Always swallow the click so it doesn't reach the editor's
+              // background deselect. In read-only mode, a click selects.
               e.stopPropagation();
-              onSelect?.(zone.id);
+              if (!editable) onSelect?.(zone.id);
             }}
             className="absolute pointer-events-auto"
             style={{
@@ -184,6 +217,7 @@ export function TextZonesOverlay({
               transform: zone.rotation ? `rotate(${zone.rotation}deg)` : undefined,
               transformOrigin: "center",
               cursor: editable ? "move" : "text",
+              touchAction: editable ? "none" : undefined,
             }}
           >
             {/* Solid box behind text (e.g. modern-slab white box) — hidden when empty */}

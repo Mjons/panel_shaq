@@ -73,7 +73,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0429
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -223,7 +223,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0469
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -246,7 +246,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0441
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -269,7 +269,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -298,7 +298,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -321,7 +321,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -344,7 +344,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.016
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -373,7 +373,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -396,7 +396,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -425,7 +425,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -454,7 +454,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -477,7 +477,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -506,7 +506,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -529,7 +529,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -624,7 +624,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -647,7 +647,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0333
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -676,7 +676,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0273
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -791,7 +791,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -814,7 +814,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -889,7 +889,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -912,7 +912,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -935,7 +935,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -964,7 +964,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -993,7 +993,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0417
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1048,7 +1048,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0385
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1071,7 +1071,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0385
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1094,7 +1094,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0385
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1215,7 +1215,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1244,7 +1244,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.03
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1267,7 +1267,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.03
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1296,7 +1296,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0326
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1319,7 +1319,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0326
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1348,7 +1348,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1404,7 +1404,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1427,7 +1427,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1456,7 +1456,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1485,7 +1485,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1508,7 +1508,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1537,7 +1537,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0326
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1560,7 +1560,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0326
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1635,7 +1635,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1664,7 +1664,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1759,7 +1759,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1788,7 +1788,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1811,7 +1811,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1840,7 +1840,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1869,7 +1869,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1892,7 +1892,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1921,7 +1921,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0375
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1944,7 +1944,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0417
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1973,7 +1973,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -1996,7 +1996,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2025,7 +2025,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2048,7 +2048,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2077,7 +2077,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2106,7 +2106,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2129,7 +2129,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0417
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2158,7 +2158,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2299,7 +2299,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0429
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2322,7 +2322,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0429
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2351,7 +2351,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2406,7 +2406,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2435,7 +2435,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2464,7 +2464,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }
@@ -2493,7 +2493,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
           "lineHeight": 1.1,
           "outline": {
             "color": "#000000",
-            "widthEm": 0.0357
+            "widthEm": 0.09
           },
           "box": null
         }

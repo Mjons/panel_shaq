@@ -1,5 +1,29 @@
 # Changelog
 
+## June 3, 2026 — MemeGen → Panel Shaq Meme Handoff (mobile "add text")
+
+### New: mobile meme text editor (`/c/from-meme`)
+
+- **The mobile half of MemeGen's "add text" flow.** On a phone, generating a meme on MemeGen and tapping "add text" now lands in Panel Shaq's full meme editor (instead of dead-ending on the desktop site). No login, no AI, no credits — just finish the meme and share.
+- **Caption editing:** tap a caption to edit text; pick from **5 fonts** (Impact / Wojak / Slab / Marker / Type); adjust size with `A− / A+`; **move, rotate, resize** each caption — drag anywhere on the caption box, or use the ✥ / ↻ / ⤡ handles.
+- **Delete / restore:** remove a caption (clean preview, no clutter); a `＋` chip in the bar brings it back. Modern-Slab's box auto-hides when empty.
+- **Share / Copy / Download:** flattened, watermarked PNG. Share uses the native share sheet; Copy puts the image on the clipboard (both need HTTPS — they fall back to Download otherwise).
+- **Fits any screen:** the meme always fits the viewport (no scrolling), for any aspect ratio, and refits on rotate.
+- **CTAs:** "Make another meme" (back to MemeGen) and "Make a comic" (saves the meme to your Vault and opens the comic studio).
+
+### Impact font — classic meme look
+
+- **Thicker black stroke on Impact**, applied to **all existing templates** by default (positions and sizes unchanged). Picking Impact in the editor, and new admin-added zones, also use the thick stroke. Other fonts are unaffected.
+
+### Templates & admin
+
+- **56 meme templates** with caption positions pre-calibrated (normalized, so they line up on any handoff image size). Admin calibrator + template gallery (`?admin=…&gallery=1`) to (re)position captions and Copy JSON back into the registry.
+
+### Infrastructure
+
+- Handoff token is consumed via a **same-origin serverless proxy** (`api/handoff-consume`) that calls PanelHaus server-to-server — avoids a cross-origin CORS failure. The payload is cached for refresh-safety (single-use token).
+- Requires a one-line **guard in the desktop app** (Comic-Pro2 `FromMemeHandoff`) that forwards mobile traffic to Panel Shaq with the live token (see that repo's changelog 954).
+
 ## May 10, 2026 — BottomSheet Nav Clearance
 
 - **BottomSheet bottom padding bumped to `pb-28`** so the floating BottomNav no longer visually overlaps the last form action (e.g. the "Create Vault Entry" button). Affects all BottomSheet uses; visible impact today is the Vault new-entry / edit-entry forms.

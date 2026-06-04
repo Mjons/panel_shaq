@@ -9,12 +9,16 @@ export interface MemeFontPreset {
   id: string;
   label: string;
   style: MemeZoneStyle;
+  /** Optional default font size (ratio of image width) applied when this preset
+   * is picked. Impact uses it to render big by default. */
+  fontSizeRatio?: number;
 }
 
 export const MEME_FONT_PRESETS: MemeFontPreset[] = [
   {
     id: "impact-classic",
     label: "Impact",
+    // Impact = the classic meme look: white text + a thick black stroke.
     style: {
       color: "#ffffff",
       fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -23,7 +27,7 @@ export const MEME_FONT_PRESETS: MemeFontPreset[] = [
       allCaps: true,
       textAlign: "center",
       lineHeight: 1.1,
-      outline: { color: "#000000", widthEm: 0.045 },
+      outline: { color: "#000000", widthEm: 0.09 }, // ~2x thicker stroke
       box: null,
     },
   },

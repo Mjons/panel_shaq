@@ -30,7 +30,7 @@ Client (must be `VITE_`-prefixed and present **at build time** — they're baked
 - `VITE_MEME_ADMIN_SECRET` — unlocks the admin calibrator. In **prod**, set a private value to enable it, or **leave empty to disable admin entirely** (no public fallback). In **dev** it defaults to `panelshaq-admin`.
 
 Server (Vercel env, runtime):
-- `PANELHAUS_API_BASE` (default `https://panelhaus.app`) — upstream the `api/handoff-consume` proxy calls server-to-server. Optional.
+- `PANELHAUS_API_BASE` (default `https://panelhaus.app`) — upstream the `api/handoff-consume` proxy calls server-to-server. Optional; if fresh tokens 404/410, set it to the exact origin MemeGen redirects to (e.g. `https://www.panelhaus.app`) so it hits the same backend that minted the token.
 - `GEMINI_API_KEY` — the shared key used by "hosted" mode, and the fallback when a BYOK user hasn't supplied their own.
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` — service-role client for usage enforcement. The service-role client **must** be created with `{ auth: { autoRefreshToken: false, persistSession: false } }` to bypass RLS correctly.
 
