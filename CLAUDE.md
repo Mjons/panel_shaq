@@ -113,7 +113,7 @@ Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-pan
 
 ### Export / desktop bridge
 
-`src/services/exportComicService.ts` converts a project into a `.comic` package compatible with the desktop Panelhaus app: it maps the grid layout templates (from `LayoutScreen`) to pixel rects, maps bubble style names to the desktop's bubble types (`BUBBLE_TYPE_MAP`), and wraps everything in the desktop's expected schema (layers, strokeWidth, dimension, blueprints). The `documents/` folder holds the handoff/compatibility specs — consult `PANEL_SHAQ_EXPORT_COMPATIBILITY.md` and the bridge handoff docs before changing export format.
+`src/services/exportComicService.ts` converts a project into a `.comic` package compatible with the desktop Panelhaus app: it maps the grid layout templates (from `LayoutScreen`) to pixel rects, maps bubble style names to the desktop's bubble types (`BUBBLE_TYPE_MAP`), and wraps everything in the desktop's expected schema (layers, strokeWidth, dimension, blueprints). The `documents/` folder holds the handoff/compatibility specs — consult `PANEL_HAUS_MOBILE_EXPORT_COMPATIBILITY.md` and the bridge handoff docs before changing export format.
 
 ### Mobile-only by design
 
