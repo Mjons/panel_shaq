@@ -138,7 +138,7 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
             <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
               <CheckCircle size={16} className="text-green-500 shrink-0" />
               <p className="text-sm text-accent/70">
-                You're using Panel Shaq's hosted service.
+                You're using Panel Haus Mobile's hosted service.
                 {settings.geminiApiKey ? " Your own API key is active." : ""}
               </p>
             </div>

@@ -78,7 +78,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
       if (navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({
-            title: "Panel Shaq Comic",
+            title: "Panel Haus Comic",
             files: [file],
           });
           track("share_completed", { surface: "export_item", kind: item.type });

@@ -57,7 +57,7 @@ export function EmailGate({ onComplete }: EmailGateProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-headline text-4xl font-bold text-accent tracking-tight mb-3">
-            Welcome to Panel Shaq
+            Welcome to Panel Haus Mobile
           </h1>
           <p className="text-accent/50 text-sm">AI-powered comic creation</p>
         </div>
@@ -153,8 +153,8 @@ export function EmailGate({ onComplete }: EmailGateProps) {
               <p className="text-red-400 text-xs text-center">{error}</p>
             )}
             <p className="text-accent/50 text-[10px] text-center leading-relaxed">
-              We'll only use your email to keep you updated on Panel Shaq. No
-              spam, unsubscribe anytime.
+              We'll only use your email to keep you updated on Panel Haus
+              Mobile. No spam, unsubscribe anytime.
             </p>
           </form>
         )}

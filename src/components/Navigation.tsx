@@ -256,9 +256,9 @@ export const TopNav = ({
                         API Key
                       </p>
                       <p>
-                        Panel Shaq uses Google Gemini for AI generation. You can
-                        get a free API key from Google AI Studio and enter it in
-                        Settings.
+                        Panel Haus Mobile uses Google Gemini for AI generation.
+                        You can get a free API key from Google AI Studio and
+                        enter it in Settings.
                       </p>
                     </div>
                   </div>

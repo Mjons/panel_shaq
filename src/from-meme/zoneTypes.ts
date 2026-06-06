@@ -1,4 +1,4 @@
-// Shared types for the MemeGen → Panel Shaq meme text-zone system.
+// Shared types for the MemeGen → Panel Haus Mobile meme text-zone system.
 //
 // Zone geometry is normalized 0–1 (relative to the displayed image box), with
 // x/y at the TOP-LEFT of the box and rotation applied about the box center —
@@ -21,7 +21,11 @@ export interface MemeZoneStyle {
   /** Text stroke/outline, or null. `widthEm` is relative to font size (resolution-independent). */
   outline: { color: string; widthEm: number } | null;
   /** Solid background box behind the text (e.g. the `modern-slab` white box), or null. */
-  box: { backgroundColor: string; borderColor: string; borderWidth: number } | null;
+  box: {
+    backgroundColor: string;
+    borderColor: string;
+    borderWidth: number;
+  } | null;
 }
 
 export interface MemeZone {

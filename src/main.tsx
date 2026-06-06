@@ -16,7 +16,7 @@ if (import.meta.env.DEV) {
 
 trackColdLanding();
 
-// MemeGen → Panel Shaq handoff lands at /c/from-meme. Render a self-contained
+// MemeGen → Panel Haus Mobile handoff lands at /c/from-meme. Render a self-contained
 // guest meme editor (no router, no EmailGate) instead of the main tab app.
 const isMemeReceiver = window.location.pathname === "/c/from-meme";
 

@@ -1,7 +1,7 @@
 import { idbGet, idbSet } from "../hooks/useIndexedDBState";
 import { track } from "../services/analytics";
 
-// "Make a new comic" — saves the finished meme into Panel Shaq's Vault (as a
+// "Make a new comic" — saves the finished meme into Panel Haus Mobile's Vault (as a
 // reusable Prop) and opens the main app on the Workshop tab. Runs from the
 // separate /c/from-meme root (outside the React app tree), so it writes the
 // IndexedDB / localStorage state imperatively, then navigates. The main app

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * One-time generator: PanelHaus meme text positions → Panel Shaq normalized zones.
+ * One-time generator: PanelHaus meme text positions → Panel Haus Mobile normalized zones.
  *
  * Reads Comic-Pro2 (desktop PanelHaus) `memeTemplates.js` + `memeFontPresets.js`,
  * runs the REAL `resolveMemeBubbleStyle` merge, converts absolute-pixel bubble
@@ -16,7 +16,13 @@
  * Both source files are self-contained ESM (no imports). We copy them to temp
  * .mjs files so Node imports them as ESM regardless of Comic-Pro2's package type.
  */
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  mkdtempSync,
+  mkdirSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,7 +37,8 @@ const round2 = (v) => round(v, 2);
 
 /** Rewrite Impact-led stacks to lead with the web font we bundle (Anton). */
 function webFontStack(family) {
-  if (!family || typeof family !== "string") return "Anton, 'Arial Black', sans-serif";
+  if (!family || typeof family !== "string")
+    return "Anton, 'Arial Black', sans-serif";
   if (/impact/i.test(family)) return "Anton, 'Arial Black', Impact, sans-serif";
   return family;
 }
@@ -69,8 +76,13 @@ try {
   rmSync(tmp, { recursive: true, force: true });
 }
 
-if (!Array.isArray(MEME_TEMPLATES) || typeof resolveMemeBubbleStyle !== "function") {
-  console.error("[generateMemeTextZones] Unexpected exports from PanelHaus data files.");
+if (
+  !Array.isArray(MEME_TEMPLATES) ||
+  typeof resolveMemeBubbleStyle !== "function"
+) {
+  console.error(
+    "[generateMemeTextZones] Unexpected exports from PanelHaus data files.",
+  );
   process.exit(1);
 }
 
@@ -88,8 +100,7 @@ for (const tpl of MEME_TEMPLATES) {
     const r = resolveMemeBubbleStyle(tpl, tb);
     const s = r.style || {};
     const box = r.bubble || {};
-    const hasBox =
-      box.backgroundColor && box.backgroundColor !== "transparent";
+    const hasBox = box.backgroundColor && box.backgroundColor !== "transparent";
     const fontSize = typeof s.fontSize === "number" ? s.fontSize : 42;
     return {
       id: tb.id || `zone-${i + 1}`,
@@ -108,7 +119,10 @@ for (const tpl of MEME_TEMPLATES) {
         fontWeight: s.bold ? 700 : 400,
         italic: !!s.italic,
         allCaps: !!s.allCaps,
-        textAlign: s.textAlign === "left" || s.textAlign === "right" ? s.textAlign : "center",
+        textAlign:
+          s.textAlign === "left" || s.textAlign === "right"
+            ? s.textAlign
+            : "center",
         lineHeight: typeof s.lineHeight === "number" ? s.lineHeight : 1.1,
         outline:
           s.outline && s.outline.color
@@ -143,7 +157,9 @@ import type { MemeZoneRegistry } from "../from-meme/zoneTypes";
 export const MEME_TEXT_ZONES: MemeZoneRegistry = ${JSON.stringify(registry, null, 2)};
 `;
 
-const outPath = fileURLToPath(new URL("../src/data/memeTextZones.ts", import.meta.url));
+const outPath = fileURLToPath(
+  new URL("../src/data/memeTextZones.ts", import.meta.url),
+);
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, header);
 

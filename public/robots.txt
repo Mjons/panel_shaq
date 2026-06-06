@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shaq.panelhaus.app/sitemap.xml
+Sitemap: https://m.panelhaus.app/sitemap.xml

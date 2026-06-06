@@ -1,6 +1,6 @@
 {
-  "packageId": "app.panelhaus.shaq.twa",
-  "host": "shaq.panelhaus.app",
+  "packageId": "app.panelhaus.mobile.twa",
+  "host": "m.panelhaus.app",
   "name": "Panelhaus — AI Comic Studio",
   "launcherName": "Panelhaus",
   "display": "standalone",
@@ -13,8 +13,8 @@
   "backgroundColor": "#0F172A",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://shaq.panelhaus.app/icons/android-chrome-512x512.png",
-  "maskableIconUrl": "https://shaq.panelhaus.app/icons/icon-maskable-512.png",
+  "iconUrl": "https://m.panelhaus.app/icons/android-chrome-512x512.png",
+  "maskableIconUrl": "https://m.panelhaus.app/icons/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "L:\\Projects_claudecode\\panel_shaq\\android.keystore",
@@ -24,7 +24,7 @@
   "appVersionCode": 6,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://shaq.panelhaus.app/manifest.webmanifest",
+  "webManifestUrl": "https://m.panelhaus.app/manifest.webmanifest",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
@@ -33,7 +33,7 @@
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "https://shaq.panelhaus.app/",
+  "fullScopeUrl": "https://m.panelhaus.app/",
   "minSdkVersion": 21,
   "orientation": "portrait-primary",
   "fingerprints": [],

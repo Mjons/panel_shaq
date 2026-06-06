@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 //
 // The token store lives on PanelHaus (Upstash Redis). consume is a single-use
 // atomic GETDEL, has no secret, and PH serves Access-Control-Allow-Origin: *
-// on /api/*, so we can call it directly from Shaq. Because it's single-use, we
+// on /api/*, so we can call it directly from Panel Haus Mobile. Because it's single-use, we
 // cache the payload to sessionStorage so refresh / back-button / StrictMode
 // double-mount don't trigger a second (410) consume.
 
@@ -42,8 +42,16 @@ export type HandoffState =
 //        → point at ANY image (e.g. a real generated meme Blob) to test alignment
 // Bundled template images live in public/templates/ (used by the admin gallery too).
 const STUB_TEMPLATES: Record<string, { url: string; w: number; h: number }> = {
-  "drake-hotline-bling": { url: "/templates/drake-hotline-bling.jpg", w: 1200, h: 1200 },
-  "distracted-boyfriend": { url: "/templates/distracted-boyfriend.jpg", w: 1200, h: 800 },
+  "drake-hotline-bling": {
+    url: "/templates/drake-hotline-bling.jpg",
+    w: 1200,
+    h: 1200,
+  },
+  "distracted-boyfriend": {
+    url: "/templates/distracted-boyfriend.jpg",
+    w: 1200,
+    h: 800,
+  },
   "change-my-mind": { url: "/templates/change-my-mind.jpg", w: 482, h: 361 },
   "two-buttons": { url: "/templates/two-buttons.jpg", w: 600, h: 908 },
 };
@@ -117,7 +125,8 @@ export function useHandoffPayload(): HandoffState {
       setState({
         status: "error",
         kind: "no-token",
-        message: "No meme link found. Make a meme on MemeGen and tap “add text”.",
+        message:
+          "No meme link found. Make a meme on MemeGen and tap “add text”.",
       });
       return;
     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## June 6, 2026 — Rebrand: "Panel Shaq" → "Panel Haus Mobile"
+
+- **Renamed the app's user-facing brand** from "Panel Shaq" to **Panel Haus Mobile** across the UI: the loading splash wordmark, the email gate, the API-key help text, the Settings hosted-service banner, the Web Share comic title, and `metadata.json`. The new home is **`m.panelhaus.app`** (replacing `shaq.panelhaus.app`).
+- **Internal storage keys are intentionally unchanged.** Every `panelshaq_*` localStorage key and the `panelshaq` / `panelshaq_projects` IndexedDB databases keep their names — they're storage namespaces, and renaming them would wipe existing users' projects, vault, and settings. Likewise the `.comic` export `source: "panelshaq"` field is left as a cross-repo contract with the desktop importer.
+- **TWA `packageId`** changes with the rename (app is being resubmitted to Google Play). Plan + full tier breakdown: `documents/rename-shaq-to-panelhaus-mobile-plan.md`.
+
 ## June 6, 2026 — Panel Haus cross-app switcher (`haus-switcher`)
 
 ### Nav integration

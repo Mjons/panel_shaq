@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import type { MemeZone } from "./zoneTypes";
 
 // DOM overlay of meme text captions over the image. Ported from MemeGen's
-// TextZonesOverlay, adapted to Panel Shaq's typed zones: geometry is normalized
+// TextZonesOverlay, adapted to Panel Haus Mobile's typed zones: geometry is normalized
 // 0–1, font size is `fontSizeRatio` of the container WIDTH (cqw — the parent
 // must set container-type: inline-size), the outline is an em-relative 8-way
 // text-shadow, and `style.box` renders the solid background some presets use
@@ -118,7 +118,10 @@ export function TextZonesOverlay({
         // rotate
         const px = e.clientX - rect.left;
         const py = e.clientY - rect.top;
-        const cur = Math.atan2(py - (drag.centerY ?? 0), px - (drag.centerX ?? 0));
+        const cur = Math.atan2(
+          py - (drag.centerY ?? 0),
+          px - (drag.centerX ?? 0),
+        );
         let deg =
           (drag.startZone.rotation ?? 0) +
           ((cur - (drag.startAngle ?? 0)) * 180) / Math.PI;
@@ -214,7 +217,9 @@ export function TextZonesOverlay({
               top: `${zone.y * 100}%`,
               width: `${zone.width * 100}%`,
               height: `${zone.height * 100}%`,
-              transform: zone.rotation ? `rotate(${zone.rotation}deg)` : undefined,
+              transform: zone.rotation
+                ? `rotate(${zone.rotation}deg)`
+                : undefined,
               transformOrigin: "center",
               cursor: editable ? "move" : "text",
               touchAction: editable ? "none" : undefined,
@@ -281,7 +286,9 @@ export function TextZonesOverlay({
                     e.preventDefault();
                     e.stopPropagation();
                     onChange?.(
-                      zones.map((z, j) => (j === i ? { ...z, rotation: 0 } : z)),
+                      zones.map((z, j) =>
+                        j === i ? { ...z, rotation: 0 } : z,
+                      ),
                     );
                   }}
                   className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-primary text-background flex items-center justify-center shadow text-xs font-bold touch-none"

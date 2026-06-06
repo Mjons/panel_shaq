@@ -22,8 +22,8 @@ const SIBLINGS = [
   },
   {
     key: "shaq",
-    label: "Panel Shaq (Mobile)",
-    href: "https://shaq.panelhaus.app",
+    label: "Panel Haus Mobile",
+    href: "https://m.panelhaus.app",
   },
   { key: "memes", label: "MemeGen", href: "https://memegen.panelhaus.app" },
 ];

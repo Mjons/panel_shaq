@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-**Panel Shaq** (PWA name: **Panelhaus**) is a mobile-first, AI-powered comic creation studio. Users write a story, generate comic panels with Gemini, manage reusable assets (characters/environments/props/vehicles), lay panels out into pages, add speech bubbles, and export. There is a companion **desktop** app at panelhaus.app — this repo is the mobile/tablet half and exports `.comic` packages the desktop app can import.
+**Panel Haus Mobile** (formerly "Panel Shaq"; PWA name: **Panelhaus**) is a mobile-first, AI-powered comic creation studio. Users write a story, generate comic panels with Gemini, manage reusable assets (characters/environments/props/vehicles), lay panels out into pages, add speech bubbles, and export. There is a companion **desktop** app at panelhaus.app — this repo is the mobile/tablet half and exports `.comic` packages the desktop app can import.
 
 Frontend: React 19 + Vite 6 + Tailwind CSS v4 (config-in-CSS via `@theme`). Backend: Vercel serverless functions in `api/`. AI: Google Gemini via REST. Usage metering + email capture: Supabase. Product analytics: Vercel Analytics.
 
@@ -25,11 +25,13 @@ npm run clean        # rm -rf dist
 ## Environment variables
 
 Client (must be `VITE_`-prefixed and present **at build time** — they're baked into the bundle):
+
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — anonymous auth, usage display, email capture. Optional; app degrades gracefully if absent.
 - `VITE_MEMEGEN_URL` (default `https://memegen.panelhaus.app`) — "make another meme" target for the MemeGen meme-handoff receiver (`src/from-meme/`); optional.
 - `VITE_MEME_ADMIN_SECRET` — unlocks the admin calibrator. In **prod**, set a private value to enable it, or **leave empty to disable admin entirely** (no public fallback). In **dev** it defaults to `panelshaq-admin`.
 
 Server (Vercel env, runtime):
+
 - `PANELHAUS_API_BASE` (default `https://panelhaus.app`) — upstream the `api/handoff-consume` proxy calls server-to-server. Optional; if fresh tokens 404/410, set it to the exact origin MemeGen redirects to (e.g. `https://www.panelhaus.app`) so it hits the same backend that minted the token.
 - `GEMINI_API_KEY` — the shared key used by "hosted" mode, and the fallback when a BYOK user hasn't supplied their own.
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` — service-role client for usage enforcement. The service-role client **must** be created with `{ auth: { autoRefreshToken: false, persistSession: false } }` to bypass RLS correctly.
@@ -41,6 +43,9 @@ Dev: `DISABLE_HMR=true` disables Vite HMR/file-watching (used in AI Studio to pr
 ### State lives in the browser; the server is stateless
 
 There is no app database for user content. `src/App.tsx` (`AppInner`) is the single source of truth and owns all top-level state, persisting it two ways:
+
+> **Storage keys keep the `panelshaq_*` prefix on purpose.** The app was renamed from "Panel Shaq" to "Panel Haus Mobile", but all localStorage keys (`panelshaq_*`) and the IndexedDB databases (`panelshaq`, `panelshaq_projects`) were deliberately left unrenamed — they're storage namespaces, and renaming them would orphan every existing user's projects, vault, and settings. Do not "fix" them.
+
 - **`usePersistedState`** (`src/hooks/`) — localStorage, for small data (story text, active tab, page layout, settings).
 - **`useIndexedDBState`** (`src/hooks/`) — IndexedDB, for large data that would blow localStorage's ~5MB quota: **`panels` (base64 images), `vaultEntries`, `styleReferenceImage`**. Use IndexedDB for anything holding image data.
 
@@ -49,6 +54,7 @@ Named/saved projects are a separate IndexedDB store managed by `src/services/pro
 ### Auth gate: two modes (hosted vs BYOK)
 
 On first launch `App.tsx` shows `EmailGate` (`src/components/EmailGate.tsx`) when `authMode === null` (`showAuthGate`). The user picks one of two modes, persisted in `localStorage.panelshaq_auth_mode`:
+
 - **`"hosted"`** — user submits an email (upserted to the Supabase `emails` table via `saveEmail` in `src/services/supabase.ts`) and then uses the server's shared `GEMINI_API_KEY`, rate-limited by the daily usage counters ("anon throttle").
 - **`"byok"`** — user supplies their own Gemini key, stored in `panelshaq_settings` and sent as the `x-api-key` header.
 
@@ -62,7 +68,7 @@ This SPA has **no router**, so `src/main.tsx` branches on `window.location.pathn
 - **Editor (`MemeEditor.tsx`):** the meme image full-bleed, fitted to the viewport via `useFit.ts` (no scroll, aspect from the loaded image), with `TextZonesOverlay.tsx` captions on top. Users edit text, pick one of 5 fonts (`memeFontPresets.ts`), resize, move/rotate/resize (handles on the selected zone), and delete/restore. Export = a manual canvas flatten (`memeFlatten.ts` + `memeWatermark.ts`), then Share/Copy/Download (`memeShare.ts`). **Copy/Share need a secure context** (HTTPS/localhost) — they fall back to download on plain-HTTP LAN.
 - **Caption positions** live in the generated, committed registry `src/data/memeTextZones.ts` (56 templates, normalized 0–1, keyed by `templateId`). Generated once by `scripts/generateMemeTextZones.mjs` from the desktop repo — **do not re-run it after hand-calibrating; it overwrites everything.** Template images for the admin tools live in `public/templates/`.
 - **Admin calibrator/gallery:** `?admin=<VITE_MEME_ADMIN_SECRET>` (+ `&gallery=1`) opens `AdminCalibrator.tsx` / `AdminGallery.tsx` to position zones and "Copy JSON" back into the registry. See `documents/MEME_TEMPLATE_CALIBRATION_GUIDE.md`.
-- **Cross-repo dependency:** the real mobile handoff requires the guard in `Comic-Pro2/src/pages/FromMemeHandoff.jsx` (forwards the live token to Shaq before the desktop consumes it) — documented in that repo's changelog `954`.
+- **Cross-repo dependency:** the real mobile handoff requires the guard in `Comic-Pro2/src/pages/FromMemeHandoff.jsx` (forwards the live token to Panel Haus Mobile before the desktop consumes it) — documented in that repo's changelog `954`.
 
 ### Screens are tabs, not routes
 
@@ -77,6 +83,7 @@ This SPA has **no router**, so `src/main.tsx` branches on `window.location.pathn
 ### Frontend ↔ API contract
 
 `src/services/geminiService.ts` is the **only** client gateway to the backend. Every call goes through `apiPost()`, which:
+
 - attaches the user's BYOK key as `x-api-key` (from `panelshaq_settings` in localStorage) and the anonymous Supabase user id as `x-user-id` (for usage tracking),
 - enforces timeouts (90s text / 180s image),
 - strips base64 image data out of payloads before sending where the server only needs text (e.g. panel generation sends only `{name, description}`).
@@ -88,6 +95,7 @@ This module also exposes `onApiError`/`notifyError`, a global error bus that `Ap
 Each file in `api/` is an independent Vercel serverless function. **Vercel cannot share local files between functions**, so every route inlines its own copies of `getApiKey`, `geminiImage`/`geminiText`, and `checkUsage`. `lib/api-utils.ts` exists as a reference/canonical copy but is **imported by nothing** — do not "DRY up" the routes by importing it; that breaks the deployment. If you change a helper, change it in each route.
 
 Per-route specifics that matter:
+
 - `export const config` sets `bodyParser.sizeLimit` per route (1mb–20mb) because base64 images are large; the Vercel default (100KB) is too small. Match the limit to the payload.
 - Image/critique routes set `maxDuration: 60`.
 - Image generation uses model `gemini-3.1-flash-image-preview` with `imageSize: "1K"`. **Reference images are placed in the `parts` array BEFORE the text prompt** — Gemini weights earlier content more heavily for style/character adherence (see comment in `api/generate-image.ts`).
@@ -125,13 +133,17 @@ Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-pan
 Behavioral guidelines to reduce common LLM coding mistakes. For trivial tasks, use judgment.
 
 ### 1. Think before coding
+
 State assumptions explicitly; if uncertain, ask. If multiple interpretations exist, present them — don't pick silently. If a simpler approach exists, say so.
 
 ### 2. Simplicity first
+
 Minimum code that solves the problem. No speculative features, no abstractions for single-use code, no configurability that wasn't requested, no error handling for impossible scenarios.
 
 ### 3. Surgical changes
+
 Touch only what you must. Don't "improve" adjacent code or refactor things that aren't broken. Match existing style. Remove only the imports/variables your own changes orphaned; flag pre-existing dead code rather than deleting it. Every changed line should trace to the request.
 
 ### 4. Goal-driven execution
+
 Turn tasks into verifiable goals and loop until verified. For multi-step work, state a brief plan with a verification check per step.
