@@ -40,7 +40,7 @@ export const TopNav = ({
         style={{ paddingTop: "var(--sat)" }}
       >
         <div className="flex justify-between items-center w-full px-6 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"
@@ -48,9 +48,8 @@ export const TopNav = ({
             >
               <Menu size={28} />
             </button>
-            <h1 className="font-headline font-bold tracking-tighter text-xl text-primary italic uppercase">
-              PANEL SHAQ
-            </h1>
+            {/* Panel Haus cross-app switcher */}
+            <haus-switcher current="shaq"></haus-switcher>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -264,17 +263,6 @@ export const TopNav = ({
                     </div>
                   </div>
                 )}
-                <a
-                  href="https://panelhaus.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 hover:text-primary transition-all"
-                >
-                  <Globe size={20} />
-                  <span className="text-sm font-bold uppercase tracking-widest">
-                    Panelhaus.app
-                  </span>
-                </a>
                 <a
                   href="https://discord.gg/UfshvCNY5Y"
                   target="_blank"

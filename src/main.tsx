@@ -7,6 +7,13 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { trackColdLanding } from "./services/analytics";
 import "./index.css";
 
+// DEV-ONLY: the real <haus-switcher> embed (panelhaus.app/embed/hausbar.js) isn't
+// live yet, so register a local mock so the switcher is visible while developing.
+// Tree-shaken out of prod builds by the import.meta.env.DEV guard.
+if (import.meta.env.DEV) {
+  import("./hausbar-mock");
+}
+
 trackColdLanding();
 
 // MemeGen → Panel Shaq handoff lands at /c/from-meme. Render a self-contained

@@ -1,5 +1,17 @@
 # Changelog
 
+## June 6, 2026 — Panel Haus cross-app switcher (`haus-switcher`)
+
+### Nav integration
+
+- **Mounted the shared `<haus-switcher current="shaq">` web component** in the top nav, in the far-left group, to the right of the hamburger menu. It's the cross-app launcher shared across Panel Haus properties (loaded from `panelhaus.app/embed/hausbar.js` via `index.html`). Replaces the old "PANEL SHAQ" text wordmark in that slot.
+- **Removed the hardcoded "Panelhaus.app" cross-link** from the menu drawer — the switcher supersedes it. The Discord link and brand-attribution footer are left intact (community/brand, not sibling-app nav chrome).
+- **React 19 typing:** added `src/global.d.ts` declaring `haus-switcher` under the `react` JSX namespace (React 19 moved it off the global `JSX` namespace).
+
+### Dev-only
+
+- **Local mock of the switcher** (`src/hausbar-mock.ts`, loaded only under `import.meta.env.DEV`) so it's visible while developing — the real embed isn't live yet. A ⊞ opens a full-screen sibling-app drawer; the logo links to `panelhaus.app/universe`. Tree-shaken out of prod builds; in prod the empty tag stays invisible until the real embed ships.
+
 ## June 3, 2026 — MemeGen → Panel Shaq Meme Handoff (mobile "add text")
 
 ### New: mobile meme text editor (`/c/from-meme`)
