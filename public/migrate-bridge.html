@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Panel Haus storage bridge</title>
+  </head>
+  <body>
+    <!--
+      Cross-origin storage migration bridge.
+
+      Panel Haus stores all user content (projects, vault, settings) in
+      localStorage + IndexedDB, which are scoped PER ORIGIN. When the app's
+      canonical host changed from shaq.panelhaus.app to m.panelhaus.app, those
+      are different origins, so existing users' on-device data does not carry
+      over. This page, served on the OLD origin, is embedded as a hidden iframe
+      by the NEW origin and ships that data across via postMessage.
+
+      Why this works despite browser storage partitioning: both hosts are
+      subdomains of panelhaus.app, i.e. SAME SITE (eTLD+1). Storage partitioning
+      keys on site, not origin, so this same-site iframe reads the old origin's
+      real first-party storage rather than a partitioned bucket.
+
+      It only answers a request from an allow-listed parent origin and only
+      reads — never writes. The consumer lives in src/services/originMigration.ts.
+
+      DEPLOY NOTE: the old host (shaq.panelhaus.app) must keep SERVING this file.
+      If you 308-redirect the old host to the new one, exempt /migrate-bridge.html
+      from the redirect, or the iframe load bounces to the new (empty) origin and
+      migration silently no-ops.
+    -->
+    <script>
+      (function () {
+        "use strict";
+
+        // Parent origins permitted to pull this origin's data.
+        var ALLOWED_PARENTS = [
+          "https://m.panelhaus.app",
+          "https://panel-shaq.vercel.app",
+          "http://localhost:3000",
+          "http://localhost:5173",
+        ];
+
+        var STATE_DB = "panelshaq";
+        var STATE_STORE = "state";
+        var PROJECTS_DB = "panelshaq_projects";
+        var PROJECTS_STORE = "projects";
+
+        function readLocal() {
+          var out = {};
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && k.indexOf("panelshaq") === 0)
+              out[k] = localStorage.getItem(k);
+          }
+          return out;
+        }
+
+        function openDB(name, storeName, keyPath) {
+          return new Promise(function (resolve, reject) {
+            var req = indexedDB.open(name, 1);
+            req.onupgradeneeded = function () {
+              var db = req.result;
+              if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(
+                  storeName,
+                  keyPath ? { keyPath: keyPath } : undefined,
+                );
+              }
+            };
+            req.onsuccess = function () {
+              resolve(req.result);
+            };
+            req.onerror = function () {
+              reject(req.error);
+            };
+          });
+        }
+
+        // Read the out-of-line keyed `state` store as [{ key, value }].
+        function readStateStore() {
+          return openDB(STATE_DB, STATE_STORE, null).then(function (db) {
+            return new Promise(function (resolve) {
+              var tx = db.transaction(STATE_STORE, "readonly");
+              var store = tx.objectStore(STATE_STORE);
+              var keysReq = store.getAllKeys();
+              var valsReq = store.getAll();
+              tx.oncomplete = function () {
+                var keys = keysReq.result || [];
+                var vals = valsReq.result || [];
+                var out = [];
+                for (var i = 0; i < keys.length; i++)
+                  out.push({ key: keys[i], value: vals[i] });
+                resolve(out);
+              };
+              tx.onerror = function () {
+                resolve([]);
+              };
+            });
+          });
+        }
+
+        // Read the in-line keyed `projects` store as [record].
+        function readProjectsStore() {
+          return openDB(PROJECTS_DB, PROJECTS_STORE, "id").then(function (db) {
+            return new Promise(function (resolve) {
+              var tx = db.transaction(PROJECTS_STORE, "readonly");
+              var req = tx.objectStore(PROJECTS_STORE).getAll();
+              req.onsuccess = function () {
+                resolve(req.result || []);
+              };
+              req.onerror = function () {
+                resolve([]);
+              };
+            });
+          });
+        }
+
+        function handleRequest(ev) {
+          if (ALLOWED_PARENTS.indexOf(ev.origin) === -1) return;
+          var msg = ev.data;
+          if (!msg || msg.type !== "panelhaus-migrate-request") return;
+
+          Promise.all([readStateStore(), readProjectsStore()])
+            .then(function (r) {
+              ev.source.postMessage(
+                {
+                  type: "panelhaus-migrate-payload",
+                  local: readLocal(),
+                  idbState: r[0],
+                  idbProjects: r[1],
+                },
+                ev.origin,
+              );
+            })
+            .catch(function (e) {
+              ev.source.postMessage(
+                {
+                  type: "panelhaus-migrate-payload",
+                  error: String(e),
+                  local: readLocal(),
+                  idbState: [],
+                  idbProjects: [],
+                },
+                ev.origin,
+              );
+            });
+        }
+
+        window.addEventListener("message", handleRequest);
+
+        // Announce readiness so the parent can send its request without racing
+        // the script parse. No data in this message, so "*" is safe.
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "panelhaus-migrate-ready" }, "*");
+        }
+      })();
+    </script>
+  </body>
+</html>

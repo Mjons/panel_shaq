@@ -1,5 +1,10 @@
 # Changelog
 
+## June 6, 2026 — Domain move groundwork (`m.panelhaus.app`)
+
+- **Cross-origin data migration.** localStorage + IndexedDB are per-origin, so moving the canonical host from `shaq.panelhaus.app` to `m.panelhaus.app` would strand existing users' on-device projects. Added a one-time, same-site migration: `public/migrate-bridge.html` (a read-only exporter served on the old origin) + `src/services/originMigration.ts` (runs once on first load of `m.panelhaus.app`, pulls the old origin's storage via a hidden iframe + `postMessage`, writes it locally, then mounts). Self-gates to the new host and never clobbers existing data. **Requires the old host to keep serving `/migrate-bridge.html`** (don't blanket-redirect it).
+- **TWA Digital Asset Links stub.** Added `public/.well-known/assetlinks.json` (package `app.panelhaus.mobile.twa`) so the rebuilt TWA verifies the new domain. Fingerprints are placeholders — fill before resubmit (see `public/.well-known/README.md`).
+
 ## June 6, 2026 — Rebrand: "Panel Shaq" → "Panel Haus Mobile"
 
 - **Renamed the app's user-facing brand** from "Panel Shaq" to **Panel Haus Mobile** across the UI: the loading splash wordmark, the email gate, the API-key help text, the Settings hosted-service banner, the Web Share comic title, and `metadata.json`. The new home is **`m.panelhaus.app`** (replacing `shaq.panelhaus.app`).
