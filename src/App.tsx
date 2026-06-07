@@ -29,17 +29,52 @@ import type { VaultEntry } from "./screens/VaultScreen";
 function lazyWithReload<T extends React.ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
 ) {
+  const never = () => new Promise<{ default: T }>(() => {});
   return React.lazy(() =>
-    factory().catch((err) => {
-      if (
+    factory().catch(async (err) => {
+      const isChunkError =
         err.message?.includes("Failed to fetch dynamically imported module") ||
         err.message?.includes("Loading chunk") ||
-        err.name === "ChunkLoadError"
-      ) {
+        err.name === "ChunkLoadError";
+      if (!isChunkError) throw err;
+
+      // A chunk failed to load — usually a stale app shell after a deploy.
+      // Reload to pick up fresh chunks, but GUARD against an infinite reload
+      // loop: a stale service worker can keep serving the same broken shell,
+      // which would otherwise reload-flash forever.
+      const RELOAD_KEY = "panelshaq_chunk_reload_at";
+      const NUKE_KEY = "panelshaq_chunk_sw_cleared";
+      const reloadedRecently =
+        Date.now() - Number(sessionStorage.getItem(RELOAD_KEY) || "0") < 10_000;
+
+      if (!reloadedRecently) {
+        sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
         window.location.reload();
-        // Return a never-resolving promise so React doesn't try to render
-        return new Promise<{ default: T }>(() => {});
+        return never();
       }
+
+      // The reload didn't fix it → the service worker is serving a stale
+      // precache. Clear SW registrations + caches once, then reload clean.
+      if (!sessionStorage.getItem(NUKE_KEY)) {
+        sessionStorage.setItem(NUKE_KEY, "1");
+        try {
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+          if (typeof caches !== "undefined") {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch {
+          /* best effort */
+        }
+        window.location.reload();
+        return never();
+      }
+
+      // Even a clean reload failed — stop looping and let the ErrorBoundary
+      // show a real message instead of an endless flash.
       throw err;
     }),
   );
