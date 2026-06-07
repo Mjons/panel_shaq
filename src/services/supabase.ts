@@ -39,12 +39,12 @@ export async function saveEmail(
   if (!supabase) return { ok: false, error: "Supabase not configured" };
   const userId = await getUserId();
   try {
-    const { error } = await supabase
-      .from("emails")
-      .upsert(
-        { email, user_id: userId || null, source: "hosted_mode" },
-        { onConflict: "email" },
-      );
+    const { error } = await supabase.from("emails").upsert(
+      { email, user_id: userId || null, source: "hosted_mode" },
+      // ignoreDuplicates → conflicts DO NOTHING instead of UPDATE, so a
+      // returning email only ever needs an INSERT RLS policy (no UPDATE one).
+      { onConflict: "email", ignoreDuplicates: true },
+    );
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   } catch (e) {

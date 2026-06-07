@@ -24,9 +24,13 @@ export function EmailGate({ onComplete }: EmailGateProps) {
 
     const result = await saveEmail(email);
     if (result.ok === false) {
-      setError(`Couldn't save your email: ${result.error}`);
-      setSaving(false);
-      return;
+      // Email capture is best-effort (Supabase is optional — see CLAUDE.md). A
+      // failed remote save must NOT wall the user out of the app; log it and
+      // continue into hosted mode with the email stored locally.
+      console.warn(
+        "saveEmail failed; continuing into hosted mode:",
+        result.error,
+      );
     }
 
     try {
@@ -35,7 +39,6 @@ export function EmailGate({ onComplete }: EmailGateProps) {
       onComplete("hosted");
     } catch {
       setError("Couldn't save locally. Please try again.");
-    } finally {
       setSaving(false);
     }
   };
