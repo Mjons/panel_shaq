@@ -224,10 +224,10 @@ const DEFAULT_VAULT_ENTRIES: VaultEntry[] = [
     name: "Smudge",
     image: "/Smudge_the_dirty_sponge/02-standing.webp",
     description:
-      "A grimy yellow kitchen sponge with bulging cartoon eyes and tiny brown boots. Pores and stains cover his body. Cartoon style with bold outlines.",
+      "A grimy yellow kitchen sponge with a round, ball-shaped body (a circle, never square or rectangular), small beady black eyes, and tiny brown boots. Pores and blue stains cover his body. Cartoon style with bold outlines.",
     personality: "Wise-cracking, sarcastic veteran. Tired but sharp-witted.",
     visualLook:
-      "Rectangular yellow sponge body with darker brown grime patches. Small pores dotting the surface. Small brown boots. Cartoon proportions with oversized eyes.",
+      "Round, circular ball-shaped sponge body in yellow (never square or rectangular) with darker grime and blue stain patches. Small pores dotting the surface. Small beady black eyes with a grumpy expression. Thin arms and legs, small brown boots. Cartoon proportions.",
   },
 ];
 
@@ -330,10 +330,6 @@ function AppInner() {
     "panelshaq_page_format",
     "portrait",
   );
-  const [styleReferenceImage, setStyleReferenceImage] = useIndexedDBState<
-    string | null
-  >("panelshaq_style_ref", null);
-
   // One-time migration: merge old vault (localStorage) into unified vault entries
   useEffect(() => {
     const migrated = localStorage.getItem("panelshaq_vault_migrated");
@@ -517,8 +513,6 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            styleReferenceImage={styleReferenceImage}
-            setStyleReferenceImage={setStyleReferenceImage}
             onGenerateSuccess={() => setActiveTab("director")}
             onNavigate={(tab) => {
               if (tab === "vault") setVaultAutoOpen(true);
@@ -596,8 +590,6 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            styleReferenceImage={styleReferenceImage}
-            setStyleReferenceImage={setStyleReferenceImage}
             onGenerateSuccess={() => setActiveTab("director")}
           />
         );

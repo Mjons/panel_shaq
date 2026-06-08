@@ -65,7 +65,7 @@ export const TopNav = ({
               onClick={onCreate}
               className="bg-primary text-background font-headline font-extrabold px-5 py-2 rounded-lg text-lg italic tracking-tight hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
             >
-              INK
+              NEW
             </button>
           </div>
         </div>
