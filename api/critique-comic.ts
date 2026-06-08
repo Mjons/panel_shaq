@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     const response = await fetch(
-      `${GEMINI_BASE}/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `${GEMINI_BASE}/models/gemini-3.1-flash-lite-preview:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
