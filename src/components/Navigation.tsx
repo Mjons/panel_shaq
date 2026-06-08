@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
+import { HelpSheet } from "./HelpSheet";
 
 export const TopNav = ({
   onCreate,
@@ -143,126 +144,17 @@ export const TopNav = ({
                   </span>
                 </button>
                 <button
-                  onClick={() => setShowHelp((v) => !v)}
+                  onClick={() => {
+                    setShowHelp(true);
+                    setIsMenuOpen(false);
+                  }}
                   className="w-full flex items-center gap-4 p-4 rounded-xl hover:bg-surface-container text-accent/40 hover:text-primary transition-all"
                 >
                   <HelpCircle size={20} />
                   <span className="text-sm font-bold uppercase tracking-widest">
-                    Help
+                    Help &amp; About
                   </span>
                 </button>
-                {showHelp && (
-                  <div className="mx-2 mb-2 p-4 bg-surface-container/80 rounded-xl border border-outline/10 space-y-4 text-xs text-accent/60 leading-relaxed max-h-[50vh] overflow-y-auto">
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        The Workflow
-                      </p>
-                      <p>
-                        <strong className="text-accent/80">Workshop</strong> —
-                        Write your story and generate panel descriptions with
-                        AI. <strong className="text-accent/80">Director</strong>{" "}
-                        — Tweak descriptions, pick camera angles & lenses,
-                        generate images.{" "}
-                        <strong className="text-accent/80">Layout</strong> —
-                        Arrange panels into comic pages with different layouts.{" "}
-                        <strong className="text-accent/80">Editor</strong> — Add
-                        speech bubbles, position panels, export or share.
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        World Vault
-                      </p>
-                      <p>
-                        Store characters, environments, props, and vehicles with
-                        reference images. The AI uses these to keep your comic
-                        visually consistent. You can select up to 5 references
-                        per panel across all types.
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        Panel Director Tips
-                      </p>
-                      <ul className="space-y-1 list-disc list-inside">
-                        <li>
-                          Edit descriptions to fine-tune what the AI generates
-                        </li>
-                        <li>
-                          Use "Regeneration Notes" to give feedback on a result
-                        </li>
-                        <li>
-                          Try different camera lenses for dramatic effects
-                        </li>
-                        <li>
-                          Insert panels between existing ones to expand the
-                          story
-                        </li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        Editor Tips
-                      </p>
-                      <ul className="space-y-1 list-disc list-inside">
-                        <li>
-                          Drag & pinch to reposition and scale panel images
-                        </li>
-                        <li>
-                          Tap a panel, then add speech, thought, or SFX bubbles
-                        </li>
-                        <li>
-                          Drag bubbles to position them anywhere in the panel
-                        </li>
-                        <li>
-                          "Bake" burns dialogue permanently into the artwork
-                        </li>
-                        <li>
-                          Export as PDF or PNG, or share directly from your
-                          phone
-                        </li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        Layout Tips
-                      </p>
-                      <ul className="space-y-1 list-disc list-inside">
-                        <li>
-                          Each page can have a different number of panels (1–6)
-                        </li>
-                        <li>Tap layout thumbnails to switch arrangements</li>
-                        <li>
-                          Use the top bar to repartition all pages at once
-                        </li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        Gestures
-                      </p>
-                      <ul className="space-y-1 list-disc list-inside">
-                        <li>Drag: move panel image or bubble</li>
-                        <li>Pinch: zoom image or resize bubble text</li>
-                        <li>
-                          2-finger tap: rotate (step size configurable in
-                          Settings)
-                        </li>
-                        <li>Double-tap panel: fullscreen editing</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <p className="font-label text-primary uppercase tracking-[0.15em] text-[9px] font-bold mb-1">
-                        API Key
-                      </p>
-                      <p>
-                        Panel Haus Mobile uses Google Gemini for AI generation.
-                        You can get a free API key from Google AI Studio and
-                        enter it in Settings.
-                      </p>
-                    </div>
-                  </div>
-                )}
                 <a
                   href="https://discord.gg/UfshvCNY5Y"
                   target="_blank"
@@ -304,6 +196,8 @@ export const TopNav = ({
           </>
         )}
       </AnimatePresence>
+
+      <HelpSheet open={showHelp} onClose={() => setShowHelp(false)} />
     </>
   );
 };
