@@ -35,6 +35,10 @@ let lastShownAt = 0;
 let currentlyShowing: string | null = null;
 const queue: { id: string; show: () => void }[] = [];
 let cooldownTimer: ReturnType<typeof setTimeout> | null = null;
+// Ref-count of open menus/modals. While > 0 the queue is frozen so a coach tip
+// never pops up over (or fires its timer behind) an open menu. Ref-counted so
+// overlapping menus only resume the queue when the last one closes.
+let suppressDepth = 0;
 
 function showNext() {
   cooldownTimer = null;
@@ -45,6 +49,7 @@ function showNext() {
 }
 
 function tryShowNext() {
+  if (suppressDepth > 0) return; // a menu is open — hold tips
   if (currentlyShowing) return;
   if (queue.length === 0) return;
   if (cooldownTimer) return; // already scheduled
@@ -90,6 +95,36 @@ function markCoachTipDismissed(id: string) {
     cooldownTimer = null;
   }
   cooldownTimer = setTimeout(showNext, COOLDOWN_MS);
+}
+
+/** Freeze the coach-tip queue (a menu opened). Ref-counted with resume. */
+function pauseCoachTips() {
+  suppressDepth++;
+  // Cancel any pending fire so a tip can't appear while the menu is up.
+  // The remaining wait is recomputed from lastShownAt when we resume, so the
+  // cooldown effectively pauses rather than resets.
+  if (cooldownTimer) {
+    clearTimeout(cooldownTimer);
+    cooldownTimer = null;
+  }
+}
+
+/** Un-freeze the queue (a menu closed) and re-arm from where we left off. */
+function resumeCoachTips() {
+  suppressDepth = Math.max(0, suppressDepth - 1);
+  if (suppressDepth === 0) tryShowNext();
+}
+
+/**
+ * Suppress coach tips while `active` is true (e.g. a menu/bottom-sheet is open).
+ * Pause/resume are ref-counted, so overlapping menus compose correctly.
+ */
+export function useCoachTipSuppression(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    pauseCoachTips();
+    return () => resumeCoachTips();
+  }, [active]);
 }
 
 interface TipProps {

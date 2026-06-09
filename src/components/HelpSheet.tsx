@@ -1,6 +1,7 @@
 import React from "react";
 import { X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useCoachTipSuppression } from "./Tip";
 
 const DOCS_URL = "https://docs.panelhaus.app";
 
@@ -49,6 +50,8 @@ export const HelpSheet = ({
   open: boolean;
   onClose: () => void;
 }) => {
+  useCoachTipSuppression(open);
+
   return (
     <AnimatePresence>
       {open && (

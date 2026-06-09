@@ -2,6 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDrag } from "@use-gesture/react";
+import { useCoachTipSuppression } from "./Tip";
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -16,6 +17,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   title,
   children,
 }) => {
+  useCoachTipSuppression(isOpen);
+
   const bindDrag = useDrag(
     ({ movement: [, my], last }) => {
       if (last && my > 100) {

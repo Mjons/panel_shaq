@@ -8,6 +8,7 @@ import {
   type ProjectMeta,
   type SavedProject,
 } from "../services/projectStorage";
+import { useCoachTipSuppression } from "./Tip";
 
 interface ProjectManagerProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
 }) => {
   const [projects, setProjects] = useState<ProjectMeta[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+
+  useCoachTipSuppression(isOpen);
 
   useEffect(() => {
     if (isOpen) {

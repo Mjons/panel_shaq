@@ -26,7 +26,7 @@ import { Character } from "../App";
 import { VaultEntry } from "./VaultScreen";
 import { useConfirm } from "../components/ConfirmDialog";
 import { PreviewCarousel } from "../components/PreviewCarousel";
-import { Tip } from "../components/Tip";
+import { Tip, useCoachTipSuppression } from "../components/Tip";
 
 // Lens type reference images
 import lensDefault from "../images/lens_types/Default.webp";
@@ -114,6 +114,7 @@ function AspectRatioPicker({
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  useCoachTipSuppression(open);
   const current =
     ASPECT_RATIOS.find((r) => r.value === value) || ASPECT_RATIOS[0];
 
@@ -404,6 +405,7 @@ const PanelCard = React.memo(
       panel.selectedBackgroundId || null,
     );
     const [showLensDropdown, setShowLensDropdown] = useState(false);
+    useCoachTipSuppression(showLensDropdown);
     const [showBackgrounds, setShowBackgrounds] = useState(false);
     const [selectedPropIds, setSelectedPropIds] = useState<string[]>(
       panel.selectedPropIds || [],
