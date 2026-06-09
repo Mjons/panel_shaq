@@ -42,6 +42,11 @@ export const TopNav = ({
       >
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-3">
+            <img
+              src="/icons/icon-192.png"
+              alt="Panel Haus"
+              className="w-8 h-8 rounded-lg"
+            />
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"
@@ -49,9 +54,13 @@ export const TopNav = ({
             >
               <Menu size={28} />
             </button>
-            {/* Panel Haus cross-app switcher */}
-            <haus-switcher current="shaq"></haus-switcher>
           </div>
+          <button
+            onClick={onCreate}
+            className="bg-primary text-background font-headline font-extrabold px-5 py-2 rounded-lg text-lg italic tracking-tight hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
+          >
+            NEW
+          </button>
           <div className="flex items-center gap-3">
             <button
               onClick={() => onTabChange("settings")}
@@ -61,12 +70,8 @@ export const TopNav = ({
             >
               <Settings size={22} />
             </button>
-            <button
-              onClick={onCreate}
-              className="bg-primary text-background font-headline font-extrabold px-5 py-2 rounded-lg text-lg italic tracking-tight hover:opacity-80 transition-opacity active:scale-90 duration-200 uppercase"
-            >
-              NEW
-            </button>
+            {/* Panel Haus cross-app switcher */}
+            <haus-switcher current="shaq"></haus-switcher>
           </div>
         </div>
       </header>
