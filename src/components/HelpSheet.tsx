@@ -3,7 +3,7 @@ import { X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCoachTipSuppression } from "./Tip";
 
-const DOCS_URL = "https://docs.panelhaus.app";
+const DOCS_URL = "https://panelhaus.app/docs";
 
 const faqs: { q: string; a: string }[] = [
   {
@@ -173,7 +173,7 @@ export const HelpSheet = ({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-background font-headline font-bold uppercase tracking-wide text-sm hover:opacity-80 transition-opacity active:scale-95 duration-200"
                 >
-                  Open docs.panelhaus.app
+                  Open panelhaus.app/docs
                   <ExternalLink size={16} />
                 </a>
               </section>
