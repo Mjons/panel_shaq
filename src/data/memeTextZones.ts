@@ -2499,5 +2499,25 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         }
       }
     ]
+  },
+  "spongebob-burning-paper": {
+    "aspect": 0.826,
+    "image": "spongebob-burning-paper.jpg",
+    "zones": []
+  },
+  "first-world-problems": {
+    "aspect": 1.5041,
+    "image": "first-world-problems.jpg",
+    "zones": []
+  },
+  "im-the-captain-now": {
+    "aspect": 1.3657,
+    "image": "im-the-captain-now.jpg",
+    "zones": []
+  },
+  "uno-draw-25-cards": {
+    "aspect": 1.0121,
+    "image": "uno-draw-25-cards.jpg",
+    "zones": []
   }
 };
