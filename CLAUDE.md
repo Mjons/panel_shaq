@@ -29,12 +29,15 @@ Client (must be `VITE_`-prefixed and present **at build time** — they're baked
 - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` — anonymous auth, usage display, email capture. Optional; app degrades gracefully if absent.
 - `VITE_MEMEGEN_URL` (default `https://memegen.panelhaus.app`) — "make another meme" target for the MemeGen meme-handoff receiver (`src/from-meme/`); optional.
 - `VITE_MEME_ADMIN_SECRET` — unlocks the admin calibrator. In **prod**, set a private value to enable it, or **leave empty to disable admin entirely** (no public fallback). In **dev** it defaults to `panelshaq-admin`.
+- `VITE_CLERK_PUBLISHABLE_KEY` — Clerk publishable key (`pk_live_…`), the **same Clerk instance as Panel Haus** (panelhaus.app) so accounts are shared. Optional: if unset, auth + shared credits are **disabled** and the app runs on the legacy anon/BYOK path (graceful degradation). See `documents/CLERK_CREDITS_INTEGRATION_BUILD_PLAN.md`.
 
 Server (Vercel env, runtime):
 
-- `PANELHAUS_API_BASE` (default `https://panelhaus.app`) — upstream the `api/handoff-consume` proxy calls server-to-server. Optional; if fresh tokens 404/410, set it to the exact origin MemeGen redirects to (e.g. `https://www.panelhaus.app`) so it hits the same backend that minted the token.
-- `GEMINI_API_KEY` — the shared key used by "hosted" mode, and the fallback when a BYOK user hasn't supplied their own.
-- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` — service-role client for usage enforcement. The service-role client **must** be created with `{ auth: { autoRefreshToken: false, persistSession: false } }` to bypass RLS correctly.
+- `PANELHAUS_API_BASE` (default `https://www.panelhaus.app`) — upstream that **both** the `api/handoff-consume` proxy **and** the shared-credit calls (`/api/credits/reserve|refund|balance`) hit server-to-server. Must be the **non-redirecting** origin (`www`): the apex 307s to `www` and the `Authorization` header is stripped on cross-origin redirects.
+- `CLERK_SECRET_KEY` — server-side Clerk key (`sk_live_…`) used by the `api/` routes to verify the Bearer token (`@clerk/backend verifyToken`). When unset, the routes fall back to the legacy daily limiter (no Clerk gate / no credits).
+- `INK_COST_IMAGE` (default `1`) — ink charged per image generation (`generate-image`, `final-render`); set to match Panel Haus's cost for `gemini-3.1-flash-image-preview`.
+- `GEMINI_API_KEY` — the shared key used for signed-in (shared-ink) and legacy "hosted" generation; also the fallback when a BYOK user hasn't supplied their own.
+- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` — service-role client for the **legacy** anon usage limiter (used only when Clerk is unconfigured). Must be created with `{ auth: { autoRefreshToken: false, persistSession: false } }` to bypass RLS correctly.
 
 Dev: `DISABLE_HMR=true` disables Vite HMR/file-watching (used in AI Studio to prevent flicker during agent edits — see `vite.config.ts`).
 
@@ -51,14 +54,15 @@ There is no app database for user content. `src/App.tsx` (`AppInner`) is the sin
 
 Named/saved projects are a separate IndexedDB store managed by `src/services/projectStorage.ts` (full projects in IndexedDB `panelshaq_projects`; a lightweight meta index in localStorage). App auto-saves the working project on an interval and on `beforeunload`.
 
-### Auth gate: two modes (hosted vs BYOK)
+### Auth + credits: shared Clerk account + shared ink (with BYOK + legacy fallback)
 
-On first launch `App.tsx` shows `EmailGate` (`src/components/EmailGate.tsx`) when `authMode === null` (`showAuthGate`). The user picks one of two modes, persisted in `localStorage.panelshaq_auth_mode`:
+panel_shaq shares **one Clerk account and one ink balance** with Panel Haus (panelhaus.app). The whole integration is **gated on `VITE_CLERK_PUBLISHABLE_KEY`** — when it's unset the app runs exactly as before (legacy anon/BYOK). Full build doc: `documents/CLERK_CREDITS_INTEGRATION_BUILD_PLAN.md`. There are effectively three paths at generation time:
 
-- **`"hosted"`** — user submits an email (upserted to the Supabase `emails` table via `saveEmail` in `src/services/supabase.ts`) and then uses the server's shared `GEMINI_API_KEY`, rate-limited by the daily usage counters ("anon throttle").
-- **`"byok"`** — user supplies their own Gemini key, stored in `panelshaq_settings` and sent as the `x-api-key` header.
+- **Signed-in (shared ink)** — `main.tsx` wraps the app in `<ClerkProvider>` (same instance as PH → apex-cookie SSO across `*.panelhaus.app`). It's a **soft gate**: the app opens freely and `apiPost` prompts Clerk sign-in only when a non-BYOK user triggers a generation. `apiPost` sends `Authorization: Bearer <clerk token>` (via the `src/services/clerkToken.ts` holder + `<ClerkTokenBridge/>`). Image routes (`generate-image`, `final-render`) **reserve ink** at `${PANELHAUS_API_BASE}/api/credits/reserve` before calling Gemini and **refund** on failure; PH Postgres is the single source of truth. Balance is read via the `api/credits-balance` proxy and shown as a nav chip + Settings "Account" section.
+- **BYOK** — user pastes their own Gemini key in Settings (`panelshaq_settings.geminiApiKey`, sent as `x-api-key`). This **bypasses Clerk + credits entirely** (they pay Google). Unlimited, no ink.
+- **Legacy (no Clerk configured)** — falls back to the old anonymous Supabase UID + daily limiter (`checkUsage`). The startup `EmailGate` is **retired** (commented out in `src/components/EmailGate.tsx` as a reversion backup); `SettingsScreen` still takes a legacy `appMode` prop.
 
-`SettingsScreen` receives the chosen mode as `appMode`. (This replaced an older BYOK-only setup screen.)
+`@clerk/clerk-react` (frontend) + `@clerk/backend` (route `verifyToken`) are the deps. Sign-in methods (Email + Google + MetaMask) are configured at the **shared Clerk dashboard**, instance-level. The `/c/from-meme` meme receiver stays **Clerk-free**.
 
 ### MemeGen meme-handoff receiver (`/c/from-meme`) — a second root
 
@@ -84,7 +88,7 @@ This SPA has **no router**, so `src/main.tsx` branches on `window.location.pathn
 
 `src/services/geminiService.ts` is the **only** client gateway to the backend. Every call goes through `apiPost()`, which:
 
-- attaches the user's BYOK key as `x-api-key` (from `panelshaq_settings` in localStorage) and the anonymous Supabase user id as `x-user-id` (for usage tracking),
+- attaches the user's BYOK key as `x-api-key` (from `panelshaq_settings`), a Clerk `Authorization: Bearer` token when signed in (for shared-account auth + credit reserve), and the anonymous Supabase user id as `x-user-id` (legacy usage tracking; ignored once Clerk is on). It also **soft-gates**: a non-BYOK call while signed out opens Clerk sign-in and aborts,
 - enforces timeouts (90s text / 180s image),
 - strips base64 image data out of payloads before sending where the server only needs text (e.g. panel generation sends only `{name, description}`).
 
@@ -99,9 +103,9 @@ Per-route specifics that matter:
 - `export const config` sets `bodyParser.sizeLimit` per route (1mb–20mb) because base64 images are large; the Vercel default (100KB) is too small. Match the limit to the payload.
 - Image/critique routes set `maxDuration: 60`.
 - Image generation uses model `gemini-3.1-flash-image-preview` with `imageSize: "1K"`. **Reference images are placed in the `parts` array BEFORE the text prompt** — Gemini weights earlier content more heavily for style/character adherence (see comment in `api/generate-image.ts`).
-- Usage limits are enforced server-side per anonymous user per UTC day in `checkUsage` (50 text / 20 image). The client `getUsageToday` (`src/services/supabase.ts`) only reads for display.
+- **Metering depends on auth mode.** When Clerk is configured: image routes charge **shared PH ink** (reserve/refund via `${PANELHAUS_API_BASE}/api/credits/*`), text/vision routes just **verify the Bearer** (sign-in gate, no charge in v1), and BYOK bypasses both. When Clerk is **unconfigured**, the legacy `checkUsage` daily limiter applies (anon: `ANON_LIMIT_TEXT`/`ANON_LIMIT_IMAGE`, default 10/5; BYOK: 50/20). The credit gate is **inlined per route** (`verifyToken`, `reserveInk`/`refundInk`, `requireSignInWhenClerk`) — same self-contained pattern as `checkUsage`; do not DRY it across files.
 
-Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-panel`, `polish-story`, `suggest-dialogue`, `analyze-character`, `critique-comic`, `health`. Each has a matching client function in `geminiService.ts` (e.g. `suggestDialogue` → `suggest-dialogue`, which proposes bubble text for a rendered page).
+Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-panel`, `polish-story`, `suggest-dialogue`, `analyze-character`, `critique-comic`, `credits-balance` (Clerk-authed balance proxy → PH), `health`. Each has a matching client function in `geminiService.ts` (e.g. `suggestDialogue` → `suggest-dialogue`, which proposes bubble text for a rendered page).
 
 ### GIF export
 

@@ -165,8 +165,13 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
             <Key size={18} />
-            API Configuration
+            Use your own Gemini key
           </h3>
+          <p className="text-xs text-accent/50">
+            Optional. Add your own Gemini key for unlimited generation that{" "}
+            <span className="text-accent/70">skips ink credits</span> — you pay
+            Google directly. Leave it empty to use your shared Panel Haus ink.
+          </p>
 
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-accent/50 uppercase tracking-widest block">

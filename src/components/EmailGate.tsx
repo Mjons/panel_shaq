@@ -1,3 +1,20 @@
+// ============================================================================
+// EMAILGATE — RETIRED / REVERSION BACKUP (commented out on the Clerk migration).
+//
+// This was the old first-launch gate: the user picked "hosted" (email capture +
+// shared key) or "byok" (own Gemini key), persisted to localStorage
+// `panelshaq_auth_mode`. It was removed from App.tsx when we adopted Clerk's
+// shared account + soft sign-in gate (see CLERK_CREDITS_INTEGRATION_BUILD_PLAN.md).
+//
+// It is intentionally kept here, commented out, so the old flow can be restored
+// quickly if we ever need to roll back the Clerk integration. Nothing imports it.
+// To revive: uncomment the block below, remove this header, and render
+// <EmailGate onComplete={...}/> behind an `authMode === null` gate in App.tsx.
+// ============================================================================
+
+export {}; // keep this file a module (isolatedModules) while the impl is disabled
+
+/*
 import React, { useState } from "react";
 import { Mail, Key, ArrowRight, Loader2 } from "lucide-react";
 import { saveEmail } from "../services/supabase";
@@ -211,3 +228,4 @@ export function EmailGate({ onComplete }: EmailGateProps) {
     </div>
   );
 }
+*/
