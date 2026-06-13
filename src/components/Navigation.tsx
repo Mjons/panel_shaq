@@ -14,6 +14,11 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
 import { HelpSheet } from "./HelpSheet";
+import { AccountControls } from "./AccountControls";
+
+// True when Clerk is configured; gates the account UI so it only renders inside
+// <ClerkProvider> (main.tsx wraps the app only when this key is set).
+const clerkEnabled = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 export const TopNav = ({
   onCreate,
@@ -62,6 +67,7 @@ export const TopNav = ({
             NEW
           </button>
           <div className="flex items-center gap-3">
+            {clerkEnabled && <AccountControls />}
             <button
               onClick={() => onTabChange("settings")}
               className="text-accent/40 hover:text-primary transition-colors active:scale-90 duration-200 p-2"

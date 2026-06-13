@@ -120,6 +120,26 @@ export async function apiPost<T>(
   const userKey = getUserApiKey();
   if (userKey) headers["x-api-key"] = userKey;
 
+  // Shared-account auth + soft gate (Clerk). BYOK users bypass entirely (they pay
+  // Google with their own key). When Clerk isn't configured this is a no-op and the
+  // app behaves exactly as before.
+  if (!userKey) {
+    const {
+      isClerkEnabled,
+      isClerkSignedIn,
+      openClerkSignIn,
+      getClerkToken,
+    } = await import("./clerkToken");
+    if (isClerkEnabled()) {
+      if (!isClerkSignedIn()) {
+        openClerkSignIn();
+        throw new Error("Please sign in to generate.");
+      }
+      const token = await getClerkToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+    }
+  }
+
   // Send user ID for usage tracking (non-blocking — don't break API calls if Supabase fails)
   try {
     const { getUserId } = await import("./supabase");

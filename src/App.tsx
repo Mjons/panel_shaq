@@ -13,7 +13,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ConfirmProvider, useConfirm } from "./components/ConfirmDialog";
 import { ProjectManager } from "./components/ProjectManager";
-import { EmailGate } from "./components/EmailGate";
 import {
   PanelPrompt,
   onApiError,
@@ -240,15 +239,14 @@ function AppInner() {
     return onApiError((msg) => addToast(msg, "error"));
   }, [addToast]);
 
-  // Auth mode: user picks "byok" (own API key) or "hosted" (email + admin key)
-  // null = hasn't chosen yet → show the choice screen
-  const [authMode, setAuthMode] = useState<"byok" | "hosted" | null>(
+  // Legacy auth mode (byok/hosted) — read-only now. The startup EmailGate is
+  // retired in favour of Clerk's soft sign-in gate (see main.tsx + apiPost). Still
+  // read to pick the Settings view; falls back to "byok" so the API-key field shows.
+  const [authMode] = useState<"byok" | "hosted" | null>(
     () =>
       (localStorage.getItem("panelshaq_auth_mode") as "byok" | "hosted") ||
       null,
   );
-
-  const showAuthGate = authMode === null;
 
   const [vaultAutoOpen, setVaultAutoOpen] = useState(false);
   const [gifEditorImages, setGifEditorImages] = useState<
@@ -349,15 +347,6 @@ function AppInner() {
     } catch {}
     localStorage.setItem("panelshaq_vault_migrated", "1");
   }, []);
-
-  // Show auth gate if user hasn't chosen a mode yet
-  if (showAuthGate) {
-    return (
-      <div className="min-h-screen bg-background">
-        <EmailGate onComplete={(mode) => setAuthMode(mode)} />
-      </div>
-    );
-  }
 
   // Project management
   const [currentProjectId, setCurrentProjectId] = usePersistedState<

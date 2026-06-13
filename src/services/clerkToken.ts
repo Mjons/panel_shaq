@@ -26,3 +26,35 @@ export async function getClerkToken(): Promise<string | null> {
     return null;
   }
 }
+
+// --- Soft-gate bridge: lets non-React code (apiPost) check sign-in state and
+// open Clerk's sign-in modal without holding a hook. Registered by ClerkTokenBridge.
+let _isSignedIn: (() => boolean) | null = null;
+let _openSignIn: (() => void) | null = null;
+
+export function registerClerkGate(g: {
+  isSignedIn: () => boolean;
+  openSignIn: () => void;
+}): void {
+  _isSignedIn = g.isSignedIn;
+  _openSignIn = g.openSignIn;
+}
+
+export function clearClerkGate(): void {
+  _isSignedIn = null;
+  _openSignIn = null;
+}
+
+export function isClerkSignedIn(): boolean {
+  return _isSignedIn ? _isSignedIn() : false;
+}
+
+export function openClerkSignIn(): void {
+  if (_openSignIn) _openSignIn();
+}
+
+/** True when a Clerk publishable key is configured (build-time). When false the
+ * app runs without auth/credits exactly as before. */
+export function isClerkEnabled(): boolean {
+  return !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+}
