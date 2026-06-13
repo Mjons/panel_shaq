@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import { verifyToken } from "@clerk/backend";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "4mb" } },
@@ -99,6 +100,32 @@ async function checkUsage(
   return null;
 }
 
+// Sign-in gate (Panel Haus shared auth). Inlined per route — Vercel can't share
+// local files between functions (see CLAUDE.md). BYOK + pre-Clerk both bypass.
+const AUTHORIZED_PARTIES = [
+  "https://m.panelhaus.app",
+  "https://shaq.panelhaus.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
+async function requireSignInWhenClerk(req: any): Promise<boolean> {
+  if (req.headers["x-api-key"]) return true; // BYOK bypass
+  if (!process.env.CLERK_SECRET_KEY) return true; // Clerk not configured → legacy
+  const h = (req.headers["authorization"] as string) || "";
+  const token = h.startsWith("Bearer ") ? h.slice(7) : "";
+  if (!token) return false;
+  try {
+    const claims = await verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+      authorizedParties: AUTHORIZED_PARTIES,
+    });
+    return !!claims?.sub;
+  } catch {
+    return false;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Method not allowed" });
@@ -106,8 +133,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = getApiKey(req);
   if (!apiKey) return res.status(401).json({ error: "No API key configured." });
 
-  const usageError = await checkUsage(req, "text");
-  if (usageError) return res.status(429).json({ error: usageError });
+  if (!(await requireSignInWhenClerk(req)))
+    return res.status(401).json({ error: "Please sign in to generate." });
+
+  // Legacy daily limiter — only when Clerk/shared credits are off.
+  if (!process.env.CLERK_SECRET_KEY) {
+    const usageError = await checkUsage(req, "text");
+    if (usageError) return res.status(429).json({ error: usageError });
+  }
 
   const { story, characters } = req.body;
   if (!story?.trim())

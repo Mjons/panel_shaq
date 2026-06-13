@@ -11,6 +11,11 @@ import {
 } from "lucide-react";
 import { usePersistedState } from "../hooks/usePersistedState";
 import { getUsageToday } from "../services/supabase";
+import { AccountSection } from "../components/AccountSection";
+
+// When Clerk is configured, show the shared Account panel instead of the legacy
+// anonymous daily-usage meter.
+const clerkEnabled = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 export interface AppSettings {
   geminiApiKey: string;
@@ -132,6 +137,9 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
       </header>
 
       <div className="space-y-8">
+        {/* Shared Panel Haus account + ink balance (Clerk) */}
+        {clerkEnabled && <AccountSection />}
+
         {/* API Configuration */}
         {appMode === "hosted" && (
           <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-3">
@@ -525,8 +533,8 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
           </div>
         </section>
 
-        {/* Usage */}
-        {usage && (
+        {/* Usage — legacy anonymous meter; only when Clerk/shared credits are off */}
+        {!clerkEnabled && usage && (
           <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
             <h3 className="font-headline text-lg font-bold text-accent">
               Today's Usage
