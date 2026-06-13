@@ -1,12 +1,20 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Analytics } from "@vercel/analytics/react";
+import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App.tsx";
 import { FromMemeRoot } from "./from-meme/FromMemeRoot";
+import { ClerkTokenBridge } from "./services/ClerkTokenBridge";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { trackColdLanding } from "./services/analytics";
 import { maybeMigrateFromOldOrigin } from "./services/originMigration";
 import "./index.css";
+
+// Shared Clerk auth (same instance as Panel Haus). Optional: if the publishable
+// key isn't set, the app runs exactly as before (no auth, no shared credits) —
+// graceful degradation like Supabase. The meme-receiver branch is always
+// Clerk-free.
+const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
 // DEV-ONLY: the real <haus-switcher> embed (panelhaus.app/embed/hausbar.js) isn't
 // live yet, so register a local mock so the switcher is visible while developing.
@@ -21,10 +29,22 @@ const isMemeReceiver = window.location.pathname === "/c/from-meme";
 
 function mount() {
   trackColdLanding();
+  // The main tab app, optionally wrapped in Clerk. Meme receiver stays Clerk-free.
+  const mainApp =
+    !isMemeReceiver && clerkKey ? (
+      <ClerkProvider publishableKey={clerkKey}>
+        <ClerkTokenBridge />
+        <App />
+      </ClerkProvider>
+    ) : isMemeReceiver ? (
+      <FromMemeRoot />
+    ) : (
+      <App />
+    );
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <ErrorBoundary>
-        {isMemeReceiver ? <FromMemeRoot /> : <App />}
+        {mainApp}
         <Analytics />
       </ErrorBoundary>
     </StrictMode>,
