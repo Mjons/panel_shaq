@@ -1,5 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import { verifyToken } from "@clerk/backend";
+import { randomUUID } from "crypto";
 
 export const config = {
   api: { bodyParser: { sizeLimit: "20mb" } },
@@ -7,6 +9,76 @@ export const config = {
 };
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+
+// --- Shared-credit gate (Panel Haus). Inlined per route on purpose — Vercel can't
+// share local files between functions (see CLAUDE.md). Mirror these edits in
+// final-render.ts. ---
+const PH_BASE = process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app";
+const AUTHORIZED_PARTIES = [
+  "https://m.panelhaus.app",
+  "https://shaq.panelhaus.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+];
+
+function bearerToken(req: any): string {
+  const h = (req.headers["authorization"] as string) || "";
+  return h.startsWith("Bearer ") ? h.slice(7) : "";
+}
+
+async function verifyClerkBearer(token: string): Promise<boolean> {
+  if (!token || !process.env.CLERK_SECRET_KEY) return false;
+  try {
+    const claims = await verifyToken(token, {
+      secretKey: process.env.CLERK_SECRET_KEY,
+      authorizedParties: AUTHORIZED_PARTIES,
+    });
+    return !!claims?.sub;
+  } catch {
+    return false;
+  }
+}
+
+async function reserveInk(
+  bearer: string,
+  amount: number,
+  action: string,
+  idempotencyKey: string,
+): Promise<{ status: number; body: any }> {
+  try {
+    const r = await fetch(`${PH_BASE}/api/credits/reserve`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearer}`,
+      },
+      body: JSON.stringify({ amount, action, idempotencyKey }),
+    });
+    return { status: r.status, body: await r.json().catch(() => ({})) };
+  } catch {
+    return { status: 502, body: {} };
+  }
+}
+
+async function refundInk(
+  bearer: string,
+  amount: number,
+  idempotencyKey: string,
+  reason: string,
+): Promise<void> {
+  try {
+    await fetch(`${PH_BASE}/api/credits/refund`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${bearer}`,
+      },
+      body: JSON.stringify({ amount, idempotencyKey, reason }),
+    });
+  } catch {
+    /* best-effort — a stuck reserve is recoverable via the idempotency key */
+  }
+}
 
 function getApiKey(req: any): string | null {
   return (
@@ -106,8 +178,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const apiKey = getApiKey(req);
   if (!apiKey) return res.status(401).json({ error: "No API key configured." });
 
-  const usageError = await checkUsage(req, "image");
-  if (usageError) return res.status(429).json({ error: usageError });
+  // Credit gate. BYOK users bypass (their own key). When Clerk is configured we
+  // charge shared ink via Panel Haus (reserve now, refund on failure); otherwise
+  // fall back to the legacy anonymous daily limiter so nothing breaks pre-Clerk.
+  const byok = !!(req.headers["x-api-key"] as string);
+  const clerkConfigured = !!process.env.CLERK_SECRET_KEY;
+  const bearer = bearerToken(req);
+  let inkAmount = 0;
+  let inkKey: string | null = null;
+  let newBalance: number | undefined;
+
+  if (!byok) {
+    if (clerkConfigured) {
+      if (!(await verifyClerkBearer(bearer)))
+        return res.status(401).json({ error: "Please sign in to generate." });
+      inkAmount = parseInt(process.env.INK_COST_IMAGE || "1", 10);
+      inkKey = randomUUID();
+      const r = await reserveInk(bearer, inkAmount, "mobile_image", inkKey);
+      if (r.status === 402)
+        return res
+          .status(402)
+          .json({ error: "out_of_ink", code: "INSUFFICIENT_CREDITS", required: r.body?.required });
+      if (r.status === 429)
+        return res
+          .status(429)
+          .json({ error: "weekly_limit_reached", code: "WEEKLY_LIMIT_REACHED" });
+      if (r.status !== 200)
+        return res.status(502).json({ error: "Credit reserve failed" });
+      newBalance = r.body?.newBalance;
+    } else {
+      const usageError = await checkUsage(req, "image");
+      if (usageError) return res.status(429).json({ error: usageError });
+    }
+  }
 
   const { prompt, referenceImages, aspectRatio = "16:9" } = req.body;
   if (!prompt?.trim())
@@ -142,10 +245,12 @@ CRITICAL: Do NOT include any speech bubbles, text, or dialogue balloons in the i
       { aspectRatio, imageSize: "1K" },
     );
 
-    if (image) return res.status(200).json({ image });
+    if (image) return res.status(200).json({ image, newBalance });
+    if (inkKey) await refundInk(bearer, inkAmount, inkKey, "no image generated");
     return res.status(500).json({ error: "No image generated" });
   } catch (error: any) {
     console.error("Generate image error:", error);
+    if (inkKey) await refundInk(bearer, inkAmount, inkKey, "gemini failed");
     return res.status(500).json({ error: error.message || "Failed" });
   }
 }

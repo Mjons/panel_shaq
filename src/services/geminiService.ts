@@ -161,9 +161,24 @@ export async function apiPost<T>(
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
+      if (res.status === 402) {
+        throw new Error(
+          "You're out of ink. Get more credits at panelhaus.app/pricing.",
+        );
+      }
       throw new Error(err.error || `API error ${res.status}`);
     }
-    return res.json();
+    const data = await res.json();
+    // Shared-credit responses carry the post-reserve balance — push it to the chip.
+    if (data && typeof data.newBalance === "number") {
+      try {
+        const { emitBalance } = await import("./credits");
+        emitBalance(data.newBalance);
+      } catch {
+        /* ignore */
+      }
+    }
+    return data;
   } catch (error) {
     const reason =
       error instanceof DOMException && error.name === "AbortError"
