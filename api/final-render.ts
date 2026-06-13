@@ -12,7 +12,12 @@ const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 // --- Shared-credit gate (Panel Haus). Inlined per route on purpose — Vercel can't
 // share local files between functions (see CLAUDE.md). Same block as generate-image.ts. ---
-const PH_BASE = process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app";
+// Normalize to the non-redirecting origin. The apex panelhaus.app 307s to www, and
+// a cross-origin redirect STRIPS the Authorization header (Fetch spec) → the credit
+// call would 401. Force www even if the env was mistakenly set to the apex.
+const PH_BASE = (
+  process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app"
+).replace("://panelhaus.app", "://www.panelhaus.app");
 const AUTHORIZED_PARTIES = [
   "https://m.panelhaus.app",
   "https://shaq.panelhaus.app",
@@ -52,7 +57,14 @@ async function reserveInk(
         Authorization: `Bearer ${bearer}`,
       },
       body: JSON.stringify({ amount, action, idempotencyKey }),
+      redirect: "manual", // never silently follow a redirect that drops the Bearer
     });
+    if (r.status === 0) {
+      console.error(
+        "[reserve] PANELHAUS_API_BASE redirected; set it to the non-redirecting origin (https://www.panelhaus.app)",
+      );
+      return { status: 502, body: {} };
+    }
     return { status: r.status, body: await r.json().catch(() => ({})) };
   } catch {
     return { status: 502, body: {} };
@@ -73,6 +85,7 @@ async function refundInk(
         Authorization: `Bearer ${bearer}`,
       },
       body: JSON.stringify({ amount, idempotencyKey, reason }),
+      redirect: "manual",
     });
   } catch {
     /* best-effort */
