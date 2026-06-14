@@ -99,7 +99,11 @@ gate is inlined per route. Flow for a non-BYOK, Clerk-authed request:
    bound to the reserve). Net charge = 0 on failure.
 
 **BYOK short-circuit:** if `x-api-key` is present, the route skips Clerk + reserve/refund entirely and
-calls Gemini with the user's key.
+calls Gemini with the user's key. **BYOK still honors the selected model:** `geminiModel` is derived from
+`req.body.model` (`pro` → `GEMINI_IMAGE_MODEL_PRO`, else `GEMINI_IMAGE_MODEL_FLASH`) *before* the BYOK
+branch, and the client always sends `model: getImageModel()` regardless of auth path. So a BYOK user on
+"Pro" generates with the pro Gemini model on their own key — the only differences vs shared-ink are no
+deduction and a "Free" badge.
 
 **Admin:** the bypass lives Panel Haus–side in `reserve` (`isAdminUser` + `AI_ADMIN_RATE_LIMIT_BYPASS`),
 so reserve returns success without deducting. The mobile routes don't special-case admins.
