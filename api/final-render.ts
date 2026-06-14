@@ -17,7 +17,7 @@ const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
 // call would 401. Force www even if the env was mistakenly set to the apex.
 const PH_BASE = (
   process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app"
-).replace("://panelhaus.app", "://www.panelhaus.app").replace(/\/+$/, "");
+).trim().replace("://panelhaus.app", "://www.panelhaus.app").replace(/\/+$/, "");
 const AUTHORIZED_PARTIES = [
   "https://m.panelhaus.app",
   "https://shaq.panelhaus.app",

@@ -46,7 +46,7 @@ async function requireSignInWhenClerk(req: any): Promise<boolean> {
 // so the Authorization header survives (apex 307s and strips it).
 const PH_BASE = (
   process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app"
-).replace("://panelhaus.app", "://www.panelhaus.app").replace(/\/+$/, "");
+).trim().replace("://panelhaus.app", "://www.panelhaus.app").replace(/\/+$/, "");
 
 async function reserveInk(
   bearer: string,
