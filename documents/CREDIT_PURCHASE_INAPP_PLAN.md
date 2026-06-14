@@ -1,5 +1,14 @@
 # In-App Credit Purchase (Stripe) — Implementation Plan
 
+> **Status (2026-06): v1 SHIPPED, boosters only.** The booster flow described below is
+> built: `api/credits-checkout.ts` (proxy), `src/services/checkout.ts` +
+> `src/services/buyCredits.ts`, `src/components/BuyCreditsSheet.tsx`, with entry points from
+> Settings "Get more ink", a tappable nav ink chip, and out-of-ink (402) auto-open, plus the
+> Stripe return handler in `App.tsx`. Booster display prices mirror PH's `BoosterPackModal.jsx`
+> (Starter 75 = $6.99, Popular 150 = $12.99, Best Value 300 = $24.99; display-only, Stripe
+> charges the real price). **Founder Pass + subscriptions remain out of scope** (kept on the
+> `panelhaus.app/pricing` link); the `one_time_purchase` notes below are retained for a future v2.
+>
 > Self-contained: written so an engineer/agent with **no prior context** can build it.
 > Lets panel_shaq (`m.panelhaus.app`) sell ink credits using **Panel Haus's existing
 > Stripe** — same prices, same checkout, same webhook, same shared balance. No Stripe

@@ -177,9 +177,14 @@ export async function apiPost<T>(
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       if (res.status === 402) {
-        throw new Error(
-          "You're out of ink. Get more credits at panelhaus.app/pricing.",
-        );
+        // Out of ink: open the in-app Buy sheet (and surface the toast below).
+        try {
+          const { openBuyCredits } = await import("./buyCredits");
+          openBuyCredits();
+        } catch {
+          /* ignore */
+        }
+        throw new Error("You're out of ink. Opening the credit shop.");
       }
       throw new Error(err.error || `API error ${res.status}`);
     }

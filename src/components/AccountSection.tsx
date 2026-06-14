@@ -13,6 +13,7 @@ import {
   getCachedTier,
 } from "../services/credits";
 import { useInkCosts } from "../services/inkCosts";
+import { openBuyCredits } from "../services/buyCredits";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
 // inside <ClerkProvider>). Shows the shared Panel Haus account + ink balance and a
@@ -136,13 +137,19 @@ export function AccountSection() {
           </div>
         </div>
 
+        <button
+          onClick={openBuyCredits}
+          className="block w-full text-center px-4 py-2 rounded-lg bg-primary text-background font-bold text-sm active:scale-95 transition-transform"
+        >
+          Get more ink
+        </button>
         <a
           href="https://www.panelhaus.app/pricing"
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center px-4 py-2 rounded-lg border border-primary/40 text-primary font-semibold text-sm active:scale-95 transition-transform"
+          className="block text-center text-xs text-accent/50 hover:text-primary transition-colors"
         >
-          Get more ink
+          Subscriptions & Founder Pass →
         </a>
       </SignedIn>
     </section>

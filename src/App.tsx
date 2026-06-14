@@ -13,11 +13,15 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider, useToast } from "./components/Toast";
 import { ConfirmProvider, useConfirm } from "./components/ConfirmDialog";
 import { ProjectManager } from "./components/ProjectManager";
+import { BuyCreditsSheet } from "./components/BuyCreditsSheet";
 import {
   PanelPrompt,
   onApiError,
   hydratePanel,
 } from "./services/geminiService";
+import { onOpenBuyCredits } from "./services/buyCredits";
+import { isClerkEnabled, getClerkToken } from "./services/clerkToken";
+import { fetchAccount, emitBalance } from "./services/credits";
 import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
@@ -237,6 +241,47 @@ function AppInner() {
   // Connect API error notifications to toast system
   useEffect(() => {
     return onApiError((msg) => addToast(msg, "error"));
+  }, [addToast]);
+
+  // Buy Ink sheet: a single instance opened from anywhere (Settings, the nav ink
+  // chip, the out-of-ink 402 path) via the buyCredits event bus. Clerk-only.
+  const [buyOpen, setBuyOpen] = useState(false);
+  useEffect(() => onOpenBuyCredits(() => setBuyOpen(true)), []);
+
+  // Stripe checkout return handler. PH sends the user back to OUR origin at
+  // /success?session_id=…&type=booster (paid) or /app?checkout_canceled=… (back).
+  // The webhook credits the shared balance, which can lag a few seconds, so poll
+  // a couple of times, then clean the URL. Runs once on mount; Clerk-only.
+  useEffect(() => {
+    if (!isClerkEnabled()) return;
+    const params = new URLSearchParams(window.location.search);
+    const isSuccess =
+      window.location.pathname === "/success" || params.has("session_id");
+    const isCanceled = params.has("checkout_canceled");
+    if (!isSuccess && !isCanceled) return;
+
+    if (isSuccess) {
+      addToast("Purchase complete. Credits added.", "success");
+      let cancelled = false;
+      const refresh = async () => {
+        const t = await getClerkToken();
+        if (!t || cancelled) return;
+        const { credits } = await fetchAccount(t);
+        if (!cancelled && credits !== null) emitBalance(credits);
+      };
+      refresh();
+      const t1 = setTimeout(refresh, 3000);
+      const t2 = setTimeout(refresh, 7000);
+      window.history.replaceState(null, "", "/");
+      return () => {
+        cancelled = true;
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+
+    addToast("Checkout canceled.", "info");
+    window.history.replaceState(null, "", "/");
   }, [addToast]);
 
   // Legacy auth mode (byok/hosted) — read-only now. The startup EmailGate is
@@ -648,6 +693,10 @@ function AppInner() {
         onNewProject={handleCreateNew}
         currentProjectId={currentProjectId}
       />
+
+      {isClerkEnabled() && (
+        <BuyCreditsSheet isOpen={buyOpen} onClose={() => setBuyOpen(false)} />
+      )}
     </div>
   );
 }

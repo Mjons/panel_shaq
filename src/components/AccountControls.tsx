@@ -13,6 +13,7 @@ import {
   fetchAccount,
   getCachedBalance,
 } from "../services/credits";
+import { openBuyCredits } from "../services/buyCredits";
 
 // Live ink-balance chip. Fetches once when signed in (priming the shared cache so
 // Settings can render the balance instantly), then updates the moment a generation
@@ -41,10 +42,13 @@ function InkChip() {
   }, [isSignedIn, getToken]);
 
   return (
-    <span
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent/80 px-2.5 py-1 rounded-lg bg-surface-container border border-outline/10"
-      title="Ink balance"
-      aria-label={credits === null ? "Loading ink balance" : `${credits} ink`}
+    <button
+      onClick={openBuyCredits}
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent/80 px-2.5 py-1 rounded-lg bg-surface-container border border-outline/10 hover:border-primary/40 active:scale-95 transition-all"
+      title="Buy ink"
+      aria-label={
+        credits === null ? "Loading ink balance" : `${credits} ink, buy more`
+      }
     >
       <span aria-hidden>⚡</span>
       {credits === null ? (
@@ -55,7 +59,7 @@ function InkChip() {
       ) : (
         <span>{credits}</span>
       )}
-    </span>
+    </button>
   );
 }
 
