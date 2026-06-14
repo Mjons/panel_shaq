@@ -95,14 +95,19 @@ class HausSwitcherMock extends HTMLElement {
     `;
 
     const scrim = root.querySelector<HTMLDivElement>(".scrim")!;
+    const close = () => scrim.removeAttribute("open");
     root
       .querySelector(".trigger")!
       .addEventListener("click", () => scrim.setAttribute("open", ""));
-    root
-      .querySelector(".close")!
-      .addEventListener("click", () => scrim.removeAttribute("open"));
+    root.querySelector(".close")!.addEventListener("click", close);
     scrim.addEventListener("click", (e) => {
-      if (e.target === scrim) scrim.removeAttribute("open");
+      if (e.target === scrim) close();
+    });
+    // Match the real hausbar.js: close on page scroll, Escape, and resize.
+    window.addEventListener("scroll", close, { passive: true });
+    window.addEventListener("resize", close);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
     });
   }
 }

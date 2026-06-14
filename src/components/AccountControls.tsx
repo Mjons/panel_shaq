@@ -109,13 +109,16 @@ function AccountMenu({ onSettings }: { onSettings: () => void }) {
             <p className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
               {isWallet ? "Wallet" : email ? "Signed in" : "Account"}
             </p>
-            <p
-              className={`text-sm text-accent/90 break-all mt-0.5 ${
-                isWallet ? "font-mono" : ""
-              }`}
-            >
-              {identity}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <User size={14} className="text-accent/50 shrink-0" />
+              <span
+                className={`text-sm text-accent/90 break-all ${
+                  isWallet ? "font-mono" : ""
+                }`}
+              >
+                {identity}
+              </span>
+            </div>
           </div>
           <button
             role="menuitem"
