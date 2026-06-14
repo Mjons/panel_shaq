@@ -30,5 +30,11 @@ Get-Content $envFile | ForEach-Object {
 }
 
 Write-Host "[OK] Loaded $loadedCount env vars from $envFile" -ForegroundColor Green
-$env:VERCEL_ENV = "development"
-vercel dev -l 3000
+# Run plain Vite — panel_shaq serves its own /api/* in-process via the vercelApiDev
+# plugin in vite.config.ts, so `vercel dev` is NOT needed (it only caused a
+# frontend/backend port split). One process, one port. We still load .env.local
+# into the process above so the api handlers see CLERK_SECRET_KEY / PANELHAUS_API_BASE.
+#
+# Port 3002 = an allowed Clerk authorizedParty on the PH side (PH uses 5173 + 3001).
+# Set PANELHAUS_API_BASE=http://localhost:3001 in .env.local to reach PH's backend.
+npx vite --port 3002 --host 0.0.0.0

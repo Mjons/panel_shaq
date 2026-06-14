@@ -23,6 +23,7 @@ const AUTHORIZED_PARTIES = [
   "https://shaq.panelhaus.app",
   "http://localhost:3000",
   "http://localhost:5173",
+  "http://localhost:3002",
 ];
 
 function bearerToken(req: any): string {
