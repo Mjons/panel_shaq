@@ -140,8 +140,10 @@ export const SettingsScreen = ({ appMode = "byok" }: SettingsScreenProps) => {
         {/* Shared Panel Haus account + ink balance (Clerk) */}
         {clerkEnabled && <AccountSection />}
 
-        {/* API Configuration */}
-        {appMode === "hosted" && (
+        {/* Legacy hosted-mode notice — only when Clerk is off (pre-Clerk path).
+            With Clerk on, AccountSection above is the source of truth; this stale
+            block would otherwise linger from an old panelshaq_auth_mode value. */}
+        {appMode === "hosted" && !clerkEnabled && (
           <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-3">
             <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
               <CheckCircle size={16} className="text-green-500 shrink-0" />
