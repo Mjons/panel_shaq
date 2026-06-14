@@ -126,3 +126,40 @@ strategy under your own buttons):
 outside Clerk) — there, wallet users would not share PH's account/balance and couldn't
 take over. Any approach where wallet sign-in flows **through Clerk** keeps one account,
 one balance, and proper takeover.
+
+---
+
+## 3. "Do it like MemeGen" — connection vs. identity
+
+MemeGen connects wallets with **wagmi + RainbowKit + SIWE, NO Clerk** (`MemeGen/src/WalletAppShell.jsx`,
+`PageHeader.jsx` `ConnectButton` → SIWE in AuthContext). Tempting to copy here — but separate the
+two things it does:
+
+1. **Connection (transport):** RainbowKit reaches MetaMask via the injected `window.ethereum`
+   provider — present **inside MetaMask's in-app browser** — plus WalletConnect for other wallets /
+   plain mobile browsers. Pure UX.
+2. **Identity/auth:** MemeGen verifies a **SIWE** signature on its **own** backend → its own session.
+   **Panel Haus's credit API does not accept that** — it authorizes via **Clerk** (`requireAuth` →
+   `verifyToken`). A SIWE session is not a Clerk session, and a matching `web3:0x…` *string* doesn't
+   grant access; PH needs a Clerk token.
+
+**Key point:** Clerk's own MetaMask strategy **also uses the injected `window.ethereum`** — the same
+provider RainbowKit's injected connector uses. So opening `m.panelhaus.app` **inside MetaMask's in-app
+browser** and tapping **Sign in → MetaMask** (already in our Clerk modal) works exactly like MemeGen's
+connect — but yields a **Clerk session for `web3:<wallet>`**, which is the **same identity PH uses** →
+shared account + balance. You get the MemeGen-style in-app-browser flow **without** a custom stack, and
+it shares the account *because* it's Clerk.
+
+| Approach | MetaMask in-app browser | Plain mobile browser | Shares PH account? |
+|---|---|---|---|
+| **Clerk MetaMask (already wired)** | ✅ injected provider | ❌ no provider | ✅ yes |
+| **Custom wagmi/SIWE (MemeGen-style)** | ✅ | ✅ via WalletConnect | ❌ **no** (separate identity) |
+
+**Therefore:** do **not** reimplement MemeGen's custom wallet stack for auth here — it would *break*
+account sharing. Clerk's MetaMask already covers the in-app-browser case **and** shares the account.
+The only gap is wallet login in a **plain** mobile browser (no injected provider) → that's the
+**WalletConnect** piece (§1b, deferred), and even that should route **through Clerk** (custom UI on
+Clerk's `useSignIn()` web3 strategy) to keep one account.
+
+**Caveat:** the in-app-browser Clerk-MetaMask path depends on `window.ethereum` being present and Clerk
+rendering its web3 button there — verify empirically in MetaMask's browser once the keys are set.
