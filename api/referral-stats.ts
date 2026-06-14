@@ -8,7 +8,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 // strips the Authorization header on the cross-origin hop). Force www.
 const PH_BASE = (
   process.env.PANELHAUS_API_BASE || "https://www.panelhaus.app"
-).replace("://panelhaus.app", "://www.panelhaus.app");
+).replace("://panelhaus.app", "://www.panelhaus.app").replace(/\/+$/, "");
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET")
