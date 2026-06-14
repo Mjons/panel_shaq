@@ -11,16 +11,16 @@ Frontend: React 19 + Vite 6 + Tailwind CSS v4 (config-in-CSS via `@theme`). Back
 ## Commands
 
 ```bash
-npm run dev          # Vite dev server on :3000 (frontend only — /api routes won't work)
-npm run dev:full     # vercel dev — runs frontend + api/ serverless functions together
+./dev.ps1            # THE dev command — plain Vite on :3002, serves /api/* in-process, loads .env.local server vars
+npm run dev          # Vite dev server on :3000 — serves /api too, but does NOT load .env.local server vars (so credit/Clerk routes 401)
 npm run build        # vite build → dist/
 npm run preview      # preview the production build
 npm run lint         # tsc --noEmit — this is the ONLY check; there is no test suite or ESLint
 npm run clean        # rm -rf dist
 ```
 
+- **Use `./dev.ps1` for local dev.** panel_shaq serves its own `/api/*` **in-process** via the `vercelApiDev` plugin in `vite.config.ts`, so **`vercel dev` is NOT needed** (the old `npm run dev:full` script has been removed). `dev.ps1` runs plain Vite on **:3002** (an allowed Clerk `authorizedParty` on the PH side) and first loads `.env.local` into the process so the `api/` handlers see server vars (`CLERK_SECRET_KEY`, `PANELHAUS_API_BASE`, `GEMINI_API_KEY`). Plain `npm run dev` serves `/api` too but does **not** export those server vars, so anything hitting PH (credits/referral/auth) will fail; use it only for pure-frontend work.
 - **There are no tests.** "Lint" means TypeScript type-checking (`tsc --noEmit`). Run it before considering work done.
-- To exercise anything that calls `/api/*` (panel/image generation, polish, critique), you must use `npm run dev:full` (vercel dev), not `npm run dev`.
 
 ## Environment variables
 

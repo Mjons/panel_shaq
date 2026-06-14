@@ -43,8 +43,13 @@ email + Google cover everyone else.
 
 - [ ] panel_shaq uses the **same production Clerk instance** as PH (same `pk_live`/`sk_live`),
       so accounts + sessions are shared across `*.panelhaus.app`.
-- [ ] `m.panelhaus.app` is an allowed origin. It's a subdomain of the apex, so apex-cookie
-      SSO works automatically; just confirm it's permitted.
+- [ ] Subdomains are allowed automatically: per Clerk's docs, sessions "automatically work across
+      all associated subdomains" of the verified primary domain, so **`m.panelhaus.app` needs no
+      extra config by default**. ONLY if the optional **Allowed Subdomains** allowlist (Dashboard →
+      Allowed Subdomains → "Enable allowed subdomains") is turned ON do you need to add
+      `m.panelhaus.app` there. With it off (default) all subdomains have wildcard access.
+      (Separate from the backend `authorizedParties` list used by `verifyToken`, which already
+      includes `m.panelhaus.app` in code.)
 - [ ] Sign-in methods **Email + Google + MetaMask** enabled (instance-level, already shared).
 - [ ] **Bot protection stays ON** in production (it's only turned OFF on the *dev* instance
       to avoid the wallet/email CAPTCHA loop — never disable it in prod).
