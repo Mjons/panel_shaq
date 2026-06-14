@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App.tsx";
 import { FromMemeRoot } from "./from-meme/FromMemeRoot";
 import { ClerkTokenBridge } from "./services/ClerkTokenBridge";
+import { clerkAppearance } from "./clerkAppearance";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { trackColdLanding } from "./services/analytics";
 import { maybeMigrateFromOldOrigin } from "./services/originMigration";
@@ -32,7 +33,7 @@ function mount() {
   // The main tab app, optionally wrapped in Clerk. Meme receiver stays Clerk-free.
   const mainApp =
     !isMemeReceiver && clerkKey ? (
-      <ClerkProvider publishableKey={clerkKey}>
+      <ClerkProvider publishableKey={clerkKey} appearance={clerkAppearance}>
         <ClerkTokenBridge />
         <App />
       </ClerkProvider>
