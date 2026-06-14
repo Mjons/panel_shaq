@@ -11,7 +11,9 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const IMPACT_WIDTH_EM = 0.09;
-const path = fileURLToPath(new URL("../src/data/memeTextZones.ts", import.meta.url));
+const path = fileURLToPath(
+  new URL("../src/data/memeTextZones.ts", import.meta.url),
+);
 const text = readFileSync(path, "utf8");
 
 // The registry is emitted as JSON; slice out the object literal and parse it.
@@ -33,4 +35,6 @@ for (const tpl of Object.values(registry)) {
 }
 
 writeFileSync(path, `${prefix}${JSON.stringify(registry, null, 2)};\n`);
-console.log(`[bumpImpactStroke] set widthEm=${IMPACT_WIDTH_EM} on ${changed} Impact zones`);
+console.log(
+  `[bumpImpactStroke] set widthEm=${IMPACT_WIDTH_EM} on ${changed} Impact zones`,
+);

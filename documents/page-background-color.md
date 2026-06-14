@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SHT1BE257YMA7BWG2HD
+created: "2026-03-24T11:16:15.418Z"
+---
+
 # Page Background Color
 
 ## Problem
@@ -147,3 +153,7 @@ The swatch shows the current page color and, when tapped, sets the panel's `bord
 | Add "Page" swatch to border picker | 15 min       |
 | Handle in PDF/PNG export           | 30 min       |
 | **Total**                          | **~2 hours** |
+
+#panel #user
+
+[[new]]

@@ -1,8 +1,20 @@
+---
+id: 01KPSFZNAG03YTX1RE0QY6TNY7
+created: "2026-03-21T21:04:02.570Z"
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPV1MSF2ANDYGQ74CYT3TMTS",
+  ]
+---
+
 # Desktop Redirect Gate
 
 ## Problem
 
-Panel Shaq (`panelhaus.app`) is a mobile-first PWA. Desktop visitors get a functional but suboptimal experience — the UI is designed for touch, portrait viewports, and on-the-go comic creation. Meanwhile, Panel Haus Desktop is the full-featured desktop editing tool. When someone visits `panelhaus.app` from a desktop browser, we should guide them toward the right tool.
+Panel Shaq (`panelhaus.app`) is a mobile-first PWA. Desktop visitors get a functional but suboptimal experience — the UI is designed for touch, portrait viewports, and on-the-go comic creation. Meanwhile, [[Panel Haus]] Desktop is the full-featured desktop editing tool. When someone visits `panelhaus.app` from a desktop browser, we should guide them toward the right tool.
 
 ## Solution
 
@@ -233,3 +245,7 @@ const App = () => {
 - **Smart detection:** If the user has Panel Haus Desktop installed locally, detect the WebSocket server on `ws://127.0.0.1:9876` and offer a "Open in Desktop App" deep link instead of just sending them to the website.
 - **QR code:** Show a QR code on the gate so desktop visitors can quickly open `panelhaus.app` on their phone instead.
 - **Analytics:** Track how many desktop visitors stay vs. redirect to understand if this gate is helpful or annoying.
+
+[[Panel Shaq — Execution Plan]]
+
+#user #panel #design

@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S65QG2RSH50Z0FYGFYN
+created: "2026-03-21T22:20:50.408Z"
+---
+
 # Comic Sharing — How Users Share Their Work
 
 ## Current State
@@ -208,3 +214,5 @@ async function shareComicPage(comicRef, projectName) {
 ```
 
 That's it. One function, works everywhere.
+
+#user #phase

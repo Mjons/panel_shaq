@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0RX10Y9C6KCSH79VKR3E
+created: "2026-03-19T23:35:16.924Z"
+---
+
 # Dynamic Panel Insertion Plan
 
 ## Goal
@@ -198,3 +204,7 @@ reader in before the action of Panel 1 begins.
 4. **Array splice + page update logic** — state management
 5. **"Continue Story" append variant** — most common use case, polish this
 6. **"Add Prelude" prepend variant** — nice to have
+
+#panel #user
+
+[[new]]

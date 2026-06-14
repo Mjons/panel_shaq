@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SC493Y8Q71F9C5FZZD9
+created: "2026-03-23T12:44:50.443Z"
+---
+
 # Warn User Before Switching Tabs During Generation
 
 ## Problem
@@ -156,3 +162,7 @@ This is a bigger refactor but would eliminate the problem entirely. For now, the
 | `src/App.tsx`                    | Add `isGenerating` state, `guardedSetActiveTab`, pass to navs and Director |
 | `src/screens/DirectorScreen.tsx` | Add `onGeneratingChange` prop, `beforeunload` listener                     |
 | `src/components/Navigation.tsx`  | No change — already receives `onTabChange` as prop                         |
+
+#user #panel #daily
+
+[[new]]

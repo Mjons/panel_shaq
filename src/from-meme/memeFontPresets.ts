@@ -58,7 +58,11 @@ export const MEME_FONT_PRESETS: MemeFontPreset[] = [
       textAlign: "center",
       lineHeight: 1.1,
       outline: null,
-      box: { backgroundColor: "#ffffff", borderColor: "transparent", borderWidth: 0 },
+      box: {
+        backgroundColor: "#ffffff",
+        borderColor: "transparent",
+        borderWidth: 0,
+      },
     },
   },
   {
@@ -96,7 +100,7 @@ export const MEME_FONT_PRESETS: MemeFontPreset[] = [
 /** Best-effort match of a zone's current style back to a preset id (for UI highlight). */
 export function detectPresetId(style: MemeZoneStyle): string | null {
   return (
-    MEME_FONT_PRESETS.find((p) => p.style.fontFamily === style.fontFamily)?.id ??
-    null
+    MEME_FONT_PRESETS.find((p) => p.style.fontFamily === style.fontFamily)
+      ?.id ?? null
   );
 }

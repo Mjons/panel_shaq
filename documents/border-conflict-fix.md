@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPTB0T8WVWHZKNFZAYG2CBV9"]
+id: 01KPTB0S0ZPDCQKDHVJKVWY4T0
+created: "2026-03-24T11:25:52.077Z"
+---
+
 # Border Conflict: Two Borders at Once
 
 ## The Bug
@@ -9,7 +15,7 @@ When a user sets a **border color** and then picks a **border effect style**, tw
 
 The guard `!hasActiveBorderStyle(panel.borderStyle)` on the CSS border (line ~1581) is supposed to hide the CSS border when an effect is active. But it only works one way: if you pick an effect _first_, the CSS border is suppressed. If you pick a color _first_ and then add an effect, the CSS border was already applied and the SVG stroke appears on top of it.
 
-Actually, re-reading the code — the guard _does_ work correctly in theory. The real issue is:
+Actually, re-[[Reading|reading]] the code — the guard _does_ work correctly in theory. The real issue is:
 
 **The CSS border is on the outer div. The SVG stroke is inside `PanelBorderWrapper` (an inner div).** They render at different positions — the CSS border is _outside_ the content box, the SVG path is _inside_ the clip-path. So they don't overlap perfectly, creating a visible double border.
 
@@ -71,3 +77,5 @@ When no color and no effect:
 | `src/screens/EditorScreen.tsx` | Remove CSS border, expand PanelBorderWrapper active condition |
 
 **Effort: ~15 minutes**
+
+#panel #user

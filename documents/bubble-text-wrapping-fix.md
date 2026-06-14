@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPRY0HJM578VNJM2F11QYN5W"]
+id: 01KPTB0S2A3YABST2QD0V9MP7C
+created: "2026-03-22T21:32:50.777Z"
+---
+
 # Bubble Text Wrapping When Dragged to Edge
 
 ## Problem
@@ -88,7 +94,7 @@ style={{
 Render bubbles in a portal (outside the panel DOM) and position them absolutely relative to the page. This completely decouples them from the panel's layout constraints.
 
 **Pros:** Perfect fix — no wrapping issues ever. Bubbles are truly floating.
-**Cons:** Significant refactor. Coordinate mapping between panel-relative percentages and page-absolute positions. Export/capture would need to re-inject bubbles into the panel DOM.
+**Cons:** Significant refactor. Coordinate mapping between panel-relative percentages and page-absolute positions. Export/[[Capture|capture]] would need to re-inject bubbles into the panel DOM.
 
 ### Option E: `contain: none` + `overflow: visible` chain
 
@@ -133,3 +139,5 @@ This is ~3 lines changed and handles the common case without any structural refa
 3. Create a long dialogue bubble — should still wrap at a reasonable width
 4. Export as PNG — verify bubbles render correctly even when positioned near edges
 5. Test on mobile — ensure `80vw` cap works on narrow viewports
+
+#panel

@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S6187WTM2M10CBGVEFC
+created: "2026-03-23T00:12:57.601Z"
+---
+
 # .comic File Share Sheet Not Appearing — Debug Exploration
 
 ## Symptom
@@ -157,3 +163,5 @@ This always works but requires server infrastructure and the file is no longer l
 2. **Test on the actual device** — check console output
 3. If `.json` works but `.comic` doesn't → use `.json` with `.comic` in the title
 4. If nothing works → the device/browser doesn't support Web Share Level 2 for files, and we need the toast fallback for the silent download
+
+#panel

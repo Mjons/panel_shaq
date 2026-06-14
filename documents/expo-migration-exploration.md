@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+  ]
+id: 01KPTB0SAEF45CQNSKSHWQ9AP7
+created: "2026-03-23T15:14:28.913Z"
+---
+
 # Expo Go Migration Exploration
 
 ## Why
@@ -50,7 +61,7 @@ Requires finding equivalent libraries and adapting code:
 These have no direct equivalent and need rethinking:
 
 - **All UI/styling** — Every `className` string in every component needs to become either NativeWind classes or `StyleSheet` objects. There are 7 screens + ~10 components, all heavily styled with Tailwind. This is the bulk of the work. ~2-3 weeks.
-- **Image export pipeline** — `html-to-image` captures DOM nodes as images. RN has no DOM. Replace with `react-native-view-shot` to capture View components. The multi-page PDF export loop (`EditorScreen`) needs complete rewriting. ~3-5 days.
+- **Image export pipeline** — `html-to-image` captures DOM nodes as images. RN has no DOM. Replace with `react-native-view-shot` to [[Capture|capture]] View components. The multi-page PDF export loop (`EditorScreen`) needs complete rewriting. ~3-5 days.
 - **Canvas operations** — Thumbnail generation, image compression, and the image transform (translate/scale/rotate) all use `<canvas>`. In RN, use `expo-image-manipulator` for resize/compress, and `react-native-reanimated` + `react-native-gesture-handler` for transforms. ~3 days.
 - **Bottom sheets / modals** — `BottomSheet` component uses DOM positioning. Replace with `@gorhom/bottom-sheet` (standard RN library). ~1-2 days.
 - **Custom dropdowns** — Lens picker, aspect ratio picker are custom DOM dropdowns. Need RN equivalents (Modal + FlatList). ~1-2 days.
@@ -175,3 +186,7 @@ panel-shaq-mobile/
 - Image export pipeline
 - Gesture handlers
 - All CSS → NativeWind or StyleSheet
+
+#rewrite #user #panel
+
+[[new]]

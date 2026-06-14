@@ -1,6 +1,19 @@
-# Changelog — Session 2026-03-20
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPS7VDXYB2RFMMS2FR4ZTW5M",
+  ]
+id: 01KPTB0S307HEPCCHJCGWQNH0Q
+created: "2026-03-21T00:47:22.654Z"
+---
 
-## Panel Haus Desktop Export (NEW)
+# [[CHANGELOG|Changelog]] — Session 2026-03-20
+
+## [[Panel Haus]] Desktop Export (NEW)
 
 - **`.comic` file export** — full pipeline to export projects for Panel Haus Desktop
 - Grid-to-pixel converter transforms CSS grid layouts into absolute pixel coordinates (490x700)
@@ -86,3 +99,7 @@
 - **ErrorBoundary auto-retry** — silently retries twice before showing error (handles IndexedDB race condition)
 - **Service worker** — `skipWaiting` + `clientsClaim` for immediate CSS/JS updates on deploy
 - **Dead `getDirectAI` fallback** removed (was causing TS error)
+
+#panel #reference
+
+[[new]]

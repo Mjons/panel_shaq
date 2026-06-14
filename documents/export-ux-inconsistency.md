@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SB7KJJZD31P5HH0RS46
+created: "2026-03-23T00:07:27.970Z"
+---
+
 # Export UX Inconsistency
 
 ## Problem
@@ -239,3 +245,5 @@ Save does direct download. Share opens the share sheet. User picks.
 | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `src/services/exportComicService.ts` | Fix file extension (`.comic` not `.json`), MIME type (`application/octet-stream`), add share text |
 | `src/screens/ShareScreen.tsx`        | Optionally split into Save + Share buttons, or change icon to Share2                              |
+
+#user #feedback

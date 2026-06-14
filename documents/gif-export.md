@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTB0T8WVWHZKNFZAYG2CBV9",
+  ]
+id: 01KPTB0SEDV8DYD48KPSHF11X2
+created: "2026-03-24T09:11:14.198Z"
+---
+
 # GIF Export — Animated Comics
 
 ## Concept
@@ -48,7 +59,7 @@ Gives static images a cinematic feel. More complex — requires knowing where to
 
 ### Option A: Client-Side GIF Encoding (Recommended)
 
-Use a JavaScript GIF encoder library. Capture each frame as a canvas image, encode to GIF.
+Use a JavaScript GIF encoder library. [[Capture]] each frame as a canvas image, encode to GIF.
 
 **Libraries:**
 
@@ -116,7 +127,7 @@ Like GIF but with full 24-bit color and alpha transparency. Supported in all mod
 
 ### 1. Panel Reveal (Recommended Default)
 
-Panels appear one at a time in reading order. Simple, effective, universal.
+Panels appear one at a time in [[Reading|reading]] order. Simple, effective, universal.
 
 ```
 Timing: 800ms per panel, 2000ms hold on final frame
@@ -248,3 +259,5 @@ GIFs are universally shareable:
 - Discord, iMessage, WhatsApp, Twitter all auto-play GIFs
 - Small enough to email
 - No player needed — just an image that moves
+
+#panel #phase #user

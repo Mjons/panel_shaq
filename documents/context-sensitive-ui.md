@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPTB0SHT1BE257YMA7BWG2HD"]
+id: 01KPTB0S6JCS703GPXNWC1TDVN
+created: "2026-03-24T16:56:19.572Z"
+---
+
 # Context-Sensitive UI — Philosophy & Opportunities
 
 ## What We Already Do
@@ -5,8 +11,8 @@
 Panel Shaq already has a lot of context-aware behavior. These are the moments where the app "knows" what you're doing and adapts:
 
 | Where                 | What Happens                                                   | Trigger                         |
-| --------------------- | -------------------------------------------------------------- | ------------------------------- |
-| Border "Page" swatch  | Matches current page background color                          | `pageBackgroundColor` setting   |
+| --------------------- | -------------------------------------------------------------- | ------------------------------- | ----------------------------- |
+| Border "Page" swatch  | Matches current [[Page Background Color                        | page background color]]         | `pageBackgroundColor` setting |
 | Style picker          | Hidden when image already uploaded                             | `formData.image` exists         |
 | Onboarding banners    | Auto-dismiss when images generated                             | `panels.some(p => p.image)`     |
 | Share All Pages       | Only shows with 2+ pages                                       | `pages.length > 1`              |
@@ -118,3 +124,5 @@ Most of these are 5-30 lines of code each — a conditional render or a label sw
 - **Don't block** — suggestions should be hints, not gates. User can always ignore them.
 - **Don't add tooltips on mobile** — they don't work. Use inline text instead.
 - **Don't be clever at the expense of predictability** — if a button sometimes says "Generate" and sometimes says "Regenerate," that's fine. If it sometimes generates and sometimes opens a modal, that's confusing.
+
+#panel #done

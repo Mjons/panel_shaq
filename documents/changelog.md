@@ -1,4 +1,17 @@
-# Panelhaus — Session Changelog
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTWFK417F3X1A47H0QFYDZX",
+    "obvious-link:01KPS7VDXYB2RFMMS2FR4ZTW5M",
+  ]
+id: 01KPTB0S496E8Z64DQZFEF255H
+created: "2026-03-20T22:42:43.551Z"
+---
+
+# Panelhaus — Session [[CHANGELOG|Changelog]]
 
 **Date:** 2026-03-19 → 2026-03-20
 **Scope:** Full build session from project review through deployment and iteration
@@ -42,7 +55,7 @@
 
 ### Export
 
-- **Hidden panel selection highlight during export** — `setSelectedPanelId(null)` called before capture, plus `!isExporting` guards on all selection borders, overlays, and dimming
+- **Hidden panel selection highlight during export** — `setSelectedPanelId(null)` called before [[Capture|capture]], plus `!isExporting` guards on all selection borders, overlays, and dimming
 - **Bubble selection ring** already excluded from export
 
 ## Phase: Week 3 — Settings, Share, Projects (Tasks 13-16)
@@ -72,7 +85,7 @@
 ## Monetization & API Key Strategy
 
 - **Explored three models** — BYOK (user's own key), Freemium (credits), Hybrid (BYOK free + credit packs). Documented in `monetization-model.md`.
-- **Decided on BYOK first** — users provide their own Gemini API key. Google offers free tier credits. Zero cost to us.
+- **Decided on BYOK first** — users provide their own Gemini API key. Google offers [[Free tier|free tier]] credits. Zero cost to us.
 - **BYOK onboarding screen** — first-time users see API key setup with link to Google AI Studio
 - **Image model selector in Settings** — Flash ($0.067/image, default) vs Pro ($0.134/image)
 - **Direct Gemini fallback** — when serverless proxy returns 404 (local dev), all functions fall back to direct API calls using the user's BYOK key
@@ -120,3 +133,7 @@
 | BYOK over hosted API key                                               | Zero cost to operate, users control their spending        |
 | Character anchors in prompts                                           | Dramatically improves character consistency across panels |
 | Flash-lite for text, flash-image for images                            | Cheapest models that still deliver quality                |
+
+#panel #phase #user
+
+[[new]]

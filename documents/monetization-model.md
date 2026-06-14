@@ -1,3 +1,15 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTWFK417F3X1A47H0QFYDZX",
+    "obvious-link:01KPTWFK4FJSMDJYXTK7PY2W78",
+  ]
+id: 01KPTB0SH5EA23D4TX179Q7MN0
+created: "2026-03-20T13:28:23.642Z"
+---
+
 # Panel Shaq — Monetization & API Key Model Deep Dive
 
 **Date:** 2026-03-20
@@ -45,7 +57,7 @@ Cons:
 - Friction: users need a Google Cloud account + billing enabled + API key
 - Most casual users won't do this — kills adoption
 - API key in the browser is visible in DevTools (user's own key, their risk)
-- Can't offer a free tier or trial
+- Can't offer a [[Free tier|free tier]] or trial
 
 Best for: **Developer/power-user audience, early beta**
 
@@ -61,7 +73,7 @@ How it works:
 
 - Users sign up (Google OAuth — natural fit since you use Gemini)
 - Free tier: 10 panel generations/month, 2 story polishes/day
-- Pro tier ($5-10/month): 100 generations/month, unlimited polish, priority queue
+- [[Pro tier]] ($5-10/month): 100 generations/month, unlimited polish, priority queue
 - Unlimited tier ($20/month): unlimited everything, higher resolution, batch export
 - Your serverless proxy tracks usage per user and enforces limits
 
@@ -281,3 +293,7 @@ Implementation effort: **1-2 weeks**
 | Best audience     | Developers | Everyone  | Mixed                 |
 
 **Bottom line:** BYOK gets you to market immediately at zero cost. Add credit packs when you have users who ask for it. Don't build a payment system until you have demand.
+
+#user #panel #phase
+
+[[new]]

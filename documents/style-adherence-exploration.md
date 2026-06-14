@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SYCA2SERD1PFDPTWCR0
+created: "2026-03-20T22:11:29.255Z"
+---
+
 # Style Adherence Exploration
 
 ## The Problem
@@ -219,3 +225,5 @@ A simple toggle/slider showing what's being prioritized.
 | `DirectorScreen.tsx` PanelCard       | Add toggle UI, wire to state                                       |
 | `DirectorScreen.tsx` queue processor | Conditionally exclude charRefs when `stylePriority === "artStyle"` |
 | `api/generate-image.ts`              | No changes needed — it already handles empty referenceImages       |
+
+#reference #user #feature

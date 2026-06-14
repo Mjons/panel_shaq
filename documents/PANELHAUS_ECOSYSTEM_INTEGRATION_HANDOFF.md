@@ -32,6 +32,7 @@ free-daily-quota + BYOK rate-limiter is **retired**.
 ## What changes (3 swaps — auth, identity, credits)
 
 ### 1. Auth → Clerk (same instance as Panel Haus)
+
 - Add `@clerk/clerk-react`. Initialise with the **same** `VITE_CLERK_PUBLISHABLE_KEY` PH gives you — it
   **must be the same Clerk instance**, or you get a separate user pool and the "same account" breaks.
 - Wrap the app root in `<ClerkProvider publishableKey={…}>`; use Clerk's sign-in UI (email primary on
@@ -40,6 +41,7 @@ free-daily-quota + BYOK rate-limiter is **retired**.
   on PH web is **auto-recognised** here (apex-cookie SSO) — most of your users arrive already signed in.
 
 ### 2. Identity → the Clerk user (retire the anonymous UID)
+
 - Replace `getUserId()`/`signInAnonymously()` (`src/services/supabase.ts`) — identity is now the Clerk
   user, shared with PH.
 - Replace the `x-user-id` anon-UID header (`src/services/geminiService.ts`) with the Clerk session token:
@@ -48,6 +50,7 @@ free-daily-quota + BYOK rate-limiter is **retired**.
   JWKS) → resolves the same user PH knows. (Or forward it to PH and let PH resolve — see §3.)
 
 ### 3. Credits → Panel Haus's shared ink (retire the Supabase daily-limiter)
+
 - **Remove** the `checkUsage()` daily-quota logic in `api/final-render.ts` (and any sibling usage
   increment/limit code). panel_shaq no longer owns an economy.
 - **Before** each AI generation, call PH's credit API (PH provides exact URLs after its Clerk migration),
@@ -63,15 +66,17 @@ free-daily-quota + BYOK rate-limiter is **retired**.
 - Supabase may stay for your **own local analytics** (e.g. `emails`) — just not for identity or credits.
 
 ## Exact integration points (from recon — verify line numbers in current code)
-| Concern | File | Change |
-|---|---|---|
-| Anonymous identity | `src/services/supabase.ts` (`getUserId`) | Replace with Clerk; drop `signInAnonymously`. |
-| Token sent to backend | `src/services/geminiService.ts` (`x-user-id` header, ~`:125`) | Send `Authorization: Bearer <Clerk token>` instead. |
-| Daily quota / economy | `api/final-render.ts` (`checkUsage`, ~`:49`) + sibling usage writes | Remove; call PH `/api/credits/reserve` before generating, `/refund` on failure. |
-| Per-generation functions | `api/generate-*.ts`, `insert-panel.ts`, etc. | Verify Clerk token (or proxy to PH); charge ink via PH before the Gemini call. |
-| App root | wherever the React tree mounts | Wrap in `<ClerkProvider>`. |
+
+| Concern                  | File                                                                | Change                                                                          |
+| ------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Anonymous identity       | `src/services/supabase.ts` (`getUserId`)                            | Replace with Clerk; drop `signInAnonymously`.                                   |
+| Token sent to backend    | `src/services/geminiService.ts` (`x-user-id` header, ~`:125`)       | Send `Authorization: Bearer <Clerk token>` instead.                             |
+| Daily quota / economy    | `api/final-render.ts` (`checkUsage`, ~`:49`) + sibling usage writes | Remove; call PH `/api/credits/reserve` before generating, `/refund` on failure. |
+| Per-generation functions | `api/generate-*.ts`, `insert-panel.ts`, etc.                        | Verify Clerk token (or proxy to PH); charge ink via PH before the Gemini call.  |
+| App root                 | wherever the React tree mounts                                      | Wrap in `<ClerkProvider>`.                                                      |
 
 ## What Panel Haus provides to you
+
 - The **same Clerk instance** publishable key (`VITE_CLERK_PUBLISHABLE_KEY`) + the JWKS / `CLERK_JWT_KEY`
   for backend `verifyToken`.
 - The **credit-API URLs + contract** (`/api/credits/balance|reserve|refund`), Clerk-Bearer authed.
@@ -79,22 +84,26 @@ free-daily-quota + BYOK rate-limiter is **retired**.
 - `authorizedParties` will include `shaq.panelhaus.app`.
 
 ## Safety notes
+
 - Send the Clerk Bearer over HTTPS only; tokens are short-lived JWTs.
 - All concurrency/over-spend protection lives in PH's atomic `reserve` — don't reinvent it.
 - Refund on failed generations so users aren't charged for nothing.
 
 ## Sequence
+
 1. PH ships its Clerk migration + the credit-spend API, then hands you the keys + URLs + ink costs.
 2. You: add Clerk (same instance) → replace anon identity → swap the daily-limiter for PH credit calls →
    test the shared-account + shared-balance flow.
 
 ## Verification
+
 - Sign in on PH web, open `shaq.panelhaus.app` on mobile → already signed in, same account, same balance.
 - Generate on mobile → ink deducts from the shared PH balance → reflected on PH web.
 - Insufficient balance on mobile → PH's out-of-ink/upsell path, no generation.
 - Failed Gemini call after a reserve → `/refund` restores the ink.
 
 ## Open decisions
+
 - Mobile wallet login (WalletConnect) — defer; email is the primary on mobile for v1.
 - Whether to keep any Supabase usage for local analytics (optional).
 - Exact PH→mobile routing/deep-link UX (PH side).

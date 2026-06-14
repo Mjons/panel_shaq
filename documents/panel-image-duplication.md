@@ -1,3 +1,9 @@
+---
+id: 01KPSFZNMW6Z06K596BKCF051S
+created: "2026-03-22T23:36:00.124Z"
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+---
+
 # Panel Image Duplication
 
 ## Problem
@@ -156,3 +162,9 @@ const [copiedImage, setCopiedImage] = useState<string | null>(null);
 | `DirectorScreen.tsx` | Add `copiedImage` state, copy button on panels with images, paste button on empty panels and as icon on existing panels |
 
 One state variable, three small UI additions. No new components.
+
+[[Panel Shaq — Execution Plan]]
+
+#panel
+
+[[new]]

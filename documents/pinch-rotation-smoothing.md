@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SPKWSPE3TD851C7EB96
+created: "2026-03-23T12:52:36.633Z"
+---
+
 # Pinch Rotation Smoothing
 
 ## Problem
@@ -146,3 +152,5 @@ If we ever need panel rotation, add it as an explicit UI control (a rotation sli
 | File                           | Change                                                     |
 | ------------------------------ | ---------------------------------------------------------- |
 | `src/screens/EditorScreen.tsx` | PanelImage onPinch: remove rotation logic, keep scale only |
+
+#panel #user

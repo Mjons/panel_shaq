@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S4HEDBE37MPXKVVSWH4
+created: "2026-03-21T01:00:13.396Z"
+---
+
 # Character Adherence Regression — What Changed
 
 ## The Problem
@@ -152,3 +158,5 @@ const parts = [
 2. Fix 1 (stronger prompt) — free, immediate
 3. Fix 2 (imageSize) — free, immediate
 4. Fix 3 (model) — test both, pick the better one
+
+#reference

@@ -1,6 +1,19 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTB0SDAKA1EJF5P6TR7EGCV",
+  ]
+id: 01KPTB0SAWK6M1WEZDGYFFEW6V
+created: "2026-03-24T16:55:18.518Z"
+---
+
 # Export Page Exploration
 
 ## The Problem
+
+[[Panel Haus]]
 
 Export currently lives in the **Editor sidebar** — a cramped column sharing space with critique, panel controls, and history. As we add the GIF Editor (per-panel animation tagging, timeline, preview), there's no room for it here. The sidebar is already doing too much.
 
@@ -93,7 +106,7 @@ Simple — scope selector + download/share buttons.
 
 ### GIF Mode — The Big One
 
-This is where the GIF Editor vision doc comes alive. The full Export page gives it space.
+This is where the [[GIF Editor Vision|GIF Editor vision]] doc comes alive. The full Export page gives it space.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -200,3 +213,7 @@ From Export, swiping right goes back to Editor. Natural.
 - Should the Editor keep a minimal "Quick Export" for PNG, or should everything go through the Export tab?
 - Does the GIF Editor state (per-panel animation configs) persist with the project, or is it session-only?
 - On mobile, do we use icons for the 5-tab bar or find another pattern?
+
+#panel #vision
+
+[[new]]

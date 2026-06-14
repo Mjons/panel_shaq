@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SZGBT8KZ7AJFBBP9X44
+created: "2026-03-24T17:54:12.415Z"
+---
+
 # Vault Reference Exploration
 
 ## Question
@@ -156,3 +162,7 @@ This could be generated automatically as part of the panel prompt construction.
 | `src/services/geminiService.ts`  | PanelPrompt type, API client                                          |
 | `api/generate-image.ts`          | Sends reference images + prompt to Gemini                             |
 | `api/generate-panels.ts`         | Story → panel breakdown (uses character names/descriptions)           |
+
+#reference #panel #user
+
+[[CINEMATIC.md — Endless Director Mode]]

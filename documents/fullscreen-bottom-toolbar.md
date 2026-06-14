@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SBNVWVZ56GXP4JRN8KD
+created: "2026-03-23T10:13:20.539Z"
+---
+
 # Full-Screen Panel Mode: Bottom Nav → Editing Toolbar
 
 ## Problem
@@ -144,3 +150,7 @@ Double-tap background OR tap Done → Normal view
 | `src/screens/EditorScreen.tsx` | Replace the current fullscreen bottom bar with a fixed toolbar matching bottom nav styling. Add double-tap-to-exit on panel background. |
 
 No changes to Navigation.tsx needed with Option B.
+
+#panel #user
+
+[[new]]

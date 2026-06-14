@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S8WSWR47Z6BR73QZTAQ
+created: "2026-03-21T17:10:31.690Z"
+---
+
 # Director Screen Onboarding UX
 
 ## Problem
@@ -131,3 +137,5 @@ The `!panels.some(p => p.image)` check means: if a user already has generated im
 ## Future Consideration
 
 If this pattern works well, similar lightweight banners could be added to Layout ("Arrange your panels into comic pages") and Editor ("Add speech bubbles and finishing touches"). But start with Director only — it's the screen where users are most lost.
+
+#panel #user

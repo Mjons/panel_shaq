@@ -1,4 +1,15 @@
-# Emoji Stickers (Simplified)
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTB0SXF266TVHT243PFZCAZ",
+  ]
+id: 01KPTB0SA4V3VWA7K5VP4DC7V2
+created: "2026-03-23T23:39:34.419Z"
+---
+
+# Emoji [[Stickers]] (Simplified)
 
 ## Concept
 
@@ -206,3 +217,7 @@ className={`cursor-grab active:cursor-grabbing ${
 - The emoji catalog is bigger than any sticker pack we could ship
 - Users already know how to find emoji
 - Implementation is ~50 lines of new code vs a full asset pipeline
+
+#user #panel
+
+[[new]]

@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPRY0HJM578VNJM2F11QYN5W"]
+id: 01KPTB0SAN0TRH75NGRS57MQSP
+created: "2026-03-24T17:03:06.187Z"
+---
+
 # GIF Editor Implementation Plan
 
 Existing export stays exactly where it is — Editor sidebar keeps PNG, GIF quick modes, share buttons. The GIF Editor is a **new, separate screen** for users who want to craft their animation. Think of it as the advanced mode.
@@ -18,7 +24,7 @@ Workshop → Director → Layout → Editor → GIF Editor (optional)
 The GIF Editor does **not** need EditorScreen's `comicRef` or `gifVisibleCount`. It works differently:
 
 - On entry, it receives the panel image data (already-generated images from the panels array)
-- It renders everything on its own canvas — no DOM capture, no html-to-image
+- It renders everything on its own canvas — no DOM [[Capture|capture]], no html-to-image
 - Preview and export both work from the same canvas-based pipeline
 - Zero coupling to EditorScreen's rendering. Editor doesn't change at all.
 
@@ -276,3 +282,5 @@ Files that do NOT change:
 | **3** | Ken Burns, scrubbing, undo/redo, quality controls                  | Phase 2   | **None** — changes only within GIF Editor            |
 
 Every phase is purely additive. The existing Editor export keeps working exactly as it does today. The GIF Editor is a self-contained screen with its own canvas pipeline — no shared refs, no shared DOM, no coupling.
+
+#panel #transition #phase

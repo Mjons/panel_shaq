@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SVXEPVFMDNT20MPG9WW
+created: "2026-03-23T14:34:51.890Z"
+---
+
 # Rotation Step Setting
 
 ## Problem
@@ -160,3 +166,7 @@ Change to:
 - No per-panel or per-bubble override — this is a global preference
 - Backward compatible — missing `rotationStep` falls back to 10°
 - The snap-to-zero behavior (`Math.abs(newRotation % 360) < 5 ? 0 : newRotation`) should adapt: snap when within half a step of 0°
+
+#panel
+
+[[new]]

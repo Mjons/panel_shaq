@@ -1,8 +1,21 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+  ]
+id: 01KPTB0S9K89Y9ZJ2G9T2BYJMD
+created: "2026-03-23T23:35:02.870Z"
+---
+
 # Panel Shaq Docs Integration Plan
 
 ## Goal
 
-Add a "Panel Shaq" section to the existing Panel Haus docs site (`Comic-ProV2/docs-site/`) so both apps share one documentation hub. Panel Shaq gets its own sidebar section and pages, visually distinct but using the same design system.
+Add a "Panel Shaq" section to the existing [[Panel Haus]] docs site (`Comic-ProV2/docs-site/`) so both apps share one documentation hub. Panel Shaq gets its own sidebar section and pages, visually distinct but using the same design system.
 
 ---
 
@@ -132,7 +145,7 @@ Add alongside "Open App" and "Community":
 ### shaq-overview
 
 - What it is (mobile-first AI comic creator)
-- How it relates to Panel Haus (quick capture → full studio)
+- How it relates to Panel Haus (quick [[Capture|capture]] → full studio)
 - Feature comparison card grid (Shaq vs Haus)
 - Install as PWA (Add to Home Screen steps)
 - Link to Play Store (when TWA is live)
@@ -231,3 +244,7 @@ Add alongside "Open App" and "Community":
 - The breadcrumb section will automatically show "Panel Shaq" from the `section` field
 - Search will index Panel Shaq content automatically
 - Prev/next navigation will flow from the last Haus page into the first Shaq page — this is fine, it creates a natural bridge
+
+#panel #reference #feature
+
+[[new]]

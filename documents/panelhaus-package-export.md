@@ -1,10 +1,23 @@
-# Panel Haus Package Export
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPV1MSF2ANDYGQ74CYT3TMTS",
+  ]
+id: 01KPTB0SK537EC5SC1WJ78X3P9
+created: "2026-03-21T00:01:53.775Z"
+---
+
+# [[Panel Haus]] Package Export
 
 ## Concept
 
 Users create panels, characters, and layouts in Panel Shaq (mobile/web). They should be able to export their work as a `.panelhaus` package that Panel Haus Desktop can import and continue editing with the full editor.
 
-Panel Shaq is the quick-capture tool. Panel Haus Desktop is the full studio. The package is the bridge.
+Panel Shaq is the quick-[[Capture|capture]] tool. Panel Haus Desktop is the full studio. The package is the bridge.
 
 ---
 
@@ -254,3 +267,5 @@ The Panel Shaq side is straightforward:
 4. Trigger file download
 
 That's it. No import needed on the Panel Shaq side. The heavy lifting is on Desktop to interpret the package.
+
+#panel #reference #user

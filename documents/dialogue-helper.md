@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+  ]
+id: 01KPTB0S7JXD307QYSSS7T8SS0
+created: "2026-04-12T14:12:48.576Z"
+---
+
 # Feature: Dialogue Helper
 
 ## Overview
@@ -145,7 +156,7 @@ The system prompt should instruct the model to:
 4. **Build the sidebar UI** in `EditorScreen.tsx`
    - New state: `dialogueSuggestions`, `isGeneratingDialogue`, `appliedSuggestions`
    - Section placed above Critique Corner
-   - "Suggest Dialogue" button triggers capture + API call (same pattern as critique)
+   - "Suggest Dialogue" button triggers [[Capture|capture]] + API call (same pattern as critique)
    - Render suggestion cards grouped by panel
 
 5. **Apply logic**
@@ -160,3 +171,7 @@ The system prompt should instruct the model to:
 - No drag-and-drop from suggestion to panel — just an Apply button
 - Editing is inline text only — style/position adjustments happen after apply
 - Speaker name is shown for context but not baked into the bubble text
+
+#panel #feature #user
+
+[[new]]

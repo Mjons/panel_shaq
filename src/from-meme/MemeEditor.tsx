@@ -93,7 +93,10 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(`panelshaq_meme_work:${token}`, JSON.stringify(work));
+      sessionStorage.setItem(
+        `panelshaq_meme_work:${token}`,
+        JSON.stringify(work),
+      );
     } catch {
       /* ignore */
     }
@@ -126,10 +129,12 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
 
   const filename = useMemo(
     () =>
-      `${(payload.templateLabel || "meme")
-        .replace(/[^a-z0-9]+/gi, "-")
-        .replace(/^-+|-+$/g, "")
-        .toLowerCase() || "meme"}.png`,
+      `${
+        (payload.templateLabel || "meme")
+          .replace(/[^a-z0-9]+/gi, "-")
+          .replace(/^-+|-+$/g, "")
+          .toLowerCase() || "meme"
+      }.png`,
     [payload.templateLabel],
   );
 
@@ -250,11 +255,15 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
   const wallet = payload.originUser?.startsWith("web3:")
     ? payload.originUser.slice(5)
     : null;
-  const walletShort = wallet ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : null;
+  const walletShort = wallet
+    ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}`
+    : null;
 
   const exportDisabled = busy || preparing || exportError;
   const selectedZone = work.zones.find((z) => z.id === selectedId) ?? null;
-  const selectedPresetId = selectedZone ? detectPresetId(selectedZone.style) : null;
+  const selectedPresetId = selectedZone
+    ? detectPresetId(selectedZone.style)
+    : null;
 
   const captionLabel = (z: MemeZone) => {
     const t = z.text.trim();
@@ -268,8 +277,9 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
           {selectedZone ? "Editing caption" : "Tap a caption to edit"}
         </p>
         <p className="text-[11px] text-accent/40 leading-snug mt-0.5">
-          {walletShort ? `${walletShort} · ` : ""}💻 Even better on desktop — visit{" "}
-          <span className="text-primary">panelhaus.app</span> on a computer
+          {walletShort ? `${walletShort} · ` : ""}💻 Even better on desktop —
+          visit <span className="text-primary">panelhaus.app</span> on a
+          computer
         </p>
       </header>
 
@@ -278,7 +288,10 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
         className="flex-1 min-h-0 overflow-hidden p-3"
         onClick={() => setSelectedId(null)}
       >
-        <div ref={areaRef} className="w-full h-full flex items-center justify-center">
+        <div
+          ref={areaRef}
+          className="w-full h-full flex items-center justify-center"
+        >
           {fitted.w > 0 && (
             <div
               className="relative [container-type:inline-size] shadow-2xl"
@@ -438,7 +451,8 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
           </div>
           {exportError && (
             <p className="text-[11px] text-red-400 text-center">
-              Couldn't prepare the image for export. Check your connection and reload.
+              Couldn't prepare the image for export. Check your connection and
+              reload.
             </p>
           )}
         </footer>

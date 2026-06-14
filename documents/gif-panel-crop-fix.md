@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPRY0HJM578VNJM2F11QYN5W"]
+id: 01KPTB0SEQYWKHE29QF9F1XNEX
+created: "2026-03-24T09:59:09.955Z"
+---
+
 # GIF Should Show Panel As It Appears in the Layout, Not the Full Image
 
 ## Problem
@@ -23,7 +29,7 @@ So the GIF shows the full uncropped image, while the user expects to see exactly
 
 The rest of the image is clipped by `overflow: hidden` on the slot div.
 
-## Solution: Capture Each Panel's DOM Element
+## Solution: [[Capture]] Each Panel's DOM Element
 
 Instead of drawing from `panel.image` directly, capture each panel's DOM element — the actual rendered slot with the image inside it, cropped and transformed exactly as the user sees it.
 
@@ -110,3 +116,5 @@ Because we're capturing the DOM slot, speech bubbles that are on the panel will 
 | File                           | Change                                                                                                                   |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
 | `src/screens/EditorScreen.tsx` | Add `data-panel-slot` to panel divs. Rewrite GIF frame capture to use `toPng` on slot elements instead of `panel.image`. |
+
+#panel #user

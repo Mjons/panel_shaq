@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+  ]
+id: 01KPTB0S6QF4VNQDRSBT119F88
+created: "2026-03-22T09:40:24.694Z"
+---
+
 # Custom Panel Image Upload
 
 ## Problem
@@ -112,5 +123,9 @@ The Generate button currently lives in the panel card's image area (the placehol
 
 - **Drag and drop** on desktop
 - **Paste from clipboard** (Ctrl+V)
-- **Camera capture** button (separate from file picker, uses `capture="camera"`)
+- **Camera [[Capture|capture]]** button (separate from file picker, uses `capture="camera"`)
 - **Crop/resize** before setting as panel image
+
+#panel #user #reference
+
+[[new]]

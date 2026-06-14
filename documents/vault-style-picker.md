@@ -1,10 +1,16 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPTB0SYKSTF3QTB7VMN2ZSM4"]
+id: 01KPTB0T0AE3MVBNYH43XWR6SW
+created: "2026-03-22T23:36:19.286Z"
+---
+
 # Vault Asset Generation — Style Picker
 
 ## Problem
 
 When generating reference images for vault assets (characters, environments, props, vehicles), the prompt always defaults to "comic book art style." Users have no control over the visual style of generated references, even though their comic might be manga, pixel art, watercolor, etc.
 
-The character reference image defines the style of the entire comic (per our style simplification). If the generated reference doesn't match the user's intended style, every panel generated from it will be off.
+The character reference image defines the style of the entire comic (per our [[Style Simplification|style simplification]]). If the generated reference doesn't match the user's intended style, every panel generated from it will be off.
 
 ## Solution
 
@@ -245,3 +251,5 @@ export const generateReferenceImage = async (
 - Does not retroactively change existing vault entries (they just won't have a `style` field)
 - Does not add style preview thumbnails (could be a future enhancement — show a tiny sample image per style)
 - Does not force a style on uploaded images (upload bypasses the style picker)
+
+#reference #panel #user

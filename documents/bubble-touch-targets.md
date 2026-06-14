@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S2ND5QJV3M7HTPF2ZMY
+created: "2026-03-22T16:15:32.903Z"
+---
+
 # Bubble Touch Targets — The Problem
 
 ## What's Happening
@@ -74,3 +80,5 @@ This combination means:
 - Dragging near a bubble will move the bubble, not the panel image
 - Panel can't accidentally zoom while editing bubbles
 - User taps green ✓ to exit bubble mode and unlock panel gestures
+
+#panel #user

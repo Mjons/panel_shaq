@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SYTMMY8J71ZT7PJ16Y8
+created: "2026-04-12T10:45:27.862Z"
+---
+
 # Tooltip Plan
 
 Tooltips for touch-first users along the comic creation journey. Grouped by priority.
@@ -54,3 +60,7 @@ These should be tap-dismissable overlays (not hover-only). Consider a small `?` 
 **C. Long-press hints** — long-press any element to see its tooltip. Zero visual clutter but completely undiscoverable.
 
 **Recommendation:** Use (A) for Critical tier, (B) for High tier on the elements that have space for it, skip (C).
+
+#user #panel #reference
+
+[[new]]

@@ -5,7 +5,7 @@ correctly when a user edits it. Calibrated positions are stored in
 `src/data/memeTextZones.ts` (the single source of truth, committed to the repo).
 
 **Who does this:** an admin, using the in-app calibrator. No code editing is
-required to *calibrate* — only to *paste the result back* into the data file.
+required to _calibrate_ — only to _paste the result back_ into the data file.
 
 ---
 
@@ -41,7 +41,7 @@ here.)
 ## ⚠️ Read first — the one rule that can destroy your work
 
 **Do NOT re-run `scripts/generateMemeTextZones.mjs` after you've calibrated.**
-That generator regenerates the *entire* `memeTextZones.ts` from PanelHaus's seed
+That generator regenerates the _entire_ `memeTextZones.ts` from PanelHaus's seed
 positions and will **overwrite every hand-calibrated zone**. It is a one-time
 bootstrap. To add a single new template, add its entry by hand (see §5) — don't
 regenerate.
@@ -82,19 +82,20 @@ secret. URL shape:
 
 Pick `<HOST>`:
 
-| Where | HOST | Copy JSON works how |
-|---|---|---|
-| Desktop, local | `http://localhost:3000` | Copies straight to clipboard (secure context) |
-| Phone, local (same Wi-Fi) | `http://<LAN-IP>:3000` | Use the on-screen textarea (LAN-HTTP blocks clipboard) |
-| Production | `https://shaq.panelhaus.app` | Copies straight to clipboard (HTTPS) |
+| Where                     | HOST                         | Copy JSON works how                                    |
+| ------------------------- | ---------------------------- | ------------------------------------------------------ |
+| Desktop, local            | `http://localhost:3000`      | Copies straight to clipboard (secure context)          |
+| Phone, local (same Wi-Fi) | `http://<LAN-IP>:3000`       | Use the on-screen textarea (LAN-HTTP blocks clipboard) |
+| Production                | `https://shaq.panelhaus.app` | Copies straight to clipboard (HTTPS)                   |
 
 **Finding your LAN IP:** run `npm run dev` and read the **`Network:`** line it
 prints (e.g. `http://192.168.2.228:3000/`), or run `ipconfig` (Windows) and use the
 IPv4 address. The phone must be on the **same Wi-Fi**.
 
 Examples:
+
 - Desktop: `http://localhost:3000/c/from-meme?admin=panelshaq-admin&gallery=1`
-- Phone:   `http://192.168.2.228:3000/c/from-meme?admin=panelshaq-admin&gallery=1`
+- Phone: `http://192.168.2.228:3000/c/from-meme?admin=panelshaq-admin&gallery=1`
 
 ---
 
