@@ -26,6 +26,7 @@ import { Character } from "../App";
 import { VaultEntry } from "./VaultScreen";
 import { useConfirm } from "../components/ConfirmDialog";
 import { PreviewCarousel } from "../components/PreviewCarousel";
+import { InkCost } from "../components/InkCost";
 import { Tip, useCoachTipSuppression } from "../components/Tip";
 
 // Lens type reference images
@@ -693,9 +694,10 @@ const PanelCard = React.memo(
                       <div className="flex gap-2">
                         <button
                           onClick={handleGenerate}
-                          className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all"
+                          className="bg-primary/10 text-primary border border-primary/30 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all flex items-center gap-1.5"
                         >
                           Generate
+                          <InkCost kind="image" />
                         </button>
                         <button
                           onClick={() => uploadPanelRef.current?.click()}
@@ -818,6 +820,7 @@ const PanelCard = React.memo(
                     <Sparkles size={12} />
                   )}
                   {isQueueGenerating ? "..." : image ? "REGEN" : "GEN"}
+                  {!isQueueGenerating && <InkCost kind="image" outlined />}
                 </button>
               </div>
             </div>
@@ -1815,6 +1818,9 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
               {queueActive
                 ? `GENERATING ${queueProgress}/${panels.length}...`
                 : "GENERATE ALL"}
+              {!queueActive && (
+                <InkCost kind="image" suffix="/each" outlined className="text-background/80" />
+              )}
             </button>
             {queueActive && (
               <button

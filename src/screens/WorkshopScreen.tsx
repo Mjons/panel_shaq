@@ -18,6 +18,7 @@ import {
 } from "../services/geminiService";
 import { useConfirm } from "../components/ConfirmDialog";
 import { Tip } from "../components/Tip";
+import { InkCost } from "../components/InkCost";
 import { Character } from "../App";
 
 interface WorkshopProps {
@@ -470,6 +471,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                   (optional)
                 </span>
               </span>
+              {!isPolishing && <InkCost kind="text" className="text-primary" />}
             </button>
             <p className="text-[10px] text-accent/70 leading-relaxed">
               Optional. Rewrites your story with cinematic flair. Considers your
@@ -493,6 +495,9 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
             <span className="font-headline font-black text-background text-lg uppercase tracking-tight">
               {isGeneratingPanels ? "Generating..." : "3. Generate Panels"}
             </span>
+            {!isGeneratingPanels && (
+              <InkCost kind="text" outlined className="text-background/80" />
+            )}
             {isGeneratingPanels ? (
               <Loader2 size={24} className="text-background animate-spin" />
             ) : (

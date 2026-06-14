@@ -7,6 +7,7 @@ import {
 } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { onBalanceChange } from "../services/credits";
+import { useInkCosts } from "../services/inkCosts";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
 // inside <ClerkProvider>). Shows the shared Panel Haus account + ink balance and a
@@ -36,6 +37,7 @@ export function AccountSection() {
   const { getToken, isSignedIn } = useAuth();
   const [credits, setCredits] = useState<number | null>(null);
   const [tier, setTier] = useState<string | null>(null);
+  const costs = useInkCosts();
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -112,6 +114,26 @@ export function AccountSection() {
           <span className="font-bold text-accent">
             {credits === null ? "…" : `⚡ ${credits}`}
           </span>
+        </div>
+
+        <div className="border-t border-outline/10 pt-3 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-accent/40">
+            Ink costs
+          </p>
+          <div className="text-xs text-accent/60 space-y-0.5">
+            <div className="flex justify-between">
+              <span>Text actions</span>
+              <span className="text-accent/80">⚡{costs.text}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Image · Flash</span>
+              <span className="text-accent/80">⚡{costs.imageFlash}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Image · Pro</span>
+              <span className="text-accent/80">⚡{costs.imagePro}</span>
+            </div>
+          </div>
         </div>
 
         <a

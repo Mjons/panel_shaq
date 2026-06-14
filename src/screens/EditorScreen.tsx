@@ -55,6 +55,7 @@ import { toPng, toJpeg } from "html-to-image";
 import { encode as encodeGif } from "modern-gif";
 import jsPDF from "jspdf";
 import { Tip } from "../components/Tip";
+import { InkCost } from "../components/InkCost";
 import { track } from "../services/analytics";
 
 const SHARE_TEXT = "Made this with panelhaus.app — AI comic creator";
@@ -606,6 +607,7 @@ const DraggableBubble: React.FC<{
               className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               {isRendering ? "Baking..." : "Bake Panel Dialogue"}
+              {!isRendering && <InkCost kind="image" outlined />}
             </button>
           )}
         </div>
