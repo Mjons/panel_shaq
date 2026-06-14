@@ -47,11 +47,17 @@ export const TopNav = ({
       >
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-3">
-            <img
-              src="/icons/icon-192.png"
-              alt="Panel Haus"
-              className="w-8 h-8 rounded-lg"
-            />
+            <a
+              href="https://panelhaus.app/universe"
+              aria-label="Go to the Panel Haus universe"
+              className="shrink-0 hover:opacity-80 transition-opacity active:scale-90 duration-200"
+            >
+              <img
+                src="/icons/icon-192.png"
+                alt="Panel Haus"
+                className="w-8 h-8 rounded-lg"
+              />
+            </a>
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"
@@ -70,8 +76,6 @@ export const TopNav = ({
             {clerkEnabled && (
               <AccountControls onSettings={() => onTabChange("settings")} />
             )}
-            {/* Panel Haus cross-app switcher */}
-            <haus-switcher current="shaq"></haus-switcher>
           </div>
         </div>
       </header>
