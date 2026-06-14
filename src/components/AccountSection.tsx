@@ -27,6 +27,10 @@ function tierLabel(tier: string | null): string {
   return TIER_LABELS[tier] || tier.replace(/_/g, " ");
 }
 
+function truncateWallet(addr: string): string {
+  return addr.length > 12 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
+}
+
 export function AccountSection() {
   const { user } = useUser();
   const { getToken, isSignedIn } = useAuth();
@@ -84,10 +88,18 @@ export function AccountSection() {
             />
           )}
           <div className="min-w-0">
-            <p className="text-sm text-accent/80 break-all">
+            <p
+              className={`text-sm text-accent/80 break-all ${
+                !user?.primaryEmailAddress?.emailAddress &&
+                user?.web3Wallets?.[0]?.web3Wallet
+                  ? "font-mono"
+                  : ""
+              }`}
+            >
               {user?.primaryEmailAddress?.emailAddress ||
-                user?.username ||
-                "Signed in"}
+                (user?.web3Wallets?.[0]?.web3Wallet
+                  ? truncateWallet(user.web3Wallets[0].web3Wallet)
+                  : user?.username || "Signed in")}
             </p>
             <p className="text-[10px] uppercase tracking-widest text-accent/40">
               {tierLabel(tier)}
