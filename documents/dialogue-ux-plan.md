@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPTWFJWR9NW3TJSWZM217CGF"]
+id: 01KPTB0S8PYC63GR0FX2V80GGJ
+created: "2026-03-21T17:05:24.900Z"
+---
+
 # Dialogue System UX Improvement Plan
 
 ## Current Problem
@@ -52,7 +58,7 @@ Each step highlights when active. Steps grey out when not yet applicable.
 
 ---
 
-### Option B: Inline Bubble Editing Only (No Sidebar)
+### Option B: Inline Bubble Editing Only ([[No sidebar|No Sidebar]])
 
 Remove the sidebar bubble editing entirely. Everything happens directly on the panel:
 
@@ -163,3 +169,5 @@ Keep the current structure but:
 - "Bake Dialogue" button with warning
 - Step-by-step hints
 - Bubble count
+
+#panel #user

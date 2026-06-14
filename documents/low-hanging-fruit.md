@@ -1,3 +1,15 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTB0SYKSTF3QTB7VMN2ZSM4",
+  ]
+id: 01KPTB0SGED6HA5DRHPXZ1CM1P
+created: "2026-03-21T20:49:48.399Z"
+---
+
 # Low-Hanging Fruit
 
 Quick wins that can be knocked out in a single session. High impact, low effort.
@@ -10,7 +22,7 @@ Quick wins that can be knocked out in a single session. High impact, low effort.
 
 **Fix:** Generate an actual small thumbnail (resize to ~100px wide via canvas) instead of truncating the base64 string.
 
-**File:** `src/services/projectStorage.ts` (saveProject), or generate thumbnail at capture time.
+**File:** `src/services/projectStorage.ts` (saveProject), or generate thumbnail at [[Capture|capture]] time.
 
 ---
 
@@ -69,7 +81,7 @@ Quick wins that can be knocked out in a single session. High impact, low effort.
 **Problem:** Character consistency regressed. Documented root causes:
 
 - Model changed from an earlier version
-- Prompt was weakened during style simplification
+- Prompt was weakened during [[Style Simplification|style simplification]]
 - `imageSize: "1K"` config was lost
 
 **Fix:**
@@ -122,3 +134,7 @@ Quick wins that can be knocked out in a single session. High impact, low effort.
 All 10 items: ~1-2 focused sessions (8-12 hours total)
 
 Items 1-3 alone take 1 hour and fix the most visible jank.
+
+#panel #user #feedback
+
+[[new]]

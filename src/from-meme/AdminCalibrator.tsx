@@ -142,7 +142,10 @@ export function AdminCalibrator({
       </header>
 
       <main className="flex-1 min-h-0 overflow-hidden p-3">
-        <div ref={areaRef} className="w-full h-full flex items-center justify-center">
+        <div
+          ref={areaRef}
+          className="w-full h-full flex items-center justify-center"
+        >
           {fitted.w > 0 && (
             <div
               className="relative [container-type:inline-size] shadow-2xl"

@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SPZDCWTE8VDTJPDQB2E
+created: "2026-03-24T00:03:37.738Z"
+---
+
 # Skip Rotation on First Pinch Tap
 
 ## Problem
@@ -125,3 +131,5 @@ This way rapid pinch-zoom doesn't trigger rotation. Only a deliberate "lift, pau
 | File                           | Change                                                                                                                                |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/screens/EditorScreen.tsx` | Add `pinchCount` ref to PanelImage, `bubblePinchCount` ref to EditorScreen. Skip rotation when count is 1. Reset on selection change. |
+
+#user #panel

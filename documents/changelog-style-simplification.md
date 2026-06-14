@@ -1,4 +1,15 @@
-# Changelog: Style Simplification
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS7VDXYB2RFMMS2FR4ZTW5M",
+    "obvious-link:01KPTB0SYKSTF3QTB7VMN2ZSM4",
+  ]
+id: 01KPTB0S3W1W851ETZ0N4PMC9Z
+created: "2026-03-20T22:55:35.878Z"
+---
+
+# [[CHANGELOG|Changelog]]: [[Style Simplification]]
 
 ## What Changed
 
@@ -58,3 +69,5 @@ of the attached character reference images.
 - `src/App.tsx` — removed styleReferenceImage and styleNotes state + props
 - `src/services/projectStorage.ts` — made styleReferenceImage optional (backward compat)
 - `api/generate-image.ts` — simplified prompt, removed style/styleReferenceImage/styleNotes from request
+
+#reference

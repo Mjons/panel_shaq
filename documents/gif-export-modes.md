@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTB0T8WVWHZKNFZAYG2CBV9",
+  ]
+id: 01KPTB0SDHR87X53BFR6W1QJC6
+created: "2026-03-24T14:00:55.553Z"
+---
+
 # GIF Export Modes
 
 ## Current State
@@ -12,7 +23,7 @@ Replace the two buttons with a single "Export GIF" button that opens a menu with
 
 ### Mode 1: Story Flow
 
-Each panel in order across all pages. No page composites, no pauses. Just panel → panel → panel through the entire comic like reading the story.
+Each panel in order across all pages. No page composites, no pauses. Just panel → panel → panel through the entire comic like [[Reading|reading]] the story.
 
 - Frame order: `panel1 → panel2 → panel3 → ... → panelN`
 - Delay: 1.2s per frame
@@ -85,10 +96,10 @@ Radio buttons, one selection, single export button. Default: Story Flow.
 ## Implementation Priority
 
 | Mode        | Effort       | Recommendation                              |
-| ----------- | ------------ | ------------------------------------------- |
+| ----------- | ------------ | ------------------------------------------- | -------------------- |
 | Story Flow  | 30 min       | **Do first** — simplest, most useful        |
 | This Page   | 15 min       | Trivial — Story Flow scoped to current page |
-| Slideshow   | 30 min       | Easy — just capture full pages              |
+| Slideshow   | 30 min       | Easy — just [[Capture                       | capture]] full pages |
 | Page Reveal | Already done | Current behavior, keep it                   |
 | Loop        | 10 min       | Story Flow + duplicate first frame          |
 | Cinematic   | 2-3 hrs      | Fancy — zoom/pan sub-frames, do last        |
@@ -102,3 +113,5 @@ Radio buttons, one selection, single export button. Default: Story Flow.
 | File                           | Change                                                                              |
 | ------------------------------ | ----------------------------------------------------------------------------------- |
 | `src/screens/EditorScreen.tsx` | Replace two GIF buttons with mode selector + single export, add mode-specific logic |
+
+#panel

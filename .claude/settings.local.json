@@ -87,7 +87,10 @@
       "Bash(cwebp -version)",
       "Bash(node -e \"const sharp = require\\('sharp'\\); sharp\\('public/Smudge_the_dirty_sponge/02-standing.png'\\).metadata\\(\\).then\\(m => console.log\\(JSON.stringify\\(m, null, 2\\)\\)\\)\")",
       "Bash(node -e ':*)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(git stash *)",
+      "Bash(xargs grep -l \"dashboard\\\\|admin\\\\|stats\")",
+      "Bash(git pull *)"
     ]
   }
 }

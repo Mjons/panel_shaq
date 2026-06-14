@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SG1XWD6NWVX1PNM06KJ
+created: "2026-03-20T00:49:58.151Z"
+---
+
 # Layout System Overhaul
 
 ## Problem
@@ -432,3 +438,5 @@ A migration function runs once on load to convert old pages.
 - **Drag-and-drop panel reordering** — pick a template, panels auto-fill in order. Reorder panels in Director instead.
 - **Custom freeform layouts** — no manual grid cell dragging. Templates cover the 80% case. Freeform is a future feature.
 - **Per-panel aspect ratio override in layout** — panels fill their slot and `object-cover` handles the crop.
+
+#panel #user #feature

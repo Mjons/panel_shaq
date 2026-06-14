@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0S0C4GRP468J4S7FQ874
+created: "2026-03-22T09:41:27.476Z"
+---
+
 # AI Character Reference Generation
 
 ## Problem
@@ -227,3 +233,7 @@ This is lower priority since users can do this from the Vault screen. But having
 - **Turnaround sheets**: Generate multiple views (front, side, back) in a single image
 - **Auto-describe**: After generating, run `analyzeCharacterImage()` to auto-fill the description field from the generated image (useful when user provides minimal description)
 - **Workshop inline generation**: Quick character creation flow on the first screen
+
+#reference #user #future
+
+[[new]]

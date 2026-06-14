@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SFVTF6S6P80N51VJG70
+created: "2026-03-22T18:01:06.267Z"
+---
+
 # Layout Preview Fidelity & Page Aspect Ratio System
 
 ## The Problem
@@ -246,3 +252,7 @@ The Editor would need a scrollable canvas instead of a fixed-aspect page. This i
 2. **Phase 2** — Page format selection (2-3 hours, medium impact, great UX)
 3. **Phase 3** — Export awareness (1 hour, follows naturally from Phase 2)
 4. **Phase 4** — Webtoon scroll mode (significant effort, separate initiative)
+
+#panel #phase #user
+
+[[new]]

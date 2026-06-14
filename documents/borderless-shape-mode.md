@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S1H5QE1CD3Q0FY84BBX
+created: "2026-03-24T11:41:57.032Z"
+---
+
 # Borderless Shape Mode
 
 ## The Insight
@@ -74,3 +80,5 @@ One change in `PanelBorderWrapper`: conditionally hide the SVG stroke when `stro
 | `src/screens/EditorScreen.tsx` | Add `strokeColor !== "none"` guard on SVG stroke render in `PanelBorderWrapper` |
 
 **Effort: ~5 minutes**
+
+#user #panel

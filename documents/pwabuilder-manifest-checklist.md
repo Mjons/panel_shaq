@@ -1,3 +1,9 @@
+---
+id: 01KPTWFJTQFN9TYEA41VXQ5ZVZ
+created: "2026-04-04T14:50:21.712Z"
+tended_on: [fm-normalise]
+---
+
 # PWABuilder Manifest Checklist
 
 Cross-reference between what PWABuilder shows and what the project already has.
@@ -54,3 +60,5 @@ Use this to fill out the PWABuilder editor so it matches the deployed manifest.
 Once you download the manifest from PWABuilder, compare it against the
 current source of truth at `dist/manifest.webmanifest` to make sure nothing
 was lost or changed unexpectedly.
+
+[[Sensitive Console Logs - Security Audit]]

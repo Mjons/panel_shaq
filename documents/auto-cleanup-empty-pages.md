@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0S0R53Y6K2JWF1NSY4BC
+created: "2026-03-24T13:17:25.438Z"
+---
+
 # Auto-Cleanup Empty Pages
 
 ## The Bug
@@ -119,3 +125,7 @@ setPages((prev) =>
 | `src/screens/DirectorScreen.tsx` | Update pages on panel delete (Option B) |
 
 **Effort: ~30 minutes**
+
+#panel #user #reference
+
+[[new]]

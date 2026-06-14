@@ -1,7 +1,19 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPV1MSF2ANDYGQ74CYT3TMTS",
+  ]
+id: 01KPTB0SNX6CR1MKX59FW91KPF
+created: "2026-03-24T10:40:16.819Z"
+---
+
 # Panel Shaq: Composable Border Effects — Handoff
 
 **Date:** 2026-03-24
-**From:** Panel Haus Desktop
+**From:** [[Panel Haus]] Desktop
 **To:** Panel Shaq Mobile
 
 ---
@@ -547,3 +559,5 @@ If Panel Shaq uses Konva (it does), also grab:
 - [ ] Include `borderStyle` in `.comic` export
 - [ ] Test: apply each preset, verify visual matches Panel Haus
 - [ ] Test: export `.comic` with borders, import in Panel Haus, verify identical rendering
+
+#panel #user

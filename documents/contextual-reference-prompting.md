@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0S6XHWVT8ZZ3XN75H8RG
+created: "2026-03-21T22:45:21.226Z"
+---
+
 # Contextual Reference Prompting for Props & Vehicles
 
 ## Problem
@@ -145,3 +151,7 @@ After this change, all four vault asset types follow the same prompting pattern:
 | **Background** | "Use this environment consistently"                            | "ignore any people, characters, or figures visible in it"                              |
 | **Prop**       | "Reproduce with exact visual style, shape, and details"        | "ignore any people, characters, hands, or figures holding/using the props"             |
 | **Vehicle**    | "Reproduce with exact visual style, shape, color, and details" | "ignore any drivers, passengers, people, or figures visible in or around the vehicles" |
+
+#reference #panel #person
+
+[[new]]

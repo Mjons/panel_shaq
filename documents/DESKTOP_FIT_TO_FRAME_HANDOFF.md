@@ -1,6 +1,18 @@
-# Panel Shaq → Panel Haus Desktop: Fit-to-Frame Handoff
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPTWFJW6G64851D3STQ45ZRW",
+  ]
+id: 01KPTB0S794JRKP3CY2DY78PAE
+created: "2026-03-22T14:56:15.465Z"
+---
 
-**Date:** 2026-03-22
+# Panel Shaq → [[Panel Haus]] Desktop: Fit-to-Frame Handoff
+
+**Date:** [[2026-03-22]]
 **Status:** Needs Desktop-side implementation
 **Priority:** High — panels currently import zoomed in
 
@@ -155,3 +167,5 @@ The `imageSrc` contains the full base64 image (typically 1024x1024 or similar fr
 
 - **Panel Shaq side:** Done. Exports `scale: -1` sentinel. No further changes needed.
 - **Desktop side:** Need to detect `scale: -1` and compute `min(panelW/imgW, panelH/imgH)` as the actual scale. ~5-10 lines of code wherever panel images are rendered or imported.
+
+#panel #user

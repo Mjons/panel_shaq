@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S4Q0MYR3QXVBY1MQD2B
+created: "2026-03-20T23:54:27.424Z"
+---
+
 # Cloud Storage Plan
 
 ## Goal
@@ -165,3 +171,5 @@ One-time migration for existing users:
 - Image generation requires network anyway (Gemini API) — no offline advantage
 - No app store fees, no review process, instant deploys via Vercel
 - A native app would need the same cloud backend, plus platform-specific UI code
+
+#user #panel #reference

@@ -1,8 +1,21 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPTWFJW6G64851D3STQ45ZRW",
+    "obvious-link:01KPV1MSF2ANDYGQ74CYT3TMTS",
+  ]
+id: 01KPTB0S5AECGQTE38PP27XZA3
+created: "2026-03-22T12:37:05.404Z"
+---
+
 # .comic Export: Panels Import Zoomed In
 
-**Date:** 2026-03-22
+**Date:** [[2026-03-22]]
 **Status:** Investigation / Exploration
-**Symptom:** All panels appear "super zoomed in" when a `.comic` file from Panel Shaq is opened in Panel Haus Desktop/Web.
+**Symptom:** All panels appear "super zoomed in" when a `.comic` file from Panel Shaq is opened in [[Panel Haus]] Desktop/Web.
 
 ---
 
@@ -229,3 +242,5 @@ To verify the fix works before a full implementation, you can manually edit a `.
 3. Change `"scale": 1` to `"scale": 0.23` (≈ 232/1024 for a 2-col layout)
 4. Open in Panel Haus Desktop — panel should now fit in frame
 5. If it does, the fit-scale calculation is the right fix
+
+#panel #user

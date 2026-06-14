@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+  ]
+id: 01KPTB0S550KTECJ185SB3SV3G
+created: "2026-03-22T09:59:49.179Z"
+---
+
 # Comic Critique Corner
 
 ## Concept
@@ -68,7 +79,7 @@ Alternatively, it could be its own lightweight screen accessible from the Editor
 
 ## How It Works
 
-### 1. Capture the composed page(s) — no export needed
+### 1. [[Capture]] the composed page(s) — no export needed
 
 The Editor already has a `comicRef` (a React ref attached to the live DOM element that renders the composed comic page — panels in their layout grid, speech bubbles, everything). The existing `captureRef(comicRef, "png")` function screenshots this DOM element as a base64 PNG using `html-to-image`. This is the **exact same pipeline** used by "Export PNG" and "Share This Page", but the critique flow captures it silently — no file download is triggered, no export history entry is created.
 
@@ -313,3 +324,7 @@ This is not aggressive — it's contextual. The user just got feedback on things
 - **Panel-level feedback**: Tap a panel to get focused feedback on just that panel
 - **Peer critique**: Share your comic with other users for human feedback (requires accounts)
 - **Auto-fix suggestions**: "Move bubble to here" with a visual overlay showing the suggestion
+
+#panel #feedback #user
+
+[[new]]

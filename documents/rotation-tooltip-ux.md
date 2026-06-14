@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPTB0T8WVWHZKNFZAYG2CBV9"]
+id: 01KPTB0SVRVPG4F4864QX21QS9
+created: "2026-03-23T14:28:30.794Z"
+---
+
 # Rotation Tooltip UX
 
 ## Problem
@@ -44,7 +50,7 @@ Show a floating tooltip the first time the user unlocks a panel:
 Dismiss stores a localStorage flag. Never shows again.
 
 **Pros:** Non-intrusive after first time.
-**Cons:** Easy to miss or dismiss without reading.
+**Cons:** Easy to miss or dismiss without [[Reading|reading]].
 
 ### Option C: Hint in the fullscreen toolbar (Recommended)
 
@@ -162,3 +168,5 @@ Add to the Help panel in Navigation.tsx:
 | ------------------------------- | --------------------------------------------------------------------- |
 | `src/screens/EditorScreen.tsx`  | Replace static hint with context-aware rotation tooltip in fullscreen |
 | `src/components/Navigation.tsx` | Add Gestures section to Help panel                                    |
+
+#panel #user

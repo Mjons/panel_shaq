@@ -1,4 +1,16 @@
-# Changelog — Session 2026-03-21
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPS7VDXYB2RFMMS2FR4ZTW5M",
+    "obvious-link:01KPSFZNAG03YTX1RE0QY6TNY7",
+  ]
+id: 01KPTB0S38X0PA5NR4AFKY1J8T
+created: "2026-03-21T21:05:50.454Z"
+---
+
+# [[CHANGELOG|Changelog]] — Session 2026-03-21
 
 ## Director Onboarding Banner (NEW)
 
@@ -54,7 +66,7 @@
 - **Stable callbacks** — `handleUpdatePanel`, `handleQueueGenerate`, `handlePreview` wrapped in `useCallback` to prevent unnecessary re-renders
 - Removed inline arrow functions at PanelCard call site that were creating new references every render
 
-## Desktop Redirect Gate (NEW)
+## [[Desktop Redirect Gate]] (NEW)
 
 - **Full-screen interstitial** shown to desktop visitors (viewport ≥ 1024px, no touch capability)
 - Explains that panelhaus.app is mobile-first, compares mobile vs desktop feature sets side-by-side
@@ -71,3 +83,7 @@
 - [director-onboarding-ux.md](director-onboarding-ux.md) — design doc for the Director onboarding banner
 - [low-hanging-fruit.md](low-hanging-fruit.md) — prioritized list of quick wins with effort estimates
 - [desktop-redirect-gate.md](desktop-redirect-gate.md) — design doc for the desktop redirect interstitial
+
+#panel #user #reference
+
+[[new]]

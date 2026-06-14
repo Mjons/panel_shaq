@@ -1,4 +1,19 @@
-# Changelog — Session 2026-03-22
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTWFJW6G64851D3STQ45ZRW",
+    "obvious-link:01KPS7VDXYB2RFMMS2FR4ZTW5M",
+    "obvious-link:01KPTB0S550KTECJ185SB3SV3G",
+    "obvious-link:01KPTB0S6QF4VNQDRSBT119F88",
+    "obvious-link:01KPSFZNAG03YTX1RE0QY6TNY7",
+  ]
+id: 01KPTB0S3PSZHCJC42CB66RFN3
+created: "2026-03-22T10:07:15.812Z"
+---
+
+# [[CHANGELOG|Changelog]] — Session [[2026-03-22]]
 
 ## Director: Move Generate All to Bottom
 
@@ -15,7 +30,7 @@
 - Uses native `addEventListener` with `{ passive: false }` to properly call `preventDefault()`
 - Works alongside existing drag-to-pan and pinch-to-zoom
 
-## Comic Critique Corner (NEW)
+## [[Comic Critique Corner]] (NEW)
 
 - **AI-powered critique** in the Editor sidebar — analyzes your composed comic pages
 - Two modes: **"Critique This Page"** (single page) or **"Critique All Pages"** (full comic)
@@ -36,14 +51,14 @@
 - Disabled until a name is entered; shows spinner during generation
 - New `generateReferenceImage()` service function
 
-## Custom Panel Image Upload (NEW)
+## [[Custom Panel Image Upload]] (NEW)
 
 - **Upload your own images** as panel art in the Director screen
 - Upload button on each panel card next to Generate
 - Supports photos, hand-drawn art, or images from other tools
 - 10MB limit, accepts any image format
 
-## Desktop Redirect Gate (NEW)
+## [[Desktop Redirect Gate]] (NEW)
 
 - Full-screen interstitial for desktop visitors (viewport >= 1024px, fine pointer)
 - 16-second countdown auto-redirects to `panelhaus.app`
@@ -105,3 +120,7 @@
 - [custom-panel-image-upload.md](custom-panel-image-upload.md)
 - [ai-character-reference-generation.md](ai-character-reference-generation.md)
 - [comic-critique-corner.md](comic-critique-corner.md)
+
+#panel #reference
+
+[[new]]

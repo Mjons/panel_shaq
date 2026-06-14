@@ -1,4 +1,16 @@
-# Panel Shaq → Panel Haus Export Compatibility Guide
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPTB0SXF266TVHT243PFZCAZ",
+  ]
+id: 01KPTB0SP7BRSV7JRTV2MV9N6F
+created: "2026-03-21T10:16:31.456Z"
+---
+
+# Panel Shaq → [[Panel Haus]] Export Compatibility Guide
 
 ## Why `testroject.comic` Fails to Load in Panel Haus
 
@@ -61,13 +73,13 @@ Even if the `layers` wrapper issue is fixed, panels would load with **default st
 
 These properties are absent from the Panel Shaq export but expected by Panel Haus:
 
-| Missing Property                     | Panel Haus Default | Risk                                                                       |
-| ------------------------------------ | ------------------ | -------------------------------------------------------------------------- |
-| `showOutline`                        | `true`             | Low — borders show (probably intended)                                     |
-| `visible`                            | `true`             | Low — panels visible (correct)                                             |
-| `locked`                             | `false`            | Low — panels unlocked (correct)                                            |
-| `zIndex`                             | `0`                | Medium — all panels stack at same z-index, order depends on array position |
-| `globalZIndex` (on bubbles/stickers) | `0`                | Medium — all content stacks at z-index 0                                   |
+| Missing Property                      | Panel Haus Default | Risk                                                                       |
+| ------------------------------------- | ------------------ | -------------------------------------------------------------------------- | ---------------------------------------- |
+| `showOutline`                         | `true`             | Low — borders show (probably intended)                                     |
+| `visible`                             | `true`             | Low — panels visible (correct)                                             |
+| `locked`                              | `false`            | Low — panels unlocked (correct)                                            |
+| `zIndex`                              | `0`                | Medium — all panels stack at same z-index, order depends on array position |
+| `globalZIndex` (on bubbles/[[Stickers | stickers]])        | `0`                                                                        | Medium — all content stacks at z-index 0 |
 
 These are mostly safe since the defaults are reasonable, but `zIndex` could cause layering surprises with overlapping panels.
 
@@ -631,3 +643,5 @@ ipcRenderer.on("import-comic-from-bridge", (_event, jsonString) => {
 | `bubble.fontWeight` (flat)        | `bubble.style.bold` (boolean)       | Convert `"bold"` → `true`                 |
 | `blueprint.imageData`             | `blueprint.thumbnailDataUrl`        | Rename                                    |
 | `blueprint.type: "Character"`     | `blueprint.type: "character"`       | Lowercase                                 |
+
+#panel #guide #user

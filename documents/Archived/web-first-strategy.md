@@ -1,3 +1,14 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPTWFK417F3X1A47H0QFYDZX",
+    "obvious-link:01KPTWFK5N4DDX33VAE7Q290GK",
+  ]
+id: 01KPTB0RZJ2HPK82A2ZQVTC9CK
+created: "2026-03-19T22:49:16.943Z"
+---
+
 # Panel Shaq - Web-First Strategy (Android as Stretch Goal)
 
 **Date:** 2026-03-19
@@ -45,13 +56,13 @@ Adding a PWA manifest lets Android users "Add to Home Screen" and get a near-nat
 
 ### 1.3 Hosting Options
 
-| Option               | Cost      | Pros                                                     | Cons                                       |
-| -------------------- | --------- | -------------------------------------------------------- | ------------------------------------------ |
-| **Vercel**           | Free tier | Zero-config Vite deploys, preview URLs per PR            | Bandwidth limits on free                   |
-| **Netlify**          | Free tier | Same as Vercel, form handling built-in                   | Similar limits                             |
-| **Cloudflare Pages** | Free tier | Fastest CDN, generous limits                             | Less ecosystem                             |
-| **Firebase Hosting** | Free tier | Pairs well with Google services (you already use Gemini) | Slightly more setup                        |
-| **GitHub Pages**     | Free      | Already on GitHub                                        | No server-side, static only (fine for SPA) |
+| Option               | Cost          | Pros                                                     | Cons                                       |
+| -------------------- | ------------- | -------------------------------------------------------- | ------------------------------------------ |
+| **Vercel**           | [[Free tier]] | Zero-config Vite deploys, preview URLs per PR            | Bandwidth limits on free                   |
+| **Netlify**          | Free tier     | Same as Vercel, form handling built-in                   | Similar limits                             |
+| **Cloudflare Pages** | Free tier     | Fastest CDN, generous limits                             | Less ecosystem                             |
+| **Firebase Hosting** | Free tier     | Pairs well with Google services (you already use Gemini) | Slightly more setup                        |
+| **GitHub Pages**     | Free          | Already on GitHub                                        | No server-side, static only (fine for SPA) |
 
 **Recommendation:** Vercel or Firebase Hosting — both deploy a Vite SPA in minutes.
 
@@ -166,7 +177,7 @@ Skip Expo/React Native unless you hit a wall with Capacitor.
 
 | Feature               | Description                                                        |
 | --------------------- | ------------------------------------------------------------------ |
-| **Cloud sync**        | Firebase/Supabase backend — save projects across devices           |
+| **Cloud sync**        | Firebase/[[Supabase backend]] — save projects across devices       |
 | **User accounts**     | Auth via Google (pairs with Gemini ecosystem)                      |
 | **Collaboration**     | Share projects, co-edit comics                                     |
 | **Template library**  | Pre-built story templates and art styles                           |
@@ -188,3 +199,5 @@ Far stretch  → Expo/RN only if Capacitor isn't enough
 ```
 
 **Bottom line:** You're closer to shipping than you think. The app works — it just needs persistence, a PWA wrapper, and a deploy. Everything else is iteration.
+
+#user #panel #phase

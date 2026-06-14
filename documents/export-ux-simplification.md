@@ -1,6 +1,17 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTWFJW6G64851D3STQ45ZRW",
+  ]
+id: 01KPTB0SBCQEDS5X6ZW4WJ47RR
+created: "2026-03-22T18:00:56.914Z"
+---
+
 # Export UX Simplification
 
-**Date:** 2026-03-22
+**Date:** [[2026-03-22]]
 **Problem:** The export flow is scattered and confusing. Users see "Share Comic," "Share All Panels," individual panel shares, "Export PDF PAGE/FULL," "Export PNG PAGE/FULL," "Share This Page," "Export for Panelhaus," and "Export & Share" — all in different places with overlapping labels.
 
 ---
@@ -178,3 +189,7 @@ Instead of splitting between Editor sidebar and Share screen, use a **bottom she
 | `src/screens/EditorScreen.tsx`       | Reorganize export sidebar, rename buttons, add .comic export |
 | `src/screens/ShareScreen.tsx`        | Remove .comic export section, simplify header                |
 | `src/services/exportComicService.ts` | No changes                                                   |
+
+#user #panel
+
+[[new]]

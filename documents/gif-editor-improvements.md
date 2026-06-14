@@ -1,10 +1,21 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTB0SXF266TVHT243PFZCAZ",
+  ]
+id: 01KPTB0SCYW8652RP1W1E5VVCJ
+created: "2026-03-24T23:10:58.334Z"
+---
+
 # GIF Editor Improvements: Text Bubbles & Panel Cropping
 
 ## Two Issues
 
 ### 1. Text/Bubbles Not Included in GIF
 
-The GIF Editor receives `panelImages` as raw `panel.image` strings — the base panel artwork without speech bubbles, emoji stickers, or any overlays. The text the user carefully positioned in the Editor is missing from the GIF.
+The GIF Editor receives `panelImages` as raw `panel.image` strings — the base panel artwork without speech bubbles, emoji [[Stickers|stickers]], or any overlays. The text the user carefully positioned in the Editor is missing from the GIF.
 
 **Current flow:**
 
@@ -20,7 +31,7 @@ The GIF uses the full source image, not the cropped/transformed version visible 
 
 ## Approaches for Including Bubbles
 
-### Option A: Capture Panel Slots from DOM Before Opening GIF Editor (Recommended)
+### Option A: [[Capture]] Panel Slots from DOM Before Opening GIF Editor (Recommended)
 
 Same approach as the inline GIF export fix — capture each panel's DOM slot (which includes the image, transform, and bubble overlays) as a PNG, then pass those captures to the GIF Editor.
 
@@ -130,3 +141,5 @@ Default to **As Composed** (captures with bubbles and crop). Don't add a toggle 
 | `src/screens/EditorScreen.tsx` | Change GIF Editor button to capture DOM slots instead of raw images |
 
 No changes needed to GifEditorScreen, gifAnimationService, or gif types — the images are just base64 PNGs regardless of source.
+
+#panel #user

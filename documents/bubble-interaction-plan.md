@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0S1R7BBMB3G6H8R4MY2F
+created: "2026-03-21T17:08:41.427Z"
+---
+
 # Bubble Interaction — Tail Direction & Positioning
 
 ## Current State
@@ -217,3 +223,7 @@ Add to the floating toolbar in DraggableBubble, between the text input and the f
 | `src/screens/EditorScreen.tsx` (DraggableBubble) | Add tail direction grid to floating toolbar |
 
 That's it. One component, ~30 lines.
+
+#user #panel
+
+[[new]]

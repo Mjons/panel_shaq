@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPRY0HJM578VNJM2F11QYN5W"]
+id: 01KPTB0SCKEGD6PERHQV4NCYWJ
+created: "2026-03-24T13:53:49.182Z"
+---
+
 # GIF Double Frame Bug
 
 ## The Bug
@@ -17,7 +23,7 @@ The GIF export crops panels by finding all elements with `data-panel-slot` attri
 
 **Check:** Only one element per panel has `data-panel-slot` (the outer grid cell div). This is NOT the cause.
 
-### Theory 2: `PanelBorderWrapper` clip-path not applied during capture
+### Theory 2: `PanelBorderWrapper` clip-path not applied during [[Capture|capture]]
 
 `PanelBorderWrapper` uses `ResizeObserver` inside `useEffect` to measure its size. On first render:
 
@@ -93,3 +99,5 @@ Add logging to count `slotElements.length` vs expected panel count. If they matc
 | `src/screens/EditorScreen.tsx` | Refactor `handleCreateGif` (and `handleCreateGifAllPages`) to capture each panel slot individually |
 
 **Effort: ~1 hour**
+
+#panel

@@ -8,7 +8,13 @@ import { drawWatermark } from "./memeWatermark";
 // foreignObject render. Geometry/style here mirror TextZonesOverlay so the
 // export matches what the user sees.
 
-const FONT_FAMILIES = ["Anton", "Bangers", "Permanent Marker", "Special Elite", "Inter"];
+const FONT_FAMILIES = [
+  "Anton",
+  "Bangers",
+  "Permanent Marker",
+  "Special Elite",
+  "Inter",
+];
 
 async function ensureFonts(): Promise<void> {
   const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;

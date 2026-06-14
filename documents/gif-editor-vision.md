@@ -1,6 +1,12 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0SDAKA1EJF5P6TR7EGCV
+created: "2026-03-24T14:32:56.405Z"
+---
+
 # GIF Editor Vision
 
-## The Idea
+## The Idea for [[Panel Haus]]
 
 A dedicated GIF editing screen where you tag each panel with animation behaviors, preview the sequence in real-time, then export. Instead of picking a global mode, you compose the animation panel-by-panel — like a storyboard for the GIF itself.
 
@@ -192,3 +198,7 @@ Right now, GIF export is a one-click operation with a fixed formula. The GIF edi
 A dramatic scene with zoom + shake + flash feels like an action movie. The same scene with hold + fade feels like a drama. The user becomes the director of the animation, not just the comic.
 
 This is also shareable content gold — a well-composed animated GIF of a comic is way more engaging on social media than a static image.
+
+#panel #user #transition
+
+[[new]]

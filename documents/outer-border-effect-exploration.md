@@ -1,3 +1,16 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPRD9Z4H3PWQTHMGM084F3S8",
+    "obvious-link:01KPTWFK78MH543Z80XXH11VVY",
+    "obvious-link:01KPRY0HJM578VNJM2F11QYN5W",
+    "obvious-link:01KPTB0SHT1BE257YMA7BWG2HD",
+  ]
+id: 01KPTB0SHCZDA7KH574D41QD8Q
+created: "2026-03-24T11:02:23.276Z"
+---
+
 # Outer Border Effect — Exploration
 
 ## The Problem
@@ -42,7 +55,7 @@ Use the same generated border path as a `clip-path` on the panel div. This clips
 
 - `clip-path: path()` uses **fixed pixel coordinates**, not percentages. The path must match the exact rendered pixel size of the panel div. This means recalculating the clip path on every resize (already done via `ResizeObserver` in `BorderEffectOverlay`).
 - Clip path removes overflow — bubbles that extend beyond the panel will be clipped. This is already the case (`overflow-hidden` on panels), so no change in behavior.
-- Very slight gap between adjacent panels where the wobble indents — the page background color shows through. This actually looks _good_ — like hand-drawn panels with breathing room.
+- Very slight gap between adjacent panels where the wobble indents — the [[Page Background Color|page background color]] shows through. This actually looks _good_ — like hand-drawn panels with breathing room.
 
 **Verdict: This is the best approach.** It's the simplest, most correct, and the tradeoffs are either neutral or positive.
 
@@ -109,7 +122,7 @@ Instead of CSS `clip-path: path()`, use an inline SVG `<clipPath>` definition an
 - Normalizing the path coordinates (dividing all x by width, y by height) adds complexity
 - Hidden SVG elements in the DOM
 - Slightly more complex than Option A
-- `html-to-image` may not capture SVG `<clipPath>` references correctly
+- `html-to-image` may not [[Capture|capture]] SVG `<clipPath>` references correctly
 
 **Verdict:** More complex than Option A for marginal benefit. Not recommended unless `clip-path: path()` has browser issues.
 
@@ -122,7 +135,7 @@ Render the entire panel (image + borders) on a `<canvas>` element, using the bor
 **Pros:**
 
 - Complete control over rendering
-- Matches Panel Haus Desktop's approach (Konva canvas)
+- Matches [[Panel Haus]] Desktop's approach (Konva canvas)
 
 **Cons:**
 
@@ -167,3 +180,5 @@ Render the entire panel (image + borders) on a `<canvas>` element, using the bor
 | `src/utils/borderStyles.ts`    | No changes — already has everything needed                                           |
 
 **Effort: ~1-2 hours**
+
+#panel #reference

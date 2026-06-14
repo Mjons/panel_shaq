@@ -60,7 +60,9 @@ function ErrorView({
     <div className="min-h-screen bg-background flex items-center justify-center p-6 text-center text-accent">
       <div className="max-w-sm space-y-5">
         <h1 className="font-headline text-2xl font-bold">Hmm, no meme here</h1>
-        <p className="text-sm text-accent/60 leading-relaxed">{state.message}</p>
+        <p className="text-sm text-accent/60 leading-relaxed">
+          {state.message}
+        </p>
         <div className="space-y-3">
           {canRetry && (
             <button

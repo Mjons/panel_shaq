@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0SD4CM8S34V0GQGDN1S5
+created: "2026-03-24T17:38:12.829Z"
+---
+
 # GIF Editor Navigation Problem
 
 ## The Bug
@@ -59,3 +65,5 @@ This is sufficient. The GIF Editor is a focused tool — the user shouldn't be n
 ## Safe Area
 
 TopNav applies `paddingTop: var(--sat)` for the iOS safe area notch. The GIF Editor's sticky header needs the same padding so it doesn't get clipped under the status bar on mobile.
+
+#user

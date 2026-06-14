@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer]
+id: 01KPTB0S9BXPMJPFHWK13DR1TD
+created: "2026-03-22T18:01:10.033Z"
+---
+
 # Editor Panel Size & Discoverability Issues
 
 ## Problem 1: Panels Too Small to Edit
@@ -169,3 +175,5 @@ The focused view renders ONE panel at full width with:
 - FAB for adding bubbles
 - "Back to layout" button
 - Bake dialogue button
+
+#panel #user

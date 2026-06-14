@@ -1,3 +1,9 @@
+---
+tended_on: ["obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTNP7G70PX0ZPDQNPN7WN92
+created: "2026-03-20T15:53:33.279Z"
+---
+
 # Vercel Serverless Postmortem
 
 How we debugged and fixed `FUNCTION_INVOCATION_FAILED` on all API routes.
@@ -95,3 +101,5 @@ Each file:
 5. **Client-side fallbacks can mask server-side failures.** Desktop worked because the client had a direct-to-Gemini fallback. Mobile didn't have the key in localStorage yet, so it relied on the broken proxy. This delayed diagnosis.
 
 6. **`FUNCTION_INVOCATION_FAILED` means the function crashed before returning.** It's always an import/bundling/syntax issue, not a logic error. Check Vercel logs with `vercel logs <domain>`.
+
+[[new]]

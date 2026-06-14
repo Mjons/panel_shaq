@@ -1,3 +1,9 @@
+---
+tended_on: [tag-infer, "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q"]
+id: 01KPTB0RZRJSAQ2ZY0A8KKG3DG
+created: "2026-03-28T15:03:53.718Z"
+---
+
 # Admin Mode: Hosted API Key + Email Gate
 
 ## The Idea
@@ -213,3 +219,7 @@ curl -X POST "https://api.vercel.com/v1/projects/panel-shaq/env" \
 - Do we want a "waiting list" variant where the email gate says "join the waitlist" and doesn't unlock immediately?
 - Should hosted mode users see a "Get your own API key for unlimited usage" upsell in Settings?
 - Rate limits: what's the right daily cap for hosted mode given API costs?
+
+#user #daily #panel
+
+[[new]]

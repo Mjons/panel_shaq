@@ -1,3 +1,15 @@
+---
+tended_on:
+  [
+    tag-infer,
+    "obvious-link:01KPTNP93F4A111BAQZ986ZHWP",
+    "obvious-link:01KPS3Z7FX1VFKTS2AYJADQK6Q",
+    "obvious-link:01KPTB0T8WVWHZKNFZAYG2CBV9",
+  ]
+id: 01KPTB0SYKSTF3QTB7VMN2ZSM4
+created: "2026-03-20T22:38:45.033Z"
+---
+
 # Style Simplification
 
 ## Problem
@@ -86,5 +98,11 @@ Clean, simple, effective. The reference images do the heavy lifting.
 ### Migration
 
 - Existing panels with `artStyle` field: ignored (field becomes unused)
-- No data migration needed — the prompt builder just stops reading those fields
+- No data migration needed — the prompt builder just stops [[Reading|reading]] those fields
 - Old projects still load fine, they just won't have the removed UI options
+
+#reference #panel #user
+
+[[Notes]]
+
+[[new]]

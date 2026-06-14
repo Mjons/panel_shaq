@@ -5,7 +5,9 @@ import type { RefObject } from "react";
 // calibrator so their layout/zone-alignment behavior stays identical.
 
 /** Live content-box size of an element via ResizeObserver. */
-export function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>) {
+export function useElementSize<T extends HTMLElement>(
+  ref: RefObject<T | null>,
+) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   useEffect(() => {
     const el = ref.current;
