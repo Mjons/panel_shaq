@@ -67,15 +67,9 @@ export const TopNav = ({
             NEW
           </button>
           <div className="flex items-center gap-3">
-            {clerkEnabled && <AccountControls />}
-            <button
-              onClick={() => onTabChange("settings")}
-              className="text-accent/40 hover:text-primary transition-colors active:scale-90 duration-200 p-2"
-              title="Settings"
-              aria-label="Settings"
-            >
-              <Settings size={22} />
-            </button>
+            {clerkEnabled && (
+              <AccountControls onSettings={() => onTabChange("settings")} />
+            )}
             {/* Panel Haus cross-app switcher */}
             <haus-switcher current="shaq"></haus-switcher>
           </div>

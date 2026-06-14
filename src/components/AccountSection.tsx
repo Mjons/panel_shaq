@@ -11,6 +11,22 @@ import { onBalanceChange } from "../services/credits";
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
 // inside <ClerkProvider>). Shows the shared Panel Haus account + ink balance and a
 // link to buy more. Replaces the legacy anonymous "Today's Usage" meter.
+
+// Friendly plan names. creator_plus is branded "Founder Pass" (the one-time
+// lifetime purchase grants that tier); free → "Free Tier".
+const TIER_LABELS: Record<string, string> = {
+  free: "Free Tier",
+  creator_lite: "Creator Lite",
+  creator_plus: "Founder Pass",
+  brand_starter: "Brand Starter",
+  brand_pro: "Brand Pro",
+  brand_managed: "Brand Managed",
+};
+function tierLabel(tier: string | null): string {
+  if (!tier) return "Free Tier";
+  return TIER_LABELS[tier] || tier.replace(/_/g, " ");
+}
+
 export function AccountSection() {
   const { user } = useUser();
   const { getToken, isSignedIn } = useAuth();
@@ -73,11 +89,9 @@ export function AccountSection() {
                 user?.username ||
                 "Signed in"}
             </p>
-            {tier && (
-              <p className="text-[10px] uppercase tracking-widest text-accent/40">
-                {tier} plan
-              </p>
-            )}
+            <p className="text-[10px] uppercase tracking-widest text-accent/40">
+              {tierLabel(tier)}
+            </p>
           </div>
         </div>
 
