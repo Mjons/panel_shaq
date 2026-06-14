@@ -12,6 +12,7 @@ export interface InkCosts {
 const DEFAULTS: InkCosts = { text: 1, imageFlash: 1, imagePro: 2 };
 
 let cached: Promise<InkCosts> | null = null;
+let resolved: InkCosts = DEFAULTS;
 
 function fetchInkCosts(): Promise<InkCosts> {
   if (!cached) {
@@ -23,8 +24,18 @@ function fetchInkCosts(): Promise<InkCosts> {
         imagePro: Number(d?.imagePro) || DEFAULTS.imagePro,
       }))
       .catch(() => DEFAULTS);
+    cached.then((c) => {
+      resolved = c;
+    });
   }
   return cached;
+}
+
+/** Synchronous best-effort costs (last fetched, else defaults) for non-React code
+ *  like apiPost's instant out-of-ink pre-check. Kicks off the fetch if needed. */
+export function getInkCostsSync(): InkCosts {
+  fetchInkCosts();
+  return resolved;
 }
 
 /** Live ink costs; returns sensible defaults until the fetch resolves. */

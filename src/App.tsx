@@ -19,7 +19,7 @@ import {
   onApiError,
   hydratePanel,
 } from "./services/geminiService";
-import { onOpenBuyCredits } from "./services/buyCredits";
+import { onOpenBuyCredits, type BuyReason } from "./services/buyCredits";
 import { isClerkEnabled, getClerkToken } from "./services/clerkToken";
 import { fetchAccount, emitBalance } from "./services/credits";
 import { saveProject, type SavedProject } from "./services/projectStorage";
@@ -244,9 +244,18 @@ function AppInner() {
   }, [addToast]);
 
   // Buy Ink sheet: a single instance opened from anywhere (Settings, the nav ink
-  // chip, the out-of-ink 402 path) via the buyCredits event bus. Clerk-only.
+  // chip, the out-of-ink path) via the buyCredits event bus. The reason drives a
+  // contextual "out of ink" banner inside the sheet. Clerk-only.
   const [buyOpen, setBuyOpen] = useState(false);
-  useEffect(() => onOpenBuyCredits(() => setBuyOpen(true)), []);
+  const [buyReason, setBuyReason] = useState<BuyReason>(null);
+  useEffect(
+    () =>
+      onOpenBuyCredits((reason) => {
+        setBuyReason(reason);
+        setBuyOpen(true);
+      }),
+    [],
+  );
 
   // Stripe checkout return handler. PH sends the user back to OUR origin at
   // /success?session_id=…&type=booster (paid) or /app?checkout_canceled=… (back).
@@ -695,7 +704,14 @@ function AppInner() {
       />
 
       {isClerkEnabled() && (
-        <BuyCreditsSheet isOpen={buyOpen} onClose={() => setBuyOpen(false)} />
+        <BuyCreditsSheet
+          isOpen={buyOpen}
+          reason={buyReason}
+          onClose={() => {
+            setBuyOpen(false);
+            setBuyReason(null);
+          }}
+        />
       )}
     </div>
   );

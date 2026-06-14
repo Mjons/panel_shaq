@@ -43,7 +43,7 @@ function InkChip() {
 
   return (
     <button
-      onClick={openBuyCredits}
+      onClick={() => openBuyCredits()}
       className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent/80 px-2.5 py-1 rounded-lg bg-surface-container border border-outline/10 hover:border-primary/40 active:scale-95 transition-all"
       title="Buy ink"
       aria-label={

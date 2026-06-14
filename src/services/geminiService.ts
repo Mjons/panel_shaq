@@ -87,7 +87,18 @@ export function onApiError(listener: ErrorListener) {
   };
 }
 
+// Thrown when a generation is blocked for insufficient ink. The Buy sheet (opened
+// with reason "out_of_ink") is the user-facing message, so notifyError suppresses
+// the toast for this case to avoid a redundant error popup.
+export class OutOfInkError extends Error {
+  constructor() {
+    super("out_of_ink");
+    this.name = "OutOfInkError";
+  }
+}
+
 function notifyError(context: string, error: unknown) {
+  if (error instanceof OutOfInkError) return; // the Buy sheet already informs
   const msg = error instanceof Error ? error.message : "Unknown error";
   console.error(`${context}:`, error);
   _errorListener?.(`${context}: ${msg}`);
@@ -150,6 +161,30 @@ export async function apiPost<T>(
         openClerkSignIn();
         throw new Error("Please sign in to generate.");
       }
+
+      // Instant out-of-ink guard: if the cached balance is already below this
+      // action's cost, open the Buy sheet immediately instead of waiting for the
+      // server to round-trip a 402. (Cache may be stale/unknown → fall through to
+      // the authoritative server check below.)
+      const { getCachedBalance } = await import("./credits");
+      const { getInkCostsSync } = await import("./inkCosts");
+      const balance = getCachedBalance();
+      if (balance !== null) {
+        const costs = getInkCostsSync();
+        const isImage = endpoint === "generate-image" || endpoint === "final-render";
+        const required = isImage
+          ? getImageModel() === "pro"
+            ? costs.imagePro
+            : costs.imageFlash
+          : costs.text;
+        if (balance < required) {
+          clearTimeout(timer);
+          const { openBuyCredits } = await import("./buyCredits");
+          openBuyCredits("out_of_ink");
+          throw new OutOfInkError();
+        }
+      }
+
       const token = await getClerkToken();
       if (token) headers["Authorization"] = `Bearer ${token}`;
     }
@@ -177,14 +212,15 @@ export async function apiPost<T>(
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       if (res.status === 402) {
-        // Out of ink: open the in-app Buy sheet (and surface the toast below).
+        // Authoritative out-of-ink (cache was stale/unknown). Open the Buy sheet
+        // with the out-of-ink banner; OutOfInkError is suppressed from the toast.
         try {
           const { openBuyCredits } = await import("./buyCredits");
-          openBuyCredits();
+          openBuyCredits("out_of_ink");
         } catch {
           /* ignore */
         }
-        throw new Error("You're out of ink. Opening the credit shop.");
+        throw new OutOfInkError();
       }
       throw new Error(err.error || `API error ${res.status}`);
     }

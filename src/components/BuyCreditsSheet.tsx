@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Loader2, Zap, Monitor } from "lucide-react";
+import { Loader2, Zap, Monitor, AlertTriangle } from "lucide-react";
 import { BottomSheet } from "./BottomSheet";
 import { useToast } from "./Toast";
 import { startBoosterCheckout, type BoosterSize } from "../services/checkout";
+import type { BuyReason } from "../services/buyCredits";
 
 // Booster packs mirror Panel Haus (Comic-Pro2 BoosterPackModal.jsx). Prices are
 // DISPLAY-ONLY (the real charge is set by Stripe at checkout). Credit amounts are
@@ -33,9 +34,11 @@ const PACKS: {
 
 export function BuyCreditsSheet({
   isOpen,
+  reason = null,
   onClose,
 }: {
   isOpen: boolean;
+  reason?: BuyReason;
   onClose: () => void;
 }) {
   const { addToast } = useToast();
@@ -58,6 +61,16 @@ export function BuyCreditsSheet({
   return (
     <BottomSheet isOpen={isOpen} onClose={onClose} title="Buy Ink">
       <div className="space-y-5">
+        {reason === "out_of_ink" && (
+          <div className="flex items-start gap-2.5 rounded-lg border border-primary/40 bg-primary/10 p-3">
+            <AlertTriangle size={16} className="text-primary shrink-0 mt-0.5" />
+            <p className="text-sm text-accent/90">
+              <span className="font-bold text-primary">You're out of ink.</span>{" "}
+              Grab a booster below to keep creating.
+            </p>
+          </div>
+        )}
+
         <p className="text-sm text-accent/60">
           Top up your ink balance, instantly available across Panel Haus. Final
           price is shown securely at checkout.

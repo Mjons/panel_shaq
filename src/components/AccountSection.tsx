@@ -138,7 +138,7 @@ export function AccountSection() {
         </div>
 
         <button
-          onClick={openBuyCredits}
+          onClick={() => openBuyCredits()}
           className="block w-full text-center px-4 py-2 rounded-lg bg-primary text-background font-bold text-sm active:scale-95 transition-transform"
         >
           Get more ink
