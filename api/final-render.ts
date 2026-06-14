@@ -193,6 +193,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Credit gate (see generate-image.ts). BYOK bypasses; Clerk path reserves ink;
   // otherwise legacy daily limiter.
+  // Image model from the user's Settings: "pro" costs more ink + better model.
+  const isPro = req.body?.model === "pro";
+  const geminiModel = isPro
+    ? process.env.GEMINI_IMAGE_MODEL_PRO || "gemini-3.1-flash-image-preview"
+    : process.env.GEMINI_IMAGE_MODEL_FLASH || "gemini-2.5-flash-image";
+
   const byok = !!(req.headers["x-api-key"] as string);
   const clerkConfigured = !!process.env.CLERK_SECRET_KEY;
   const bearer = bearerToken(req);
@@ -204,7 +210,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (clerkConfigured) {
       if (!(await verifyClerkBearer(bearer)))
         return res.status(401).json({ error: "Please sign in to generate." });
-      inkAmount = parseInt(process.env.INK_COST_IMAGE || "1", 10);
+      inkAmount = isPro
+        ? parseInt(process.env.INK_COST_IMAGE_PRO || "2", 10)
+        : parseInt(process.env.INK_COST_IMAGE_FLASH || "1", 10);
       inkKey = randomUUID();
       const r = await reserveInk(bearer, inkAmount, "mobile_final_render", inkKey);
       if (r.status === 402)
@@ -263,7 +271,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const image = await geminiImage(
       apiKey,
-      "gemini-3.1-flash-image-preview",
+      geminiModel,
       parts,
       { aspectRatio: aspectRatio || "1:1", imageSize: "1K" },
     );

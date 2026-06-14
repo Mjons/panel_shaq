@@ -106,6 +106,21 @@ function getUserApiKey(): string {
   return "";
 }
 
+// The user's selected image model ("flash" | "pro") from Settings. Sent to the
+// image routes, which map it to the Gemini model + ink cost (flash=1, pro=2).
+function getImageModel(): "flash" | "pro" {
+  try {
+    const saved = localStorage.getItem("panelshaq_settings");
+    if (saved) {
+      const m = JSON.parse(saved).imageModel;
+      if (m === "pro" || m === "flash") return m;
+    }
+  } catch {
+    /* ignore */
+  }
+  return "flash";
+}
+
 export async function apiPost<T>(
   endpoint: string,
   body: any,
@@ -249,7 +264,7 @@ export const generatePanelImage = async (
   try {
     const result = await apiPost<{ image: string }>(
       "generate-image",
-      { prompt, referenceImages, aspectRatio },
+      { prompt, referenceImages, aspectRatio, model: getImageModel() },
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;
@@ -324,7 +339,7 @@ export const finalNaturalRender = async (
     const aspectRatio = await detectAspectRatio(panelImage);
     const result = await apiPost<{ image: string }>(
       "final-render",
-      { panelImage, bubbles, aspectRatio },
+      { panelImage, bubbles, aspectRatio, model: getImageModel() },
       IMAGE_TIMEOUT,
     );
     return result.image ? await compressImage(result.image) : null;
