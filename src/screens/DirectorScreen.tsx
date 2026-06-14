@@ -757,6 +757,7 @@ const PanelCard = React.memo(
                   className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 z-10 hover:bg-red-500 transition-colors cursor-pointer"
                 >
                   <RefreshCw size={10} /> Failed — Retry
+                  <InkCost kind="image" outlined />
                 </button>
               )}
               {image && !isQueued && !isQueueGenerating && !isFailed && (
