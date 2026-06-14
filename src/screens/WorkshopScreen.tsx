@@ -595,6 +595,7 @@ export const WorkshopScreen: React.FC<WorkshopProps> = ({
                           <Sparkles size={12} />
                         )}
                         {isAnalyzing ? "Analyzing..." : "Auto-Describe"}
+                        {!isAnalyzing && <InkCost kind="text" />}
                       </button>
                     )}
                   </div>

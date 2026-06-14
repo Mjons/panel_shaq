@@ -6,7 +6,12 @@ import {
   SignedOut,
 } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
-import { onBalanceChange } from "../services/credits";
+import {
+  onBalanceChange,
+  fetchAccount,
+  getCachedBalance,
+  getCachedTier,
+} from "../services/credits";
 import { useInkCosts } from "../services/inkCosts";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
@@ -35,8 +40,10 @@ function truncateWallet(addr: string): string {
 export function AccountSection() {
   const { user } = useUser();
   const { getToken, isSignedIn } = useAuth();
-  const [credits, setCredits] = useState<number | null>(null);
-  const [tier, setTier] = useState<string | null>(null);
+  // Seed from the shared cache the nav chip primed at startup so the balance shows
+  // instantly here instead of spinning while we re-fetch.
+  const [credits, setCredits] = useState<number | null>(getCachedBalance);
+  const [tier, setTier] = useState<string | null>(getCachedTier);
   const costs = useInkCosts();
 
   useEffect(() => {
@@ -44,17 +51,10 @@ export function AccountSection() {
     let alive = true;
     getToken().then(async (t) => {
       if (!t || !alive) return;
-      try {
-        const r = await fetch("/api/credits-balance", {
-          headers: { Authorization: `Bearer ${t}` },
-        });
-        if (!r.ok || !alive) return;
-        const d = await r.json();
-        if (typeof d?.credits === "number") setCredits(d.credits);
-        if (typeof d?.tier === "string") setTier(d.tier);
-      } catch {
-        /* ignore */
-      }
+      const { credits: c, tier: tr } = await fetchAccount(t);
+      if (!alive) return;
+      if (c !== null) setCredits(c);
+      if (tr !== null) setTier(tr);
     });
     const off = onBalanceChange((c) => {
       if (alive) setCredits(c);

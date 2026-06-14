@@ -8,21 +8,26 @@ import {
 } from "@clerk/clerk-react";
 import { User, LogOut, Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { onBalanceChange, fetchBalance } from "../services/credits";
+import {
+  onBalanceChange,
+  fetchAccount,
+  getCachedBalance,
+} from "../services/credits";
 
-// Live ink-balance chip. Fetches once when signed in, then updates instantly when
-// a generation pushes a new balance (apiPost -> emitBalance). Shows a loading
-// placeholder while the first fetch is in flight so the chip never pops in/out.
+// Live ink-balance chip. Fetches once when signed in (priming the shared cache so
+// Settings can render the balance instantly), then updates the moment a generation
+// pushes a new balance (apiPost -> emitBalance). Shows a loading placeholder while
+// the first fetch is in flight so the chip never pops in/out.
 function InkChip() {
   const { getToken, isSignedIn } = useAuth();
-  const [credits, setCredits] = useState<number | null>(null);
+  const [credits, setCredits] = useState<number | null>(getCachedBalance);
 
   useEffect(() => {
     if (!isSignedIn) return;
     let alive = true;
     getToken().then((t) => {
       if (t && alive)
-        fetchBalance(t).then((c) => {
+        fetchAccount(t).then(({ credits: c }) => {
           if (alive && c !== null) setCredits(c);
         });
     });

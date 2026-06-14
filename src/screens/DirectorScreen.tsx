@@ -251,6 +251,7 @@ const InsertPanelButton = ({
       <span className="text-xs font-bold uppercase tracking-widest">
         {isLoading ? "Generating..." : label || "Insert Panel"}
       </span>
+      {!isLoading && <InkCost kind="text" />}
     </button>
     <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
   </div>

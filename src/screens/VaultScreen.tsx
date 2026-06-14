@@ -16,6 +16,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { BottomSheet } from "../components/BottomSheet";
 import { Tip } from "../components/Tip";
+import { InkCost } from "../components/InkCost";
 import {
   generateReferenceImage,
   analyzeCharacterImage,
@@ -660,6 +661,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
                     <Sparkles size={12} />
                   )}
                   {isGeneratingImage ? "Generating..." : "Generate"}
+                  {!isGeneratingImage && <InkCost kind="image" />}
                 </button>
               </div>
             </div>
@@ -739,6 +741,7 @@ export const VaultScreen: React.FC<VaultProps> = ({
                           <Eye size={10} />
                         )}
                         {isAnalyzing ? "Analyzing..." : "Analyze Image"}
+                        {!isAnalyzing && <InkCost kind="text" />}
                       </button>
                     )}
                     {formData.name && formData.description?.trim() && (

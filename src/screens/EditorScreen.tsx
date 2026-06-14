@@ -1984,6 +1984,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     <MessageSquare size={14} />
                   )}
                   {isGeneratingDialogue ? "GENERATING..." : "SUGGEST DIALOGUE"}
+                  {!isGeneratingDialogue && <InkCost kind="text" />}
                 </button>
                 <Tip
                   id="suggest-dialogue"
@@ -2051,6 +2052,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   <RefreshCw size={10} />
                 )}
                 {isGeneratingDialogue ? "Generating..." : "Try Again"}
+                {!isGeneratingDialogue && <InkCost kind="text" />}
               </button>
             </div>
           )}
@@ -2086,6 +2088,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                   <Sparkles size={14} />
                 )}
                 {isCritiquing ? "ANALYZING..." : "CRITIQUE THIS PAGE"}
+                {!isCritiquing && <InkCost kind="text" />}
               </button>
               {pages.length > 1 && (
                 <button
@@ -2099,6 +2102,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
                     <Layers size={14} />
                   )}
                   {isCritiquing ? "ANALYZING..." : "CRITIQUE ALL PAGES"}
+                  {!isCritiquing && <InkCost kind="text" />}
                 </button>
               )}
             </div>
