@@ -5,6 +5,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App.tsx";
 import { FromMemeRoot } from "./from-meme/FromMemeRoot";
 import { ClerkTokenBridge } from "./services/ClerkTokenBridge";
+import { ReferralLinker } from "./components/ReferralLinker";
 import { clerkAppearance } from "./clerkAppearance";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { trackColdLanding } from "./services/analytics";
@@ -12,7 +13,7 @@ import { maybeMigrateFromOldOrigin } from "./services/originMigration";
 import "./index.css";
 
 // Shared Clerk auth (same instance as Panel Haus). Optional: if the publishable
-// key isn't set, the app runs exactly as before (no auth, no shared credits) —
+// key isn't set, the app runs exactly as before (no auth, no shared credits):
 // graceful degradation like Supabase. The meme-receiver branch is always
 // Clerk-free.
 const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
@@ -35,6 +36,7 @@ function mount() {
     !isMemeReceiver && clerkKey ? (
       <ClerkProvider publishableKey={clerkKey} appearance={clerkAppearance}>
         <ClerkTokenBridge />
+        <ReferralLinker />
         <App />
       </ClerkProvider>
     ) : isMemeReceiver ? (

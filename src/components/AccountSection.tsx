@@ -14,6 +14,7 @@ import {
 } from "../services/credits";
 import { useInkCosts } from "../services/inkCosts";
 import { openBuyCredits } from "../services/buyCredits";
+import { ReferralCard } from "./ReferralCard";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
 // inside <ClerkProvider>). Shows the shared Panel Haus account + ink balance and a
@@ -143,14 +144,8 @@ export function AccountSection() {
         >
           Get more ink
         </button>
-        <a
-          href="https://www.panelhaus.app/pricing"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-center text-xs text-accent/50 hover:text-primary transition-colors"
-        >
-          Subscriptions & Founder Pass →
-        </a>
+
+        <ReferralCard />
       </SignedIn>
     </section>
   );

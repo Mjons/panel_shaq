@@ -12,7 +12,14 @@ Companion docs: `CLERK_CREDITS_INTEGRATION_BUILD_PLAN.md` (what was built),
 
 ## 1. Deferred (not built — by design)
 
-### 1a. Referral-code forwarding (`?ref=` through the PH → mobile hop)
+### 1a. Referral-code forwarding (`?ref=` through the PH → mobile hop) — ✅ BUILT (2026-06)
+
+> **Status: implemented on the mobile side.** panel_shaq now captures `?ref=`/`?comic=`, links
+> it after Clerk sign-in via PH's idempotent `link-pending` endpoint, and lets signed-in users
+> share their own canonical link. See `documents/REFERRAL_INTEGRATION.md`. The one remaining
+> upstream item is PH's **auto-redirect** (`MobileBlocker.jsx`) preserving the query string (its
+> manual CTA already does). Original notes below for reference.
+
 
 **What it is.** Panel Haus runs a referral program: a link like `panelhaus.app/?ref=CODE`
 must end up attached to the new user's Clerk signup so PH's webhook (`linkReferral`)
