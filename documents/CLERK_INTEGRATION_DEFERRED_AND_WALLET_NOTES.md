@@ -12,7 +12,7 @@ Companion docs: `CLERK_CREDITS_INTEGRATION_BUILD_PLAN.md` (what was built),
 
 ## 1. Deferred (not built — by design)
 
-### 1a. Referral-code forwarding (`?ref=` through the PH → mobile hop) — ✅ BUILT (2026-06)
+### 1a. Referral-code forwarding (`?ref=` through the PH → mobile hop): ✅ BUILT (2026-06)
 
 > **Status: implemented on the mobile side.** panel_shaq now captures `?ref=`/`?comic=`, links
 > it after Clerk sign-in via PH's idempotent `link-pending` endpoint, and lets signed-in users
@@ -42,23 +42,24 @@ drops the query string, **every mobile signup silently loses its referral credit
 The PH redirect change is on the PH repo. **Recommended before any real launch** with
 referrals on.
 
-### 1b. WalletConnect for MetaMask in a plain mobile browser
+### 1b. MetaMask in a plain mobile browser: ✅ SOLVED (2026-06, deep-link, not WalletConnect)
 
-**What it is.** Today wallet sign-in uses Clerk's built-in MetaMask strategy, which
-needs an injected `window.ethereum` provider — present on desktop (extension) and inside
-a wallet app's in-app browser, but **absent in a normal mobile browser** (Safari/Chrome).
-So a phone user in a regular browser can't use the MetaMask button.
+> **Status: implemented.** Instead of WalletConnect, we ship a **deep-link**: a plain
+> mobile browser (no injected `window.ethereum`) shows an "Open in MetaMask" button that
+> reopens the site in MetaMask's in-app browser, where Clerk's native MetaMask button then
+> works (the `?signin=wallet` return auto-opens the modal). Native MetaMask is also shown
+> conditionally (only when a provider exists). Auth stays 100% Clerk → shared account/balance.
+> Full design + matrix: **`CLERK_AUTH_AND_WALLET_ARCHITECTURE.md`**. Original notes below
+> for context.
 
-**What WalletConnect would add.** A QR / deep-link flow that opens the user's wallet app,
-gets the signature, and returns to the browser — making wallet login work on mobile.
+**What it is.** Clerk's built-in MetaMask strategy needs an injected `window.ethereum`
+provider, present on desktop (extension) and inside a wallet app's in-app browser, but
+**absent in a normal mobile browser** (Safari/Chrome).
 
-**Why it's deferred.** It's friction-heavy on mobile (app-switching, occasional flaky
-returns), and **email + Google already cover mobile sign-in cleanly** while still giving
-the same shared account + balance. Wallet is a power-user nicety on mobile, not the front
-door. See §2 for the identity implications of *how* wallet sign-in is wired.
-
-**Effort / risk.** Medium. The clean way is to wire WalletConnect **through Clerk's web3
-strategy** (so identity stays unified) rather than a separate connector — see §2.
+**Why we used a deep-link, not WalletConnect.** WalletConnect adds a relay dependency and
+app-switching friction; the deep-link reuses MetaMask's in-app browser where Clerk's native
+web3 flow already works, keeping identity unified with zero new deps. Email + Google remain
+the primary mobile path; wallet is the power-user add-on.
 
 ---
 

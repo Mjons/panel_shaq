@@ -99,32 +99,25 @@ These are PH-side; verify them on the deployed `www.panelhaus.app` before launch
 
 ---
 
-## 6. Known gaps / deferred (track separately)
+## 6. Status of formerly-deferred items (now built)
 
-### 6a. Referral forwarding — NOT wired (mobile signups currently lose referral credit)
-PH captures `?ref=CODE` in its own `localStorage`, which is **origin-scoped** —
-`m.panelhaus.app` can't read `panelhaus.app`'s copy. So referral credit is lost on mobile
-signup today. To fix (two small parts):
-1. **Upstream:** the redirect that sends mobile users to `m.panelhaus.app` must append the
-   pending `?ref=` (and `?comic=`) to the URL.
-2. **panel_shaq:** read `?ref=` on load, store it, and after Clerk signup call PH's
-   `POST /api/referral/link-pending` (Clerk-authed, idempotent — same endpoint PH's web uses).
+### 6a. Referral forwarding: ✅ BUILT
+Mobile now captures `?ref=`/`?comic=` and links it after Clerk sign-in via PH's idempotent
+`link-pending` endpoint; the PH `MobileBlocker` redirect was updated to forward the params.
+Details: `REFERRAL_INTEGRATION.md`.
 
-Do this before any launch that relies on referrals.
-
-### 6b. Wallet login in a plain mobile browser — partial
-- **In a wallet's in-app browser** (injected `window.ethereum`): Clerk's MetaMask button
-  works → Clerk `web3:<wallet>` session → **shared account + balance.** ✅ Verify
-  empirically in the wallet browser once prod keys are live.
-- **Plain mobile browser** (Safari/Chrome): no injected provider → the MetaMask button does
-  nothing. ❌ Needs **WalletConnect**, wired **through Clerk's web3 strategy** (deferred) so
-  identity stays unified.
-- **Covers everyone now:** Email + Google work in any mobile browser with the same shared
-  account/balance. A wallet-only user on a plain browser should use the wallet's in-app
-  browser once, or add an email/Google to their account once.
+### 6b. Wallet login on mobile: ✅ BUILT (deep-link, not WalletConnect)
+- **In-app browser / desktop extension** (`window.ethereum` present): Clerk's native MetaMask
+  button shows in the modal and signs in → `web3:<wallet>` → shared account + balance.
+- **Plain mobile browser** (no provider): an "Open in MetaMask" deep-link reopens the site in
+  MetaMask's in-app browser, where the native button works (the `?signin=wallet` return
+  auto-opens the modal). Native MetaMask is hidden where no provider exists (no dead end).
 - ⚠️ Never add a custom wagmi/SIWE wallet stack for auth — a SIWE session is not a Clerk
   session, so PH's credit API wouldn't recognize it and those users would get a **separate
-  account with no shared balance.** Wallet must always flow through Clerk.
+  account with no shared balance.** Wallet always flows through Clerk.
+- Full design + verification matrix: **`CLERK_AUTH_AND_WALLET_ARCHITECTURE.md`**.
+- To verify in prod: confirm the native button appears in MetaMask's in-app browser, and the
+  "Open in MetaMask" deep-link works from a real phone's plain browser.
 
 ---
 
