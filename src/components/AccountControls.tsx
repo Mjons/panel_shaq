@@ -14,6 +14,7 @@ import {
   getCachedBalance,
 } from "../services/credits";
 import { openBuyCredits } from "../services/buyCredits";
+import { WalletDeepLinkButton } from "./WalletDeepLinkButton";
 
 // Live ink-balance chip. Fetches once when signed in (priming the shared cache so
 // Settings can render the balance instantly), then updates the moment a generation
@@ -165,6 +166,7 @@ export function AccountControls({ onSettings }: { onSettings: () => void }) {
   return (
     <>
       <SignedOut>
+        <WalletDeepLinkButton />
         <SignInButton mode="modal">
           <button
             className="text-sm font-semibold text-primary hover:opacity-80 active:scale-90 transition px-3 py-1.5 rounded-lg border border-primary/40"

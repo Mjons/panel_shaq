@@ -14,6 +14,7 @@ import {
 } from "../services/credits";
 import { useInkCosts } from "../services/inkCosts";
 import { openBuyCredits } from "../services/buyCredits";
+import { WalletDeepLinkButton } from "./WalletDeepLinkButton";
 import { ReferralCard } from "./ReferralCard";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
@@ -75,11 +76,14 @@ export function AccountSection() {
         <p className="text-sm text-accent/60">
           Sign in to sync your account and ink balance across Panel Haus.
         </p>
-        <SignInButton mode="modal">
-          <button className="px-4 py-2 rounded-lg bg-primary text-background font-headline font-bold active:scale-95 transition-transform">
-            Sign in
-          </button>
-        </SignInButton>
+        <div className="flex flex-wrap items-center gap-2">
+          <SignInButton mode="modal">
+            <button className="px-4 py-2 rounded-lg bg-primary text-background font-headline font-bold active:scale-95 transition-transform">
+              Sign in
+            </button>
+          </SignInButton>
+          <WalletDeepLinkButton />
+        </div>
       </SignedOut>
 
       <SignedIn>

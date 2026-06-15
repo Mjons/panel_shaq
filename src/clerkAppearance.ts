@@ -5,11 +5,32 @@
 // `variables` do the heavy lifting (Clerk applies them in its own CSS, so they're
 // specificity-safe); `elements` add the headline font + button polish.
 //
-// ⚠️ METAMASK IS INTENTIONALLY HIDDEN HERE. If you're wondering why the MetaMask /
-// wallet sign-in button doesn't show up on m.panelhaus.app (sign-in OR sign-up),
-// it's the `socialButtonsBlockButton__metamask` / `socialButtonsIconButton__metamask`
-// rules near the bottom of `elements` (NOT a Clerk dashboard setting). See the note
-// there for why.
+// ⚠️ METAMASK VISIBILITY IS CONDITIONAL. Clerk's native MetaMask button only works
+// where an injected `window.ethereum` provider exists (MetaMask's in-app browser or
+// a desktop extension); in a plain mobile browser it's a dead end. So we SHOW it
+// when a provider is present and HIDE it otherwise (see `hideMetamask` below). For
+// plain mobile browsers, a separate "Open in MetaMask" deep-link button
+// (src/components/WalletDeepLinkButton.tsx) bounces users into MetaMask's in-app
+// browser, where this native button then appears and works. Auth stays 100% Clerk,
+// so the account + shared ink balance match panelhaus.app. We share ONE Clerk
+// instance with PH, so there's no dashboard toggle to change methods per app; this
+// appearance is panel_shaq-only; panelhaus has its own and always shows MetaMask.
+
+// Evaluated once at module load (client bundle). In-app browsers inject the provider
+// before this runs; plain mobile browsers never have it.
+const hasInjectedProvider =
+  typeof window !== "undefined" && !!(window as Window).ethereum;
+
+// When there's no provider, hide the native MetaMask button (block + icon variants)
+// so users don't tap a dead end. When a provider exists, show it (empty object = no
+// override). To force-hide everywhere, set both to { display: "none" }.
+const hideMetamask = hasInjectedProvider
+  ? {}
+  : {
+      socialButtonsBlockButton__metamask: { display: "none" },
+      socialButtonsIconButton__metamask: { display: "none" },
+    };
+
 export const clerkAppearance = {
   variables: {
     colorPrimary: "#ff9100",
@@ -39,20 +60,6 @@ export const clerkAppearance = {
     footerActionLink: "text-primary hover:opacity-80",
     socialButtonsBlockButton:
       "border border-outline/30 hover:border-primary/40 transition-colors",
-    // ── MetaMask / web3 wallet button: INTENTIONALLY HIDDEN on m.panelhaus.app ──
-    // We share ONE Clerk instance with Panel Haus (panelhaus.app), and enabled
-    // sign-in methods (email / google / web3) are configured at the INSTANCE level,
-    // i.e. shared by both apps. There is no Clerk dashboard toggle to turn MetaMask
-    // off for only this app, so we hide the button here instead (this `appearance`
-    // is panel_shaq-only; panelhaus has its own and still shows MetaMask).
-    // Why hide it: MetaMask needs an injected window.ethereum provider that normal
-    // mobile browsers don't have, so the button is a dead end on mobile; Email +
-    // Google cover sign-in. This is cosmetic (the strategy stays enabled instance-
-    // wide), which is fine for a sign-in UI: no button = nothing to click. It applies
-    // to BOTH sign-in and sign-up because the appearance is set on <ClerkProvider>.
-    // Clerk renders the block OR icon button variant by provider count, so hide both.
-    // To RE-ENABLE: delete these two lines (or comment them out).
-    socialButtonsBlockButton__metamask: { display: "none" },
-    socialButtonsIconButton__metamask: { display: "none" },
+    ...hideMetamask,
   },
 };

@@ -20,7 +20,11 @@ import {
   hydratePanel,
 } from "./services/geminiService";
 import { onOpenBuyCredits, type BuyReason } from "./services/buyCredits";
-import { isClerkEnabled, getClerkToken } from "./services/clerkToken";
+import {
+  isClerkEnabled,
+  getClerkToken,
+  openClerkSignIn,
+} from "./services/clerkToken";
 import { fetchAccount, emitBalance } from "./services/credits";
 import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
@@ -256,6 +260,25 @@ function AppInner() {
       }),
     [],
   );
+
+  // Wallet deep-link return: a plain-mobile user who tapped "Open in MetaMask"
+  // lands back here inside MetaMask's in-app browser (where window.ethereum now
+  // exists, so Clerk's native MetaMask button works). Auto-open the sign-in modal
+  // and strip the param. Clerk-only.
+  useEffect(() => {
+    if (!isClerkEnabled()) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("signin") === "wallet") {
+      openClerkSignIn();
+      params.delete("signin");
+      const qs = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + (qs ? `?${qs}` : ""),
+      );
+    }
+  }, []);
 
   // Stripe checkout return handler. PH sends the user back to OUR origin at
   // /success?session_id=…&type=booster (paid) or /app?checkout_canceled=… (back).
@@ -713,6 +736,7 @@ function AppInner() {
           }}
         />
       )}
+
     </div>
   );
 }
