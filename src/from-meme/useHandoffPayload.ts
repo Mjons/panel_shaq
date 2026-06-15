@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { MEME_TEXT_ZONES } from "../data/memeTextZones";
 
 // Consumes a MemeGen handoff token cross-origin from the browser.
 //
@@ -37,35 +38,27 @@ export type HandoffState =
 
 // Dev-only stub so the UI can be iterated without a live MemeGen token.
 //   /c/from-meme?stub=1                              → Drake template image
-//   /c/from-meme?stub=1&template=change-my-mind      → another bundled template
+//   /c/from-meme?stub=1&template=uno-draw-25-cards   → ANY template in the registry
 //   /c/from-meme?stub=1&template=drake-hotline-bling&img=<url>&w=&h=
 //        → point at ANY image (e.g. a real generated meme Blob) to test alignment
-// Bundled template images live in public/templates/ (used by the admin gallery too).
-const STUB_TEMPLATES: Record<string, { url: string; w: number; h: number }> = {
-  "drake-hotline-bling": {
-    url: "/templates/drake-hotline-bling.jpg",
-    w: 1200,
-    h: 1200,
-  },
-  "distracted-boyfriend": {
-    url: "/templates/distracted-boyfriend.jpg",
-    w: 1200,
-    h: 800,
-  },
-  "change-my-mind": { url: "/templates/change-my-mind.jpg", w: 482, h: 361 },
-  "two-buttons": { url: "/templates/two-buttons.jpg", w: 600, h: 908 },
-};
-
+// The template image + aspect come from the MEME_TEXT_ZONES registry (the single
+// source of truth), so every calibrated template works in the stub with no extra
+// per-template config. Bundled images live in public/templates/.
 function buildStubPayload(params: URLSearchParams): HandoffPayload {
   const tpl = params.get("template") || "drake-hotline-bling";
-  const known = STUB_TEMPLATES[tpl];
+  const entry = MEME_TEXT_ZONES[tpl];
   const imgOverride = params.get("img");
+  // Zones are normalized, so only the aspect matters; synthesize w/h from it.
+  const aspect = entry?.aspect || 1;
+  const stubW = 1024;
+  const stubH = Math.round(stubW / aspect);
   return {
     v: 1,
-    memeImageUrl: imgOverride || known?.url || "/sample.png",
+    memeImageUrl:
+      imgOverride || (entry ? `/templates/${entry.image}` : "/sample.png"),
     memeImageDimensions: {
-      width: Number(params.get("w")) || known?.w || 1024,
-      height: Number(params.get("h")) || known?.h || 1024,
+      width: Number(params.get("w")) || stubW,
+      height: Number(params.get("h")) || stubH,
     },
     memeImageMime: "image/jpeg",
     templateId: tpl,
