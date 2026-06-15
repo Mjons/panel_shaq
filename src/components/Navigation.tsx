@@ -47,8 +47,21 @@ export const TopNav = ({
       >
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-3">
-            {/* Panel Haus cross-app switcher (far left, like the PH /app page) */}
-            <haus-switcher current="shaq"></haus-switcher>
+            {/* Ecosystem logo on the LEFT (links to the Panel Haus universe). The
+                ⊞ switcher lives on the far right with logo="off" — the same split
+                Comic-Pro2 uses on its header. */}
+            <a
+              href="https://panelhaus.app/universe"
+              title="Ecosystem home"
+              aria-label="Go to the Panel Haus universe"
+              className="shrink-0 flex items-center hover:opacity-80 transition-opacity active:scale-90 duration-200"
+            >
+              <img
+                src="/icons/icon-192.png"
+                alt="Panel Haus"
+                className="w-8 h-8 rounded-lg"
+              />
+            </a>
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"
@@ -67,6 +80,10 @@ export const TopNav = ({
             {clerkEnabled && (
               <AccountControls onSettings={() => onTabChange("settings")} />
             )}
+            {/* ⊞ cross-app switcher only (logo="off" — the logo is shown on the far
+                left). Uses the shared hausbar.js component's existing API, so no
+                other repo is affected. */}
+            <haus-switcher current="shaq" logo="off"></haus-switcher>
           </div>
         </div>
       </header>

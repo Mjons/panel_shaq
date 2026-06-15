@@ -4,7 +4,7 @@ declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
       "haus-switcher": DetailedHTMLProps<
-        HTMLAttributes<HTMLElement> & { current?: string },
+        HTMLAttributes<HTMLElement> & { current?: string; logo?: string },
         HTMLElement
       >;
     }

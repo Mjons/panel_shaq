@@ -31,6 +31,9 @@ const SIBLINGS = [
 class HausSwitcherMock extends HTMLElement {
   connectedCallback() {
     const current = this.getAttribute("current") || "";
+    // Mirror the real hausbar.js: logo="off" → render just the ⊞ switcher (the host
+    // shows its own logo elsewhere). Keeps dev consistent with prod.
+    const showLogo = this.getAttribute("logo") !== "off";
     const root = this.attachShadow({ mode: "open" });
 
     root.innerHTML = `
@@ -73,9 +76,13 @@ class HausSwitcherMock extends HTMLElement {
       </style>
 
       <button class="trigger" part="trigger" aria-label="Switch Panel Haus app" title="Switch app (mock)">⊞</button>
-      <a class="logo" href="https://panelhaus.app/universe" target="_blank" rel="noopener noreferrer">
+      ${
+        showLogo
+          ? `<a class="logo" href="https://panelhaus.app/universe" target="_blank" rel="noopener noreferrer">
         PANELHAUS<span class="dot">.app</span>
-      </a>
+      </a>`
+          : ""
+      }
       <span class="mock-badge">mock</span>
 
       <div class="scrim" role="dialog" aria-modal="true" aria-label="Panel Haus apps">
