@@ -166,10 +166,10 @@ export function AccountControls({ onSettings }: { onSettings: () => void }) {
   return (
     <>
       <SignedOut>
-        <WalletDeepLinkButton />
+        <WalletDeepLinkButton compact />
         <SignInButton mode="modal">
           <button
-            className="text-sm font-semibold text-primary hover:opacity-80 active:scale-90 transition px-3 py-1.5 rounded-lg border border-primary/40"
+            className="shrink-0 whitespace-nowrap text-sm font-semibold text-primary hover:bg-primary/10 active:scale-95 transition-colors px-3 py-1.5 rounded-lg border border-primary/40"
             aria-label="Sign in"
           >
             Sign in
