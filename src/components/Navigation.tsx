@@ -47,17 +47,8 @@ export const TopNav = ({
       >
         <div className="flex justify-between items-center w-full px-6 py-4">
           <div className="flex items-center gap-3">
-            <a
-              href="https://panelhaus.app/universe"
-              aria-label="Go to the Panel Haus universe"
-              className="shrink-0 hover:opacity-80 transition-opacity active:scale-90 duration-200"
-            >
-              <img
-                src="/icons/icon-192.png"
-                alt="Panel Haus"
-                className="w-8 h-8 rounded-lg"
-              />
-            </a>
+            {/* Panel Haus cross-app switcher (far left, like the PH /app page) */}
+            <haus-switcher current="shaq"></haus-switcher>
             <button
               onClick={() => setIsMenuOpen(true)}
               className="text-primary hover:opacity-80 transition-opacity active:scale-90 duration-200"

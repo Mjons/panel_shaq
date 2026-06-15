@@ -18,6 +18,13 @@ import "./index.css";
 // Clerk-free.
 const clerkKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined;
 
+// DEV-ONLY: the real <haus-switcher> embed (panelhaus.app/embed/hausbar.js) isn't
+// live yet, so register a local mock so the switcher is visible while developing.
+// Tree-shaken out of prod builds by the import.meta.env.DEV guard.
+if (import.meta.env.DEV) {
+  import("./hausbar-mock");
+}
+
 // MemeGen → Panel Haus Mobile handoff lands at /c/from-meme. Render a self-contained
 // guest meme editor (no router, no EmailGate) instead of the main tab app.
 const isMemeReceiver = window.location.pathname === "/c/from-meme";
