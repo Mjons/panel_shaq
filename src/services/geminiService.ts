@@ -181,6 +181,8 @@ export async function apiPost<T>(
           clearTimeout(timer);
           const { openBuyCredits } = await import("./buyCredits");
           openBuyCredits("out_of_ink");
+          const { track } = await import("./analytics");
+          track("out_of_ink", { tool: endpoint, source: "precheck" });
           throw new OutOfInkError();
         }
       }
@@ -220,6 +222,7 @@ export async function apiPost<T>(
         } catch {
           /* ignore */
         }
+        track("out_of_ink", { tool: endpoint, source: "server_402" });
         throw new OutOfInkError();
       }
       throw new Error(err.error || `API error ${res.status}`);
@@ -233,6 +236,7 @@ export async function apiPost<T>(
       } catch {
         /* ignore */
       }
+      track("ink_spent", { tool: endpoint, balance_after: data.newBalance });
     }
     return data;
   } catch (error) {

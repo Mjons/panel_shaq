@@ -1,5 +1,25 @@
 # Changelog
 
+## June 16, 2026 — Product analytics (PostHog)
+
+- **Added PostHog alongside Vercel Analytics**, both fed from one wrapper (`src/services/analytics.ts`): every `track()` event now fans out to both. Gated on `VITE_POSTHOG_KEY`; unset and it's a no-op (Vercel still runs), so dev without the key behaves exactly as before.
+- **Identified analytics for case studies.** Signed-in users are identified by their Clerk id with `email`/`wallet`, `auth_method`, `signup_date`, and `tier` (set once the balance loads), via `<PosthogIdentifyBridge/>`; reset on sign-out.
+- **Key events** (answer "how many signed up / which AI tools / where ink goes"): `signed_up`, `generation_started {type}` (per tool), `ink_spent`, `out_of_ink`, `checkout_started`, `purchase_completed`, `referral_shared`, plus autocapture + SPA pageviews. Config: US host, `identified_only` person profiles. Full taxonomy + suggested funnels: `documents/POSTHOG_ANALYTICS.md`.
+
+## June 15, 2026 — Wallet sign-in, nav split, +4 meme templates
+
+- **Wallet sign-in through Clerk.** Clerk's native MetaMask button shows **only where a wallet provider exists** (desktop extension / MetaMask in-app browser); plain mobile browsers get an **"Open in MetaMask"** deep-link that reopens the site in the wallet's in-app browser (then the native flow works). Auth stays 100% Clerk, so the account + ink balance stay shared. No wagmi/SIWE, no new deps.
+- **Nav split** (matches the desktop header): the ecosystem logo on the **far left** (links to `panelhaus.app/universe`) and the ⊞ cross-app switcher on the **far right** (via the shared component's `logo="off"`). Compact icon buttons + no-wrap labels so nothing overflows on mobile.
+- **4 new meme templates** with hand-calibrated caption zones: `spongebob-burning-paper`, `first-world-problems`, `im-the-captain-now`, `uno-draw-25-cards`. The `/c/from-meme` dev stub now resolves any template's image from the registry (no more per-template config).
+
+## June 14, 2026 — Shared Panel Haus accounts + ink credits (Clerk)
+
+- **One account, one balance across both apps.** panel_shaq now shares a single Clerk login and a single ink-credit balance with Panel Haus (`panelhaus.app`); sign up on mobile and it's the same user, with the same balance, on desktop. Soft gate: the app opens freely and only prompts sign-in when a non-BYOK user triggers a generation. Gated on `VITE_CLERK_PUBLISHABLE_KEY`; with it unset the app runs the legacy anonymous/BYOK path unchanged.
+- **Metering on every AI tool.** Each AI action reserves ink from the shared balance before running and refunds on failure: images cost by model (flash 1 / pro 2), text/vision 1. Per-action **cost badges** on the generate buttons + a cost table in Settings, an ink-balance chip in the nav, and an **instant out-of-ink** prompt that opens the buy sheet. **BYOK** (your own Gemini key) bypasses auth + credits.
+- **Buy ink in-app.** Booster packs (75 / 150 / 300) via Panel Haus's existing Stripe: hosted checkout, return-to-app with balance refresh. We hold no Stripe secrets, price IDs, or webhook.
+- **Referral.** Captures an incoming `?ref=PH-XXXXXX` and links it on sign-in via Panel Haus's idempotent endpoint; share your own invite link (with a referral count) from Settings.
+- **Account UI.** Custom account menu (email or truncated wallet + sign out), tier labels (e.g. "Founder Pass"), and the Clerk sign-in modal themed to the app. Docs: `documents/CLERK_AUTH_AND_WALLET_ARCHITECTURE.md`, `INTEGRATE_NEW_APP_INTO_CLERK_ECOSYSTEM.md`.
+
 ## June 6, 2026 — Domain move groundwork (`m.panelhaus.app`)
 
 - **Cross-origin data migration.** localStorage + IndexedDB are per-origin, so moving the canonical host from `shaq.panelhaus.app` to `m.panelhaus.app` would strand existing users' on-device projects. Added a one-time, same-site migration: `public/migrate-bridge.html` (a read-only exporter served on the old origin) + `src/services/originMigration.ts` (runs once on first load of `m.panelhaus.app`, pulls the old origin's storage via a hidden iframe + `postMessage`, writes it locally, then mounts). Self-gates to the new host and never clobbers existing data. **Requires the old host to keep serving `/migrate-bridge.html`** (don't blanket-redirect it).

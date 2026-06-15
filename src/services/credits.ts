@@ -50,7 +50,11 @@ export async function fetchAccount(
     const credits = typeof d?.credits === "number" ? d.credits : null;
     const tier = typeof d?.tier === "string" ? d.tier : null;
     if (credits !== null) cachedCredits = credits;
-    if (tier !== null) cachedTier = tier;
+    if (tier !== null) {
+      cachedTier = tier;
+      // Tag the PostHog person with their tier for case-study segmentation.
+      import("./analytics").then(({ setUserProps }) => setUserProps({ tier }));
+    }
     return { credits, tier };
   } catch {
     return { credits: null, tier: null };

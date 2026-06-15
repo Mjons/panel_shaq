@@ -20,6 +20,7 @@ import {
   hydratePanel,
 } from "./services/geminiService";
 import { onOpenBuyCredits, type BuyReason } from "./services/buyCredits";
+import { track } from "./services/analytics";
 import {
   isClerkEnabled,
   getClerkToken,
@@ -294,6 +295,7 @@ function AppInner() {
 
     if (isSuccess) {
       addToast("Purchase complete. Credits added.", "success");
+      track("purchase_completed", { type: params.get("type") || "booster" });
       let cancelled = false;
       const refresh = async () => {
         const t = await getClerkToken();

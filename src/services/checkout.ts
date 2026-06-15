@@ -28,5 +28,11 @@ export async function startBoosterCheckout(
   if (!r.ok || !d?.url)
     throw new Error(d?.error || "Couldn't start checkout.");
 
+  try {
+    const { track } = await import("./analytics");
+    track("checkout_started", { pack: boosterSize });
+  } catch {
+    /* ignore */
+  }
   window.location.href = d.url; // Stripe-hosted checkout
 }

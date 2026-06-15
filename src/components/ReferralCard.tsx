@@ -49,6 +49,9 @@ export function ReferralCard() {
     try {
       if (navigator.share) {
         await navigator.share(shareData);
+        import("../services/analytics").then(({ track }) =>
+          track("referral_shared", { method: "web_share" }),
+        );
         return;
       }
     } catch {

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Panel Haus Mobile** (formerly "Panel Shaq"; PWA name: **Panelhaus**) is a mobile-first, AI-powered comic creation studio. Users write a story, generate comic panels with Gemini, manage reusable assets (characters/environments/props/vehicles), lay panels out into pages, add speech bubbles, and export. There is a companion **desktop** app at panelhaus.app — this repo is the mobile/tablet half and exports `.comic` packages the desktop app can import.
 
-Frontend: React 19 + Vite 6 + Tailwind CSS v4 (config-in-CSS via `@theme`). Backend: Vercel serverless functions in `api/`. AI: Google Gemini via REST. Usage metering + email capture: Supabase. Product analytics: Vercel Analytics.
+Frontend: React 19 + Vite 6 + Tailwind CSS v4 (config-in-CSS via `@theme`). Backend: Vercel serverless functions in `api/`. AI: Google Gemini via REST. Usage metering + email capture: Supabase. Product analytics: Vercel Analytics + PostHog.
 
 ## Commands
 
@@ -120,7 +120,7 @@ Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-pan
 
 ### Analytics
 
-`@vercel/analytics` is mounted via `<Analytics/>` in `src/main.tsx`, and `trackColdLanding()` fires once at startup. `src/services/analytics.ts` wraps it with `track` / `trackOnce` (session-deduped). Screens call `track(...)` directly (e.g. `"share_completed"`) or lazy-import `trackOnce`. Adding analytics is fire-and-forget; don't block UX on it.
+`src/services/analytics.ts` is the single funnel: `track()`/`trackOnce()` **fan out to BOTH Vercel Analytics and PostHog**. `@vercel/analytics` is mounted via `<Analytics/>` in `src/main.tsx` (always on); **PostHog** (`posthog-js`) is initialized by `initAnalytics()` in `main.tsx`, **gated on `VITE_POSTHOG_KEY`** (unset → PostHog is a no-op, Vercel still runs). Because every event flows through `track()`, existing events (`generation_started {type}`, `share_completed`, etc.) reach PostHog automatically. PostHog also gets: `identifyUser`/`resetUser` via `<PosthogIdentifyBridge/>` (Clerk sign-in → identify with email/wallet + auth_method; sign-out → reset), `setUserProps({tier})` from `credits.ts`, and targeted events (`signed_up`, `ink_spent`, `out_of_ink`, `checkout_started`, `purchase_completed`, `referral_shared`). Config: US host, `capture_pageview:'history_change'`, autocapture on, `person_profiles:'identified_only'`. Adding analytics is fire-and-forget; don't block UX on it. See `documents/POSTHOG_ANALYTICS.md`.
 
 ### Export / desktop bridge
 

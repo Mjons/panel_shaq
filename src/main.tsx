@@ -6,9 +6,10 @@ import App from "./App.tsx";
 import { FromMemeRoot } from "./from-meme/FromMemeRoot";
 import { ClerkTokenBridge } from "./services/ClerkTokenBridge";
 import { ReferralLinker } from "./components/ReferralLinker";
+import { PosthogIdentifyBridge } from "./components/PosthogIdentifyBridge";
 import { clerkAppearance } from "./clerkAppearance";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { trackColdLanding } from "./services/analytics";
+import { initAnalytics, trackColdLanding } from "./services/analytics";
 import { maybeMigrateFromOldOrigin } from "./services/originMigration";
 import "./index.css";
 
@@ -30,6 +31,7 @@ if (import.meta.env.DEV) {
 const isMemeReceiver = window.location.pathname === "/c/from-meme";
 
 function mount() {
+  initAnalytics(); // PostHog (gated on VITE_POSTHOG_KEY); Vercel Analytics always on
   trackColdLanding();
   // The main tab app, optionally wrapped in Clerk. Meme receiver stays Clerk-free.
   const mainApp =
@@ -37,6 +39,7 @@ function mount() {
       <ClerkProvider publishableKey={clerkKey} appearance={clerkAppearance}>
         <ClerkTokenBridge />
         <ReferralLinker />
+        <PosthogIdentifyBridge />
         <App />
       </ClerkProvider>
     ) : isMemeReceiver ? (
