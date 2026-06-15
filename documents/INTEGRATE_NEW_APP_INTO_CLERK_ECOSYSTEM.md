@@ -125,8 +125,12 @@ be added there**, or PH returns `401` for every call from your app even though s
   `allowedRedirectOrigins` on the primary). Subdomains don't need this; different roots do.
 - Sign-in methods (Email/Google/MetaMask) are **instance-level** (shared). You can't toggle them
   per app in the dashboard; adjust per-app via `appearance` only (see §7).
-- Keep **bot protection ON** in prod; turn it OFF only on the **dev** instance if the web3
-  sign-up CAPTCHA loops locally.
+- **Bot protection (Smart CAPTCHA) is currently OFF instance-wide** because its invisible widget
+  looped infinitely (re-challenging without completing sign-up) on dev *and* prod. It's a shared
+  instance, so this affects every app on it. Bounded risk: it only guards sign-up (not sign-in or
+  tokens); the realistic exposure is automated free-credit farming, mitigated by the inherent
+  friction of email-OTP/Google/wallet sign-up and PH's per-account weekly spend limits. Re-enable
+  once the loop is fixed; keep your free-tier credit grant modest meanwhile.
 
 ---
 
@@ -184,7 +188,7 @@ instead, but that's rarely worth it.
 | `401` from PH while "signed in" | Different Clerk instance than PH, **or** your origin not in PH's `authorizedParties` (§4). |
 | `clerk.<domain>/v1/environment` 400 on localhost | Using `pk_live` on localhost. Use dev `pk_test`. |
 | Balance call returns `308 {}` / stuck | `PANELHAUS_API_BASE` had a trailing slash / apex / whitespace → redirect strips `Authorization`. Normalize to `www`, trim, strip trailing slash (§3). |
-| MetaMask CAPTCHA loops (dev) | Turn OFF bot protection on the **dev** Clerk instance only. |
+| CAPTCHA / bot-protection widget loops (sign-up never completes) | Known issue here; bot protection is currently OFF instance-wide. Bounded risk (sign-up only) + mitigations in §5. Re-enable when the loop is fixed. |
 | Env changed but behavior didn't | `VITE_` keys bake at build; redeploy. Server env applies on next deploy too. |
 | Wallet button does nothing in a plain mobile browser | No `window.ethereum`; that's expected. Use the deep-link (§6). |
 

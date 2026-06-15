@@ -161,13 +161,30 @@ link is plain navigation.
 
 ---
 
-## 7. CAPTCHA / bot protection
+## 7. CAPTCHA / bot protection (currently OFF, instance-wide)
 
-Clerk bot-protection (Smart CAPTCHA) fires on **sign-up**, including first-time web3. The prebuilt
-modal + native MetaMask button **handle CAPTCHA themselves**, so we do **not** add a manual
-`<div id="clerk-captcha"/>` (a global one previously interfered with the modal's wallet prompt). In
-local dev the CAPTCHA can loop on the dev instance; the fix is to turn **off** bot protection on the
-**Development** Clerk instance only (prod keeps it on). See `LOCAL_DEV_CLERK_CREDITS.md`.
+Clerk bot-protection (Smart CAPTCHA) fires on **sign-up**, including first-time web3. In this
+deployment its invisible widget **looped infinitely** (it kept re-challenging and never completed
+sign-up) on **both dev and prod**, so **bot protection is turned OFF at the Clerk instance level**
+(it's a shared instance, so this affects panel_shaq and panelhaus alike). We also do **not** add a
+manual `<div id="clerk-captcha"/>` (a global one previously interfered with the modal's wallet
+prompt); the prebuilt modal + native MetaMask button would handle CAPTCHA themselves if it were on.
+
+**Is this a security risk?** Bounded, not catastrophic. Bot protection only guards **sign-up**
+(it does nothing for sign-in, credential, token, or balance security). The realistic exposure with
+it off is **automated mass sign-ups farming the free ink allotment** (cost/abuse), not account
+takeover. Two things keep that in check:
+- **The enabled sign-in methods already have inherent friction:** email requires a real OTP inbox,
+  Google requires a real Google account, wallet requires a real signature. None is trivially
+  scriptable at scale.
+- **Server-side limits are the real guard:** PH meters every spend with atomic reserve + per-account
+  weekly limits (`WEEKLY_LIMIT_REACHED`), so even a farmed account can't overspend, and the free
+  allotment per account is modest.
+
+**Recommendation:** treat this as a temporary state. The loop is a fixable config issue (the smart
+widget's render target / domain config / the embedded+web3 flow), and re-enabling bot protection is
+the ideal once fixed. Until then, keep the free-tier ink amount conservative and watch for sign-up
+spikes. See `LOCAL_DEV_CLERK_CREDITS.md` for the dev loop notes.
 
 ---
 

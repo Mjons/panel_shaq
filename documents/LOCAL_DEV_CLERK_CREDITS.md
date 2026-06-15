@@ -31,9 +31,15 @@ Clerk's bot-protection CAPTCHA; the invisible widget loops on a dev instance + l
 **Fix (do this for local dev):**
 1. Clerk Dashboard → switch to the **Development** instance (not Production).
 2. **Configure → Attack protection** (Bot sign-up protection) → **turn it OFF**.
-3. It's **per-instance**, so production keeps bot protection ON — unaffected.
+3. It's **per-instance** (Development vs Production are separate toggles).
 
 After that, wallet/email sign-up completes locally with no CAPTCHA.
+
+> **Note (2026-06): the loop also happened on the Production instance, so bot protection is
+> currently OFF on prod too** (not just dev). This is a bounded risk (it only guards sign-up; the
+> exposure is automated free-ink farming, mitigated by email-OTP/Google/wallet friction + PH's
+> per-account weekly limits) and should be re-enabled once the loop's root cause is fixed. Full
+> security assessment: `CLERK_AUTH_AND_WALLET_ARCHITECTURE.md` §7.
 
 **Do NOT** add a global `<div id="clerk-captcha" />` to "fix" it — that's only for
 **custom** sign-up forms. With the prebuilt `<SignIn>` modal it pulls the CAPTCHA out of

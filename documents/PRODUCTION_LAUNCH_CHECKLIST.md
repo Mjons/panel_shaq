@@ -51,8 +51,12 @@ email + Google cover everyone else.
       (Separate from the backend `authorizedParties` list used by `verifyToken`, which already
       includes `m.panelhaus.app` in code.)
 - [ ] Sign-in methods **Email + Google + MetaMask** enabled (instance-level, already shared).
-- [ ] **Bot protection stays ON** in production (it's only turned OFF on the *dev* instance
-      to avoid the wallet/email CAPTCHA loop — never disable it in prod).
+- [ ] **Bot protection (Smart CAPTCHA) is currently OFF instance-wide** (dev + prod): its
+      invisible widget looped infinitely and blocked sign-up, so it was disabled. This is a
+      bounded risk (it only guards sign-up, not sign-in/tokens): the realistic exposure is
+      automated free-ink farming, mitigated by the inherent friction of email-OTP/Google/wallet
+      sign-up and PH's per-account weekly spend limits. Keep the free-tier ink amount modest and
+      re-enable once the loop is fixed. See `CLERK_AUTH_AND_WALLET_ARCHITECTURE.md` §7.
 
 ---
 
