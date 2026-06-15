@@ -26,14 +26,23 @@ export async function shareImage(
   filename: string,
 ): Promise<ShareResult> {
   const file = new File([blob], filename, { type: "image/png" });
-  if (navigator.canShare?.({ files: [file] })) {
+  // Attempt the native share sheet whenever navigator.share exists. Don't gate
+  // solely on canShare: some mobile browsers support navigator.share with files
+  // but DON'T expose navigator.canShare, so `canShare?.()` is undefined and we'd
+  // wrongly fall straight through to download. Only skip when canShare EXISTS and
+  // explicitly reports the file isn't shareable.
+  const filesShareable =
+    typeof navigator.canShare === "function"
+      ? navigator.canShare({ files: [file] })
+      : true;
+  if (typeof navigator.share === "function" && filesShareable) {
     try {
       await navigator.share({ title: "My meme", files: [file] });
       track("share_completed", { surface: "meme_share" });
       return "shared";
     } catch (e) {
       if ((e as Error).name === "AbortError") return "cancelled";
-      // post-canShare rejection (size/deny) — fall through to download
+      // real rejection (size/deny/unsupported) — fall through to download
     }
   }
   downloadBlob(blob, filename);

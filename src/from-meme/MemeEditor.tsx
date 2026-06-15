@@ -70,6 +70,16 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
 
   const blobRef = useRef<Blob | null>(null);
   const dataUrlRef = useRef<string | null>(null);
+  // Timestamp of the last caption selection. Tapping a caption selects it on
+  // pointerup, but in-app WebViews (e.g. MetaMask's) fire a delayed/ghost `click`
+  // that can land on the background deselect right after, instantly closing the
+  // editor (a slow, deliberate tap avoids the ghost click). Ignore a background
+  // deselect within this window of a select so the toolbar stays open.
+  const lastSelectAtRef = useRef(0);
+  const selectZone = (id: string | null) => {
+    if (id) lastSelectAtRef.current = Date.now();
+    setSelectedId(id);
+  };
 
   // Fit the meme into the available area (no scrolling, any aspect). Aspect comes
   // from the actual loaded image so any handoff/stub image lines up with its zones.
@@ -283,10 +293,14 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
         </p>
       </header>
 
-      {/* Tapping outside a caption deselects */}
+      {/* Tapping outside a caption deselects (ignoring the ghost click that can
+          immediately follow a selection in in-app WebViews). */}
       <main
         className="flex-1 min-h-0 overflow-hidden p-3"
-        onClick={() => setSelectedId(null)}
+        onClick={() => {
+          if (Date.now() - lastSelectAtRef.current < 400) return;
+          setSelectedId(null);
+        }}
       >
         <div
           ref={areaRef}
@@ -316,7 +330,7 @@ export function MemeEditor({ payload, token }: MemeEditorProps) {
                 editable
                 onlySelectedHandles
                 selectedId={selectedId}
-                onSelect={setSelectedId}
+                onSelect={selectZone}
                 onChange={onZonesChange}
               />
             </div>
