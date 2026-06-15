@@ -65,6 +65,8 @@ panel_shaq shares **one Clerk account and one ink balance** with Panel Haus (pan
 
 `@clerk/clerk-react` (frontend) + `@clerk/backend` (route `verifyToken`) are the deps. Sign-in methods (Email + Google + MetaMask) are configured at the **shared Clerk dashboard**, instance-level. The `/c/from-meme` meme receiver stays **Clerk-free**.
 
+> **MetaMask is hidden on mobile (panel_shaq only).** Because sign-in methods are instance-level (shared with panelhaus), there's no dashboard toggle to disable MetaMask for just this app. Instead it's **hidden via `src/clerkAppearance.ts`** (`socialButtonsBlockButton__metamask` / `socialButtonsIconButton__metamask` → `display:none`), which is panel_shaq's own appearance, so panelhaus still shows it. This covers both sign-in and sign-up (appearance is set on `<ClerkProvider>`). It's cosmetic (the web3 strategy stays enabled instance-wide). To re-enable, delete those two lines.
+
 ### MemeGen meme-handoff receiver (`/c/from-meme`) — a second root
 
 This SPA has **no router**, so `src/main.tsx` branches on `window.location.pathname`: when it's `/c/from-meme` it renders `src/from-meme/FromMemeRoot.tsx` **instead of** `<App/>`, bypassing `EmailGate` entirely. This is the mobile half of MemeGen's "add text" handoff (desktop half is Panelhaus). Flow + reasoning: `documents/MEMEGEN_HANDOFF_AND_DESKTOP_UPSELL_STRATEGY.md`.
