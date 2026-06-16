@@ -22,20 +22,21 @@ functions in `api/` · Google Gemini (REST) · Clerk (shared auth + credits, opt
 
 ```bash
 npm install            # install deps
-npm run dev            # Vite dev server on :3000 — FRONTEND ONLY (/api routes won't run)
-npm run dev:full       # vercel dev — frontend + api/ serverless functions together
+npm run dev            # Vite dev server on :3000 — frontend + /api routes in one process
 npm run build          # vite build → dist/
 npm run preview        # preview the production build
 npm run lint           # tsc --noEmit — the ONLY check (no test suite, no ESLint)
 ```
 
-- To exercise anything that calls `/api/*` (panel/image generation, polish, critique,
-  credits), you must run the API functions — use `npm run dev:full`, not `npm run dev`.
-- **Windows note:** on some setups `vercel dev` doesn't pass `.env.local` to the `/api`
-  functions (the client reads it fine, the functions see them MISSING). Use the included
-  **`dev.ps1`** launcher instead — it loads `.env.local` into the shell, then runs `vercel dev`:
-  ```powershell
-  .\dev.ps1
+- `npm run dev` serves the `api/*.ts` handlers in-process via the `vercelApiDev` plugin
+  in `vite.config.ts`, so panel/image generation, polish, critique, and credits all work
+  without `vercel dev` (one process, one port).
+- **If `/api` env vars come up MISSING** (the client reads `.env.local` fine, but the
+  serverless handlers see them as missing), use the included launcher that loads
+  `.env.local` into the shell and then runs Vite:
+  ```bash
+  ./dev.sh      # Linux / macOS
+  .\dev.ps1     # Windows (PowerShell)
   ```
 
 ## Configuration (env vars)
