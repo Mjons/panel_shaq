@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Share2,
   Download,
@@ -8,15 +8,27 @@ import {
   Copy,
   Check,
   Upload,
+  Film,
+  FileDown,
+  Loader2,
 } from "lucide-react";
 import type { PanelPrompt } from "../services/geminiService";
-import type { Page } from "./LayoutScreen";
+import { type Page, PAGE_FORMATS } from "./LayoutScreen";
 import type { VaultEntry } from "./VaultScreen";
 import {
   exportAsComic,
   downloadComicFile,
 } from "../services/exportComicService";
 import { track } from "../services/analytics";
+import { ComicPageCanvas } from "../components/ComicPageCanvas";
+import {
+  exportPagesPNG,
+  sharePages,
+  createGif,
+  waitForPaint,
+  type PageExportDriver,
+  type GifMode,
+} from "../services/comicPageExport";
 
 interface ExportItem {
   id: string;
@@ -33,6 +45,9 @@ interface ShareProps {
   pages?: Page[];
   panels?: PanelPrompt[];
   vaultEntries?: VaultEntry[];
+  pageFormat?: string;
+  onOpenGifEditor?: (images: { id: string; imageData: string }[]) => void;
+  onNavigate?: (tab: string) => void;
 }
 
 export const ShareScreen: React.FC<ShareProps> = ({
@@ -41,6 +56,9 @@ export const ShareScreen: React.FC<ShareProps> = ({
   pages = [],
   panels = [],
   vaultEntries = [],
+  pageFormat,
+  onOpenGifEditor,
+  onNavigate,
 }) => {
   const [exportHistory, setExportHistory] = useState<ExportItem[]>([]);
   const [copied, setCopied] = useState(false);
@@ -52,6 +70,110 @@ export const ShareScreen: React.FC<ShareProps> = ({
 
   const [sharing, setSharing] = useState(false);
   const panelsWithImages = panels.filter((p) => p.image);
+  // The .comic package carries panels, pages, and vault entries — so it's a
+  // meaningful export whenever any of those exist, not only when images render.
+  const hasComicContent =
+    panels.length > 0 || pages.length > 0 || vaultEntries.length > 0;
+  const gifImages = panelsWithImages.map((p) => ({
+    id: p.id,
+    imageData: p.image!,
+  }));
+
+  // ── Offscreen page export (PNG / Share / GIF) ──
+  // The composed page (layout + bubbles) is rendered off-viewport via
+  // <ComicPageCanvas isExporting/> and rasterized by the shared export
+  // algorithms — the same ones the Editor uses.
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [offscreenIdx, setOffscreenIdx] = useState(0);
+  const offscreenRef = useRef<HTMLDivElement | null>(null);
+
+  const pageBackgroundColor = (() => {
+    try {
+      const s = localStorage.getItem("panelshaq_settings");
+      return s ? JSON.parse(s).pageBackgroundColor || "#000000" : "#000000";
+    } catch {
+      return "#000000";
+    }
+  })();
+
+  const fmt = PAGE_FORMATS[pageFormat || "portrait"] || PAGE_FORMATS.portrait;
+  const OFF_W = 1080;
+  const OFF_H = Math.round(OFF_W * (fmt.ratio[1] / fmt.ratio[0]));
+
+  const makeDriver = (): PageExportDriver => ({
+    getNode: () => offscreenRef.current,
+    pageCount: pages.length,
+    currentIndex: offscreenIdx,
+    setPageIndex: async (i: number) => {
+      setOffscreenIdx(i);
+      await waitForPaint();
+    },
+    onProgress: (pct: number) => setProgress(pct),
+    isCancelled: () => false,
+  });
+
+  const addExportHistory = (
+    name: string,
+    data: string,
+    type: "pdf" | "png",
+  ) => {
+    const base64Part = data.split(",")[1] || data;
+    const byteSize = (base64Part.length * 3) / 4;
+    const newItem: ExportItem = {
+      id: crypto.randomUUID(),
+      name,
+      date: new Date().toLocaleDateString(),
+      size: `${(byteSize / 1024 / 1024).toFixed(1)} MB`,
+      data,
+      type,
+    };
+    setExportHistory((prev) => {
+      const updated = [newItem, ...prev].slice(0, 5);
+      localStorage.setItem("comic_export_history", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const runExport = async (fn: () => Promise<void>) => {
+    if (busy || pages.length === 0) return;
+    setBusy(true);
+    setProgress(0);
+    try {
+      await fn();
+    } catch (e) {
+      console.error("Export failed:", e);
+    } finally {
+      setBusy(false);
+      setProgress(0);
+      setOffscreenIdx(0);
+    }
+  };
+
+  const handleDownloadPages = () =>
+    runExport(async () => {
+      const arts = await exportPagesPNG(makeDriver(), true);
+      arts.forEach((a) => addExportHistory(a.fileName, a.dataUri, a.type));
+      track("share_completed", {
+        surface: "export_tab_pages_download",
+        count: arts.length,
+      });
+    });
+
+  const handleSharePages = () =>
+    runExport(async () => {
+      await sharePages(makeDriver(), true, {
+        title: projectName || "My Comic",
+        text: "Made with Panelhaus",
+      });
+      track("share_completed", { surface: "export_tab_pages_share" });
+    });
+
+  const handleGifMode = (mode: GifMode) =>
+    runExport(async () => {
+      await createGif(makeDriver(), mode, pageFormat);
+      track("share_completed", { surface: "export_tab_gif", mode });
+    });
 
   const handleDelete = (id: string) => {
     const updated = exportHistory.filter((item) => item.id !== id);
@@ -114,14 +236,93 @@ export const ShareScreen: React.FC<ShareProps> = ({
     <div className="pt-24 px-6 max-w-2xl mx-auto pb-40">
       <header className="mb-10">
         <span className="font-label text-primary uppercase tracking-[0.2em] text-[10px] mb-2 block">
-          Share
+          Export
         </span>
         <h2 className="font-headline text-5xl font-bold text-accent tracking-tighter">
-          Share & Send
+          Export &amp; Share
         </h2>
       </header>
 
       <div className="space-y-8">
+        {/* Send to Panelhaus Desktop — the lead CTA (mobile is the capture
+            tool; the desktop app is where the full studio lives). */}
+        <section className="bg-surface-container rounded-xl p-6 border border-primary/20 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <Upload size={18} />
+            Send to Panelhaus Desktop
+          </h3>
+          <p className="text-sm text-accent/50">
+            Export as a <strong>.comic</strong> file to continue editing in
+            Panelhaus Desktop — layers, effects, pro text tools, and more.
+          </p>
+          <div className="text-[10px] text-accent/30 space-y-1">
+            <p>
+              Includes: {panelsWithImages.length} panel images,{" "}
+              {vaultEntries.length} vault entries, {pages.length} pages
+            </p>
+          </div>
+          <button
+            onClick={async () => {
+              const json = exportAsComic(
+                projectName,
+                story,
+                pages,
+                panels,
+                vaultEntries,
+              );
+              await downloadComicFile(json, projectName);
+            }}
+            disabled={!hasComicContent}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+          >
+            <Share2 size={18} />
+            SHARE .COMIC FILE
+          </button>
+          {!hasComicContent && (
+            <p className="text-[10px] text-accent/30 text-center">
+              Add characters or generate panels first to export
+            </p>
+          )}
+        </section>
+
+        {/* Download comic pages — rendered offscreen via ComicPageCanvas and
+            rasterized by the shared export algorithms. */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
+          <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
+            <FileDown size={18} />
+            Download Comic Pages
+          </h3>
+          <p className="text-sm text-accent/50">
+            Save your laid-out pages — with layout and speech bubbles — as PNG
+            images, or share them straight from here.
+          </p>
+          <button
+            onClick={handleDownloadPages}
+            disabled={busy || pages.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+          >
+            {busy ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <FileDown size={18} />
+            )}
+            {busy ? `EXPORTING… ${progress}%` : "DOWNLOAD ALL PAGES (PNG)"}
+          </button>
+          <button
+            onClick={handleSharePages}
+            disabled={busy || pages.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold rounded-lg hover:bg-secondary/20 active:scale-95 transition-all disabled:opacity-50"
+          >
+            <Share2 size={16} />
+            SHARE ALL PAGES
+          </button>
+          {pages.length === 0 && (
+            <p className="text-[10px] text-accent/30 text-center">
+              Lay out your panels into pages first
+            </p>
+          )}
+        </section>
+
         {/* Quick Share — share panel images */}
         <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
@@ -132,70 +333,73 @@ export const ShareScreen: React.FC<ShareProps> = ({
             Share individual panel images via email, chat, or social media.
           </p>
 
-          {panelsWithImages.length > 0 ? (
-            <div className="space-y-3">
-              {/* Share all as a batch */}
-              <button
-                onClick={async () => {
-                  setSharing(true);
-                  try {
-                    const files = await Promise.all(
-                      panelsWithImages.map(async (p, i) => {
-                        const res = await fetch(p.image!);
-                        const blob = await res.blob();
-                        return new File([blob], `panel-${i + 1}.png`, {
-                          type: "image/png",
-                        });
-                      }),
-                    );
-                    let shared = false;
-                    if (navigator.canShare?.({ files })) {
-                      try {
-                        await navigator.share({
-                          title: projectName || "My Comic",
-                          text: "Made with Panelhaus",
-                          files,
-                        });
-                        track("share_completed", {
-                          surface: "all_panels",
-                          count: files.length,
-                        });
-                        shared = true;
-                      } catch (e) {
-                        if ((e as Error).name === "AbortError") {
-                          shared = true; // user cancelled — don't auto-download
-                        }
-                        // Otherwise fall through to download
-                      }
-                    }
-                    if (!shared) {
-                      // Fallback: download each
-                      panelsWithImages.forEach((p, i) => {
-                        const link = document.createElement("a");
-                        link.download = `panel-${i + 1}.png`;
-                        link.href = p.image!;
-                        link.click();
+          <div className="space-y-3">
+            {/* Share all as a batch */}
+            <button
+              onClick={async () => {
+                if (panelsWithImages.length === 0) return;
+                setSharing(true);
+                try {
+                  const files = await Promise.all(
+                    panelsWithImages.map(async (p, i) => {
+                      const res = await fetch(p.image!);
+                      const blob = await res.blob();
+                      return new File([blob], `panel-${i + 1}.png`, {
+                        type: "image/png",
+                      });
+                    }),
+                  );
+                  let shared = false;
+                  if (navigator.canShare?.({ files })) {
+                    try {
+                      await navigator.share({
+                        title: projectName || "My Comic",
+                        text: "Made with Panelhaus",
+                        files,
                       });
                       track("share_completed", {
-                        surface: "all_panels_download",
+                        surface: "all_panels",
                         count: files.length,
                       });
+                      shared = true;
+                    } catch (e) {
+                      if ((e as Error).name === "AbortError") {
+                        shared = true; // user cancelled — don't auto-download
+                      }
+                      // Otherwise fall through to download
                     }
-                  } catch (e) {
-                    console.error("Batch share failed:", e);
                   }
-                  setSharing(false);
-                }}
-                disabled={sharing}
-                className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
-              >
-                <Share2 size={18} />
-                {sharing
-                  ? "PREPARING..."
-                  : `SHARE ${panelsWithImages.length} PANELS`}
-              </button>
+                  if (!shared) {
+                    // Fallback: download each
+                    panelsWithImages.forEach((p, i) => {
+                      const link = document.createElement("a");
+                      link.download = `panel-${i + 1}.png`;
+                      link.href = p.image!;
+                      link.click();
+                    });
+                    track("share_completed", {
+                      surface: "all_panels_download",
+                      count: files.length,
+                    });
+                  }
+                } catch (e) {
+                  console.error("Batch share failed:", e);
+                }
+                setSharing(false);
+              }}
+              disabled={sharing || panelsWithImages.length === 0}
+              className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+            >
+              <Share2 size={18} />
+              {sharing
+                ? "PREPARING..."
+                : panelsWithImages.length > 0
+                  ? `SHARE ${panelsWithImages.length} PANELS`
+                  : "SHARE PANELS"}
+            </button>
 
-              {/* Individual panel thumbnails */}
+            {/* Individual panel thumbnails */}
+            {panelsWithImages.length > 0 ? (
               <div className="grid grid-cols-3 gap-2">
                 {panelsWithImages.map((p, i) => (
                   <button
@@ -254,50 +458,90 @@ export const ShareScreen: React.FC<ShareProps> = ({
                   </button>
                 ))}
               </div>
-            </div>
-          ) : (
-            <p className="text-[10px] text-accent/30 text-center py-4">
-              Generate some panels first to share
-            </p>
-          )}
+            ) : (
+              <p className="text-[10px] text-accent/40 text-center">
+                Generate panels first to share individual images
+              </p>
+            )}
+          </div>
         </section>
 
-        {/* Export for Panelhaus */}
-        <section className="bg-surface-container rounded-xl p-6 border border-primary/20 space-y-4">
+        {/* Make a GIF — quick all-pages renders + the full GIF editor */}
+        <section className="bg-surface-container rounded-xl p-6 border border-outline/10 space-y-4">
           <h3 className="font-headline text-lg font-bold text-primary flex items-center gap-2">
-            <Upload size={18} />
-            Send to Panelhaus Desktop
+            <Film size={18} />
+            Make a GIF
           </h3>
           <p className="text-sm text-accent/50">
-            Export as a <strong>.comic</strong> file to continue editing in
-            Panelhaus Desktop — layers, effects, pro text tools, and more.
+            Render an animated GIF of your whole comic, or fine-tune timing and
+            motion in the editor.
           </p>
-          <div className="text-[10px] text-accent/30 space-y-1">
-            <p>
-              Includes: {panels.filter((p) => p.image).length} panel images,{" "}
-              {vaultEntries.length} vault entries, {pages.length} pages
-            </p>
-          </div>
+
+          {pages.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-accent/40">
+                Quick render (all pages)
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {(
+                  [
+                    {
+                      mode: "story-flow",
+                      label: "Story Flow",
+                      desc: "Panels only",
+                    },
+                    {
+                      mode: "page-reveal",
+                      label: "Page Reveal",
+                      desc: "Panels + page",
+                    },
+                    {
+                      mode: "slideshow",
+                      label: "Slideshow",
+                      desc: "Pages only",
+                    },
+                    {
+                      mode: "cinematic",
+                      label: "Cinematic",
+                      desc: "Zoom & pan",
+                    },
+                  ] as { mode: GifMode; label: string; desc: string }[]
+                ).map(({ mode, label, desc }) => (
+                  <button
+                    key={mode}
+                    onClick={() => handleGifMode(mode)}
+                    disabled={busy}
+                    className="py-2.5 px-2 rounded-lg bg-accent/5 text-accent/70 border border-accent/10 font-headline font-bold text-[11px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
+                  >
+                    <span>{label}</span>
+                    <span className="text-[8px] text-accent/30 font-normal">
+                      {desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {busy && (
+                <div className="flex items-center justify-center gap-2 text-[10px] text-accent/50">
+                  <Loader2 size={12} className="animate-spin" />
+                  Rendering… {progress}%
+                </div>
+              )}
+            </div>
+          )}
+
           <button
-            onClick={async () => {
-              const json = exportAsComic(
-                projectName,
-                story,
-                pages,
-                panels,
-                vaultEntries,
-              );
-              await downloadComicFile(json, projectName);
+            onClick={() => {
+              if (gifImages.length > 0) onOpenGifEditor?.(gifImages);
             }}
-            disabled={panels.length === 0}
-            className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
+            disabled={gifImages.length === 0}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-primary/10 text-primary border border-primary/20 font-headline font-bold rounded-lg hover:bg-primary/20 active:scale-95 transition-all disabled:opacity-50"
           >
-            <Share2 size={18} />
-            SHARE .COMIC FILE
+            <Film size={16} />
+            OPEN GIF EDITOR
           </button>
-          {panels.length === 0 && (
+          {gifImages.length === 0 && pages.length === 0 && (
             <p className="text-[10px] text-accent/30 text-center">
-              Generate some panels first to export
+              Generate panels first to make a GIF
             </p>
           )}
         </section>
@@ -379,6 +623,36 @@ export const ShareScreen: React.FC<ShareProps> = ({
           )}
         </section>
       </div>
+
+      {/* Offscreen render host — ComicPageCanvas drawn off-viewport at a fixed
+          size so the page-export algorithms can rasterize the composed page
+          (layout + bubbles). Kept mounted (one page at a time) only when there
+          are pages to export. */}
+      {pages.length > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: "fixed",
+            left: -99999,
+            top: 0,
+            width: OFF_W,
+            height: OFF_H,
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            ref={offscreenRef}
+            className="bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full overflow-hidden"
+          >
+            <ComicPageCanvas
+              currentPage={pages[offscreenIdx]}
+              panels={panels}
+              pageBackgroundColor={pageBackgroundColor}
+              isExporting={true}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

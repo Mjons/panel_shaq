@@ -36,7 +36,7 @@ export const TopNav = ({
     { id: "layout", icon: Layout, label: "Layout" },
     { id: "editor", icon: PenTool, label: "Editor" },
     { id: "vault", icon: Globe, label: "World Vault" },
-    { id: "share", icon: Share2, label: "Share" },
+    { id: "share", icon: Share2, label: "Export" },
   ];
 
   return (
@@ -231,7 +231,7 @@ export const BottomNav = ({
     { id: "director", icon: "auto_stories", label: "Director" },
     { id: "layout", icon: "auto_awesome_motion", label: "Layout" },
     { id: "editor", icon: "view_quilt", label: "Editor" },
-    { id: "vault", icon: "public", label: "Vault" },
+    { id: "share", icon: "ios_share", label: "Export" },
   ];
 
   // Using Material Symbols for icons as seen in the screenshots

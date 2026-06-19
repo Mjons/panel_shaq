@@ -645,6 +645,9 @@ function AppInner() {
             pages={pages}
             panels={panels}
             vaultEntries={vaultEntries}
+            pageFormat={pageFormat}
+            onOpenGifEditor={setGifEditorImages}
+            onNavigate={guardedSetActiveTab}
           />
         );
       default:
@@ -738,7 +741,6 @@ function AppInner() {
           }}
         />
       )}
-
     </div>
   );
 }
