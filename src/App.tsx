@@ -1,6 +1,7 @@
 import React, {
   useState,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   useRef,
@@ -337,8 +338,13 @@ function AppInner() {
     "workshop",
   );
 
-  const guardedSetActiveTab = useCallback(
-    (tab: string) => {
+  // Per-tab scroll memory. Lateral navigation (bottom nav / menu / swipe)
+  // restores where you last were on that tab; advancing a step snaps to the top.
+  const scrollPositions = useRef<Record<string, number>>({});
+  const pendingScroll = useRef<"top" | "restore" | null>(null);
+
+  const changeTab = useCallback(
+    (tab: string, scroll: "top" | "restore") => {
       if (activeTab === "director" && isGenerating && tab !== "director") {
         if (
           !window.confirm(
@@ -348,10 +354,33 @@ function AppInner() {
           return;
         }
       }
+      scrollPositions.current[activeTab] = window.scrollY;
+      pendingScroll.current = scroll;
       setActiveTab(tab);
     },
     [activeTab, isGenerating, setActiveTab],
   );
+
+  // Lateral navigation → restore last scroll position for the target tab.
+  const guardedSetActiveTab = useCallback(
+    (tab: string) => changeTab(tab, "restore"),
+    [changeTab],
+  );
+  // Advancing through the creation flow → snap to the top of the new step.
+  const goToStep = useCallback(
+    (tab: string) => changeTab(tab, "top"),
+    [changeTab],
+  );
+
+  useLayoutEffect(() => {
+    const mode = pendingScroll.current;
+    pendingScroll.current = null;
+    if (mode === "top") {
+      window.scrollTo(0, 0);
+    } else if (mode === "restore") {
+      window.scrollTo(0, scrollPositions.current[activeTab] ?? 0);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== "vault") setVaultAutoOpen(false);
@@ -581,7 +610,7 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            onGenerateSuccess={() => setActiveTab("director")}
+            onGenerateSuccess={() => goToStep("director")}
             onNavigate={(tab) => {
               if (tab === "vault") setVaultAutoOpen(true);
               guardedSetActiveTab(tab);
@@ -599,7 +628,7 @@ function AppInner() {
             vehicles={vaultEntries.filter((e) => e.type === "Vehicle")}
             story={story}
             projectName={projectName}
-            onContinue={() => guardedSetActiveTab("layout")}
+            onContinue={() => goToStep("layout")}
             onGeneratingChange={setIsGenerating}
           />
         );
@@ -609,7 +638,7 @@ function AppInner() {
             panels={panels}
             pages={pages}
             setPages={setPages}
-            onContinue={() => guardedSetActiveTab("editor")}
+            onContinue={() => goToStep("editor")}
             pageFormat={pageFormat}
             setPageFormat={setPageFormat}
           />
@@ -628,9 +657,8 @@ function AppInner() {
             panels={panels}
             pages={pages}
             setPanels={setPanels}
-            onNavigate={guardedSetActiveTab}
+            onNavigate={goToStep}
             pageFormat={pageFormat}
-            onOpenGifEditor={setGifEditorImages}
             story={story}
             characters={characters}
           />
@@ -661,7 +689,7 @@ function AppInner() {
             setCharacters={setCharacters}
             panels={panels}
             setPanels={setPanels}
-            onGenerateSuccess={() => setActiveTab("director")}
+            onGenerateSuccess={() => goToStep("director")}
           />
         );
     }

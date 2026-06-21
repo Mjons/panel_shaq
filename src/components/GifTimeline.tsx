@@ -58,7 +58,10 @@ export const GifTimeline: React.FC<GifTimelineProps> = ({
 
   return (
     <div className="bg-surface-container rounded-xl p-4 space-y-3">
-      {/* Presets */}
+      {/* Presets / templates — applied live to all panels (WYSIWYG preview) */}
+      <p className="text-[9px] font-bold uppercase tracking-widest text-accent/40">
+        Template
+      </p>
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {PRESET_OPTIONS.map(({ id, label }) => (
           <button

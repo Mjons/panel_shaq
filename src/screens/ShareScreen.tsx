@@ -24,10 +24,8 @@ import { ComicPageCanvas } from "../components/ComicPageCanvas";
 import {
   exportPagesPNG,
   sharePages,
-  createGif,
   waitForPaint,
   type PageExportDriver,
-  type GifMode,
 } from "../services/comicPageExport";
 
 interface ExportItem {
@@ -167,12 +165,6 @@ export const ShareScreen: React.FC<ShareProps> = ({
         text: "Made with Panelhaus",
       });
       track("share_completed", { surface: "export_tab_pages_share" });
-    });
-
-  const handleGifMode = (mode: GifMode) =>
-    runExport(async () => {
-      await createGif(makeDriver(), mode, pageFormat);
-      track("share_completed", { surface: "export_tab_gif", mode });
     });
 
   const handleDelete = (id: string) => {
@@ -473,61 +465,9 @@ export const ShareScreen: React.FC<ShareProps> = ({
             Make a GIF
           </h3>
           <p className="text-sm text-accent/50">
-            Render an animated GIF of your whole comic, or fine-tune timing and
-            motion in the editor.
+            Open the GIF editor to pick an animation template and fine-tune
+            timing and motion — with a live preview of the result.
           </p>
-
-          {pages.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-accent/40">
-                Quick render (all pages)
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    {
-                      mode: "story-flow",
-                      label: "Story Flow",
-                      desc: "Panels only",
-                    },
-                    {
-                      mode: "page-reveal",
-                      label: "Page Reveal",
-                      desc: "Panels + page",
-                    },
-                    {
-                      mode: "slideshow",
-                      label: "Slideshow",
-                      desc: "Pages only",
-                    },
-                    {
-                      mode: "cinematic",
-                      label: "Cinematic",
-                      desc: "Zoom & pan",
-                    },
-                  ] as { mode: GifMode; label: string; desc: string }[]
-                ).map(({ mode, label, desc }) => (
-                  <button
-                    key={mode}
-                    onClick={() => handleGifMode(mode)}
-                    disabled={busy}
-                    className="py-2.5 px-2 rounded-lg bg-accent/5 text-accent/70 border border-accent/10 font-headline font-bold text-[11px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                  >
-                    <span>{label}</span>
-                    <span className="text-[8px] text-accent/30 font-normal">
-                      {desc}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {busy && (
-                <div className="flex items-center justify-center gap-2 text-[10px] text-accent/50">
-                  <Loader2 size={12} className="animate-spin" />
-                  Rendering… {progress}%
-                </div>
-              )}
-            </div>
-          )}
 
           <button
             onClick={() => {

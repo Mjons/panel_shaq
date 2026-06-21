@@ -13,7 +13,6 @@ import {
   ZoomIn,
   Layers,
   Wand2,
-  Share2,
   Download,
   ImageIcon,
   Loader2,
@@ -31,7 +30,6 @@ import {
   Sparkles,
   ArrowRight,
   Dices,
-  Film,
   Check,
   RefreshCw,
 } from "lucide-react";
@@ -49,25 +47,16 @@ import {
   hasActiveBorderStyle,
   randomSeed,
 } from "../utils/borderStyles";
-import {
-  waitForPaint,
-  captureNode,
-  exportPagesPDF,
-  exportPagesPNG,
-  createGif,
-  type GifMode,
-  type PageExportDriver,
-} from "../services/comicPageExport";
+import { waitForPaint, captureNode } from "../services/comicPageExport";
 import { Tip } from "../components/Tip";
 import { InkCost } from "../components/InkCost";
-import { track } from "../services/analytics";
 
 import {
   ComicPageCanvas,
   PanelImage,
   DraggableBubble,
 } from "../components/ComicPageCanvas";
-const SHARE_TEXT = "Made this with panelhaus.app — AI comic creator";
+import smudgeAvatar from "../images/smudge_100.png";
 
 interface EditorProps {
   panels: PanelPrompt[];
@@ -75,7 +64,6 @@ interface EditorProps {
   setPanels: React.Dispatch<React.SetStateAction<PanelPrompt[]>>;
   onNavigate?: (tab: string) => void;
   pageFormat?: string;
-  onOpenGifEditor?: (images: { id: string; imageData: string }[]) => void;
   story?: string;
   characters?: { name: string; description?: string }[];
 }
@@ -86,7 +74,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
   setPanels,
   onNavigate,
   pageFormat = "portrait",
-  onOpenGifEditor,
   story = "",
   characters = [],
 }) => {
@@ -119,13 +106,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   }, []);
   const [isRendering, setIsRendering] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  // Ref (not state) so the cancel check reads the live value inside the
-  // in-flight async export loop rather than a stale render closure.
-  const cancelExportRef = useRef(false);
-  // isFraming removed — selected panels automatically show overflow for transform
-  const [exportProgress, setExportProgress] = useState(0);
-  const [gifVisibleCount, setGifVisibleCount] = useState<number | null>(null);
   const comicRef = useRef<HTMLDivElement>(null);
 
   // Panel-level pinch for bubble font resize — captures pinch from anywhere on the panel
@@ -187,46 +167,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<number>>(
     new Set(),
   );
-  const [exportHistory, setExportHistory] = useState<
-    {
-      id: string;
-      name: string;
-      date: string;
-      size: string;
-      data: string;
-      type: "pdf" | "png";
-    }[]
-  >([]);
-
-  useEffect(() => {
-    // Migrate from localStorage to IndexedDB
-    const saved = localStorage.getItem("comic_export_history");
-    if (saved) {
-      try {
-        setExportHistory(JSON.parse(saved));
-        localStorage.removeItem("comic_export_history");
-      } catch {
-        /* ignore parse errors */
-      }
-    }
-  }, []);
-
-  const addToHistory = (name: string, data: string, type: "pdf" | "png") => {
-    // Calculate actual binary size (base64 is ~33% larger than raw bytes)
-    const base64Part = data.split(",")[1] || data;
-    const byteSize = (base64Part.length * 3) / 4;
-    const newItem = {
-      id: crypto.randomUUID(),
-      name,
-      date: new Date().toLocaleDateString(),
-      size: `${(byteSize / 1024 / 1024).toFixed(1)} MB`,
-      data,
-      type,
-    };
-    const updated = [newItem, ...exportHistory].slice(0, 5);
-    setExportHistory(updated);
-    // Don't persist to localStorage — too large. History is session-only.
-  };
 
   const currentPage = pages[selectedPageIdx];
   const selectedPanel = panels.find((p) => p.id === selectedPanelId);
@@ -341,94 +281,14 @@ export const EditorScreen: React.FC<EditorProps> = ({
     }
   };
 
-  // Wait for React to paint after state change
-  // Thin wrapper preserving the (ref, format) call sites used by critique,
-  // dialogue capture, and the inline share buttons. The capture options +
-  // the page-stepping export algorithms live in services/comicPageExport.
+  // Thin wrapper preserving the (ref, format) call sites used by critique
+  // and dialogue capture. The capture options live in services/comicPageExport.
   const captureRef = async (
     ref: React.RefObject<HTMLDivElement | null>,
     format: "jpeg" | "png",
   ) => {
     if (!ref.current) throw new Error("Ref not available");
     return captureNode(ref.current, format);
-  };
-
-  // Driver that points the shared export algorithms at the Editor's live
-  // comicRef and steps pages via the Editor's selected-page state.
-  const makeExportDriver = (): PageExportDriver => ({
-    getNode: () => comicRef.current,
-    pageCount: pages.length,
-    currentIndex: selectedPageIdx,
-    setPageIndex: async (i: number) => {
-      setSelectedPageIdx(i);
-      await waitForPaint();
-    },
-    onProgress: (pct: number) => setExportProgress(pct),
-    isCancelled: () => cancelExportRef.current,
-  });
-
-  const handleExportPDF = async (allPages: boolean) => {
-    if (!comicRef.current || isExporting) return;
-    setIsExporting(true);
-    cancelExportRef.current = false;
-    setExportProgress(0);
-    setSelectedPanelId(null);
-    setSelectedBubbleId(null);
-    // Wait for selection highlights to clear before capturing
-    await waitForPaint();
-
-    try {
-      const artifact = await exportPagesPDF(makeExportDriver(), allPages);
-      if (artifact) addToHistory(artifact.fileName, artifact.dataUri, "pdf");
-    } catch (error) {
-      console.error("PDF Export failed", error);
-      alert("PDF Export failed. Please check console for details.");
-    } finally {
-      setIsExporting(false);
-      setExportProgress(0);
-      cancelExportRef.current = false;
-    }
-  };
-
-  const handleExportPNG = async (allPages: boolean) => {
-    if (!comicRef.current || isExporting) return;
-    setIsExporting(true);
-    cancelExportRef.current = false;
-    setExportProgress(0);
-    setSelectedPanelId(null);
-    setSelectedBubbleId(null);
-    await waitForPaint();
-
-    try {
-      const artifacts = await exportPagesPNG(makeExportDriver(), allPages);
-      artifacts.forEach((a) => addToHistory(a.fileName, a.dataUri, "png"));
-    } catch (error) {
-      console.error("PNG Export failed", error);
-      alert("PNG Export failed. Please check console for details.");
-    } finally {
-      setIsExporting(false);
-      setExportProgress(0);
-      cancelExportRef.current = false;
-    }
-  };
-
-  const handleCreateGif = async (mode: GifMode = "story-flow") => {
-    if (!comicRef.current || isExporting) return;
-    setIsExporting(true);
-    setSelectedPanelId(null);
-    setSelectedBubbleId(null);
-    await waitForPaint();
-
-    try {
-      await createGif(makeExportDriver(), mode, pageFormat);
-    } catch (error: any) {
-      console.error("GIF export failed:", error);
-      alert(`GIF export failed: ${error?.message || error}`);
-    } finally {
-      setGifVisibleCount(null);
-      setIsExporting(false);
-      setExportProgress(0);
-    }
   };
 
   const handleCritique = async (allPages: boolean) => {
@@ -786,35 +646,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
         <div
           className={`${PAGE_FORMATS[pageFormat]?.aspect || "aspect-[3/4]"} relative`}
         >
-          {/* Exporting Overlay - Moved outside the ref'd container to prevent it being captured in exports */}
-          {isExporting && (
-            <div className="absolute inset-0 z-[100] bg-black/80 flex flex-col items-center justify-center gap-4 backdrop-blur-sm rounded-lg">
-              <Loader2 size={48} className="text-primary animate-spin" />
-              <div className="text-center space-y-1">
-                <p className="font-headline font-bold text-primary tracking-widest uppercase">
-                  Exporting Comic
-                </p>
-                <p className="text-[10px] text-accent/50 font-label uppercase tracking-widest">
-                  {exportProgress}% Complete
-                </p>
-              </div>
-              <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${exportProgress}%` }}
-                ></div>
-              </div>
-              <button
-                onClick={() => {
-                  cancelExportRef.current = true;
-                }}
-                className="mt-4 px-4 py-2 bg-red-500/20 text-red-500 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all pointer-events-auto"
-              >
-                Cancel Export
-              </button>
-            </div>
-          )}
-
           <div
             className="bg-surface-container-highest p-1 rounded-lg shadow-2xl h-full w-full overflow-hidden"
             ref={comicRef}
@@ -823,8 +654,8 @@ export const EditorScreen: React.FC<EditorProps> = ({
               currentPage={currentPage}
               panels={panels}
               pageBackgroundColor={pageBackgroundColor}
-              isExporting={isExporting}
-              gifVisibleCount={gifVisibleCount}
+              isExporting={false}
+              gifVisibleCount={null}
               selectedPanelId={selectedPanelId}
               selectedBubbleId={selectedBubbleId}
               lockedPanelIds={lockedPanelIds}
@@ -1062,9 +893,17 @@ export const EditorScreen: React.FC<EditorProps> = ({
 
           {!critiqueText ? (
             <div className="space-y-3">
-              <p className="text-xs text-accent/50">
-                Get AI feedback on composition, pacing, and storytelling.
-              </p>
+              <div className="flex items-center gap-3">
+                <img
+                  src={smudgeAvatar}
+                  alt="Smudge"
+                  className="w-14 h-14 object-contain shrink-0"
+                />
+                <p className="text-xs text-accent/50">
+                  Smudge will give your page a look. Composition, pacing, the
+                  works.
+                </p>
+              </div>
               <button
                 onClick={() => handleCritique(false)}
                 disabled={isCritiquing}
@@ -1096,6 +935,16 @@ export const EditorScreen: React.FC<EditorProps> = ({
             </div>
           ) : (
             <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <img
+                  src={smudgeAvatar}
+                  alt="Smudge"
+                  className="w-10 h-10 object-contain shrink-0"
+                />
+                <span className="font-label text-accent/40 uppercase tracking-[0.15em] text-[9px] font-bold">
+                  Smudge's notes
+                </span>
+              </div>
               {critiqueText
                 .split(
                   /\n(?=(?:COMPOSITION|PACING|DIALOGUE|VISUAL STORYTELLING|OVERALL)\b)/i,
@@ -1147,238 +996,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
           )}
         </div>
 
-        {/* Export */}
-        <div className="bg-surface-container rounded-lg p-6 space-y-4 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 text-primary/5 halftone-bg -mr-16 -mt-16 rotate-12"></div>
-          <h3 className="font-headline text-accent text-lg font-bold">
-            EXPORT
-          </h3>
-          <div className="space-y-4 relative z-10">
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleExportPNG(false)}
-                disabled={isExporting}
-                className="py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isExporting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Download size={14} />
-                )}
-                <span>This Page</span>
-              </button>
-              <button
-                onClick={() => handleExportPNG(true)}
-                disabled={isExporting}
-                className="py-3 rounded-lg bg-primary text-background font-headline font-bold text-xs flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isExporting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Download size={14} />
-                )}
-                <span>All Pages</span>
-              </button>
-            </div>
-            <button
-              onClick={async () => {
-                if (!comicRef.current || isExporting) return;
-                setIsExporting(true);
-                setSelectedPanelId(null);
-                setSelectedBubbleId(null);
-                await waitForPaint();
-                try {
-                  const imgData = await captureRef(comicRef, "png");
-                  const res = await fetch(imgData);
-                  const blob = await res.blob();
-                  const pageNum = selectedPageIdx + 1;
-                  const file = new File([blob], `Comic_Page_${pageNum}.png`, {
-                    type: "image/png",
-                  });
-                  let shared = false;
-                  if (navigator.canShare?.({ files: [file] })) {
-                    try {
-                      await navigator.share({
-                        title: `Comic Page ${pageNum}`,
-                        text: SHARE_TEXT,
-                        files: [file],
-                      });
-                      track("share_completed", {
-                        surface: "editor_current_page",
-                      });
-                      shared = true;
-                    } catch (e) {
-                      if ((e as Error).name === "AbortError") shared = true;
-                      // otherwise fall through to download
-                    }
-                  }
-                  if (!shared) {
-                    const link = document.createElement("a");
-                    link.download = file.name;
-                    link.href = imgData;
-                    link.click();
-                    track("share_completed", {
-                      surface: "editor_current_page_download",
-                    });
-                  }
-                } catch (e) {
-                  console.error("Share page failed:", e);
-                }
-                setIsExporting(false);
-              }}
-              disabled={isExporting}
-              className="w-full py-3 rounded-lg bg-secondary/10 text-secondary border border-secondary/20 font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-            >
-              {isExporting ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <Share2 size={14} />
-              )}
-              Share This Page
-            </button>
-            {pages.length > 1 && (
-              <button
-                onClick={async () => {
-                  if (!comicRef.current || isExporting) return;
-                  setIsExporting(true);
-                  setSelectedPanelId(null);
-                  setSelectedBubbleId(null);
-                  await waitForPaint();
-                  try {
-                    const originalIdx = selectedPageIdx;
-                    const files: File[] = [];
-                    for (let i = 0; i < pages.length; i++) {
-                      setSelectedPageIdx(i);
-                      await waitForPaint();
-                      const imgData = await captureRef(comicRef, "png");
-                      const res = await fetch(imgData);
-                      const blob = await res.blob();
-                      files.push(
-                        new File([blob], `Comic_Page_${i + 1}.png`, {
-                          type: "image/png",
-                        }),
-                      );
-                    }
-                    setSelectedPageIdx(originalIdx);
-                    let shared = false;
-                    if (navigator.canShare?.({ files })) {
-                      try {
-                        await navigator.share({
-                          title: "My Comic",
-                          text: SHARE_TEXT,
-                          files,
-                        });
-                        track("share_completed", {
-                          surface: "editor_all_pages",
-                          count: files.length,
-                        });
-                        shared = true;
-                      } catch (e) {
-                        if ((e as Error).name === "AbortError") shared = true;
-                        // otherwise fall through to download
-                      }
-                    }
-                    if (!shared) {
-                      files.forEach((f) => {
-                        const url = URL.createObjectURL(f);
-                        const link = document.createElement("a");
-                        link.download = f.name;
-                        link.href = url;
-                        link.click();
-                        URL.revokeObjectURL(url);
-                      });
-                      track("share_completed", {
-                        surface: "editor_all_pages_download",
-                        count: files.length,
-                      });
-                    }
-                  } catch (e) {
-                    console.error("Share all failed:", e);
-                  }
-                  setIsExporting(false);
-                }}
-                disabled={isExporting}
-                className="w-full py-3 rounded-lg bg-secondary text-background font-headline font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-              >
-                {isExporting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Share2 size={14} />
-                )}
-                Share All Pages
-              </button>
-            )}
-            {/* GIF Export Modes */}
-            <div className="space-y-2">
-              <p className="text-[9px] font-bold uppercase tracking-widest text-accent/40">
-                Animated GIF
-              </p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {[
-                  {
-                    mode: "story-flow" as const,
-                    label: "Story Flow",
-                    desc: "Panels only",
-                  },
-                  {
-                    mode: "page-reveal" as const,
-                    label: "Page Reveal",
-                    desc: "Panels + page",
-                  },
-                  {
-                    mode: "slideshow" as const,
-                    label: "Slideshow",
-                    desc: "Pages only",
-                  },
-                  {
-                    mode: "cinematic" as const,
-                    label: "Cinematic",
-                    desc: "Zoom & pan",
-                  },
-                  {
-                    mode: "this-page" as const,
-                    label: "This Page",
-                    desc: "Current page",
-                  },
-                ].map(({ mode, label, desc }) => (
-                  <button
-                    key={mode}
-                    onClick={() => handleCreateGif(mode)}
-                    disabled={isExporting}
-                    className="py-2 px-2 rounded-lg bg-accent/5 text-accent/70 border border-accent/10 font-headline font-bold text-[10px] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform disabled:opacity-50"
-                  >
-                    <span>{label}</span>
-                    <span className="text-[8px] text-accent/30 font-normal">
-                      {desc}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              {onOpenGifEditor && (
-                <button
-                  onClick={() => {
-                    const images = panels
-                      .filter((p) => p.image)
-                      .map((p) => ({ id: p.id, imageData: p.image! }));
-                    if (images.length > 0) onOpenGifEditor(images);
-                  }}
-                  disabled={isExporting}
-                  className="w-full py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20 font-headline font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-primary/20 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  <Film size={14} />
-                  GIF Editor
-                </button>
-              )}
-              {isExporting && exportProgress > 0 && (
-                <div className="flex items-center gap-2 text-xs text-accent/50">
-                  <Loader2 size={12} className="animate-spin" />
-                  Creating GIF {exportProgress}%
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Export / Next — advances to the Export tab (the flow's terminal step) */}
         {onNavigate && (
           <button
@@ -1389,48 +1006,6 @@ export const EditorScreen: React.FC<EditorProps> = ({
             <ArrowRight size={16} />
           </button>
         )}
-
-        {/* Recent Exports */}
-        <div className="bg-surface-container rounded-lg p-6">
-          <h3 className="font-headline text-accent text-lg font-bold mb-4 uppercase tracking-widest flex items-center gap-2">
-            <Layers size={18} className="text-primary" />
-            HISTORY
-          </h3>
-          <div className="space-y-4">
-            {exportHistory.length > 0 ? (
-              exportHistory.map((item) => (
-                <div key={item.id} className="flex items-center gap-3 group">
-                  <div className="w-12 h-12 bg-surface-container-highest rounded-lg overflow-hidden border border-outline/10 flex items-center justify-center">
-                    {item.type === "pdf" ? (
-                      <Share2 size={20} className="text-secondary" />
-                    ) : (
-                      <ImageIcon size={20} className="text-primary" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold truncate text-accent">
-                      {item.name}
-                    </p>
-                    <p className="text-[10px] text-accent/50 uppercase">
-                      {item.date} • {item.size}
-                    </p>
-                  </div>
-                  <a
-                    href={item.data}
-                    download={item.name}
-                    className="p-2 rounded-full hover:bg-primary/10 text-accent/50 hover:text-primary transition-colors"
-                  >
-                    <Download size={16} />
-                  </a>
-                </div>
-              ))
-            ) : (
-              <div className="py-4 text-center text-accent/40 italic text-xs">
-                No recent exports
-              </div>
-            )}
-          </div>
-        </div>
       </aside>
 
       {/* Full-screen panel editing overlay */}
@@ -1477,7 +1052,7 @@ export const EditorScreen: React.FC<EditorProps> = ({
               {/* Panel — centered at composed size */}
               <div
                 className="flex-1 relative overflow-hidden flex items-center justify-center"
-                {...(!isExporting ? bindComicPinch() : {})}
+                {...bindComicPinch()}
               >
                 <div
                   className="relative bg-black overflow-hidden"

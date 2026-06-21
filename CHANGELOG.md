@@ -1,5 +1,12 @@
 # Changelog
 
+## June 21, 2026 — Editor cleanup, GIF templates, smart scroll, Smudge critique
+
+- **Export is now one place.** Removed the old EXPORT and HISTORY cards from the comic Editor (PNG/share/GIF-mode buttons + recent-exports list) — all of it already lives on the first-class **Export** tab. The Editor keeps its **Export / Next** button to advance there.
+- **GIF templates moved into the GIF editor.** The broken pre-made "quick render" GIF mode buttons are gone from both the Editor and the Export tab. Animation templates (Story Flow / Cinematic / Dramatic / Slideshow) now live **inside the GIF editor** where they apply live with a WYSIWYG preview; surfaced under a **Template** label. The Export tab keeps the working **Open GIF Editor** entry.
+- **Smarter scroll on navigation.** Advancing a step in the creation flow (Workshop → Director → Layout → Editor → Export) now **snaps to the top**; navigating via the bottom nav / menu / swipe **restores where you last were** on that tab (per-tab scroll memory).
+- **Critique Corner is now Smudge.** The AI critique speaks in **Smudge's voice** (tired, dry, self-deprecating sponge), and **Smudge appears in the Critique Corner** — in the intro and as the byline on his notes. Section headings stay as-is so the output still parses.
+
 ## June 16, 2026 — Product analytics (PostHog)
 
 - **Added PostHog alongside Vercel Analytics**, both fed from one wrapper (`src/services/analytics.ts`): every `track()` event now fans out to both. Gated on `VITE_POSTHOG_KEY`; unset and it's a no-op (Vercel still runs), so dev without the key behaves exactly as before.
