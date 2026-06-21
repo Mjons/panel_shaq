@@ -6,6 +6,7 @@
 - **GIF templates moved into the GIF editor.** The broken pre-made "quick render" GIF mode buttons are gone from both the Editor and the Export tab. Animation templates (Story Flow / Cinematic / Dramatic / Slideshow) now live **inside the GIF editor** where they apply live with a WYSIWYG preview; surfaced under a **Template** label. The Export tab keeps the working **Open GIF Editor** entry.
 - **Smarter scroll on navigation.** Advancing a step in the creation flow (Workshop → Director → Layout → Editor → Export) now **snaps to the top**; navigating via the bottom nav / menu / swipe **restores where you last were** on that tab (per-tab scroll memory).
 - **Critique Corner is now Smudge.** The AI critique speaks in **Smudge's voice** (tired, dry, self-deprecating sponge), and **Smudge appears in the Critique Corner** — in the intro and as the byline on his notes. Section headings stay as-is so the output still parses.
+- **Bubble text-settings toolbar floats above everything.** The per-bubble editing toolbar was getting clipped inside the panel: it was `position: fixed`, but a transformed panel/bubble ancestor re-trapped it in the panel's `overflow: hidden` box. It now renders through a portal to `<body>`, so it always floats above the page (and the fullscreen editor).
 
 ## June 16, 2026 — Product analytics (PostHog)
 

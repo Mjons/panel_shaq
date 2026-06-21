@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useGesture } from "@use-gesture/react";
 import { Image as ImageIcon, Lock, Unlock, Plus, Trash2 } from "lucide-react";
 import { PanelPrompt, Bubble } from "../services/geminiService";
@@ -443,126 +444,133 @@ export const DraggableBubble: React.FC<{
         </div>
       </div>
 
-      {/* Floating toolbar on tap — fixed position so it's not clipped by panel overflow */}
-      {isSelected && isEditing && !isExporting && (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={`fixed z-[210] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]`}
-          style={
-            isFullscreen
-              ? {
-                  bottom: "calc(var(--sab, 0px) + 10rem)",
-                  right: "1rem",
-                }
-              : {
-                  left: "50%",
-                  bottom: "calc(6rem + var(--sab, 0px))",
-                  transform: "translateX(-50%)",
-                }
-          }
-        >
-          {/* Type toggle — tap to cycle */}
-          {(() => {
-            const types: { value: Bubble["style"]; label: string }[] = [
-              { value: "speech", label: "Speech" },
-              { value: "thought", label: "Thought" },
-              { value: "narration", label: "Narration" },
-              { value: "pop-text", label: "Pop Text" },
-              { value: "effect", label: "SFX" },
-              { value: "sfx-impact", label: "SFX Impact" },
-              { value: "sfx-ambient", label: "SFX Ambient" },
-            ];
-            const currentIdx = types.findIndex((t) => t.value === bubble.style);
-            const current = types[currentIdx >= 0 ? currentIdx : 0];
-            const next = types[(currentIdx + 1) % types.length];
-            return (
+      {/* Floating toolbar on tap — portaled to <body> so a transformed/clipped
+          panel ancestor can't trap the fixed-position element inside the panel. */}
+      {isSelected &&
+        isEditing &&
+        !isExporting &&
+        createPortal(
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className={`fixed z-[210] flex flex-col gap-2 bg-surface-container border border-outline/20 rounded-xl p-3 shadow-2xl w-[220px]`}
+            style={
+              isFullscreen
+                ? {
+                    bottom: "calc(var(--sab, 0px) + 10rem)",
+                    right: "1rem",
+                  }
+                : {
+                    left: "50%",
+                    bottom: "calc(6rem + var(--sab, 0px))",
+                    transform: "translateX(-50%)",
+                  }
+            }
+          >
+            {/* Type toggle — tap to cycle */}
+            {(() => {
+              const types: { value: Bubble["style"]; label: string }[] = [
+                { value: "speech", label: "Speech" },
+                { value: "thought", label: "Thought" },
+                { value: "narration", label: "Narration" },
+                { value: "pop-text", label: "Pop Text" },
+                { value: "effect", label: "SFX" },
+                { value: "sfx-impact", label: "SFX Impact" },
+                { value: "sfx-ambient", label: "SFX Ambient" },
+              ];
+              const currentIdx = types.findIndex(
+                (t) => t.value === bubble.style,
+              );
+              const current = types[currentIdx >= 0 ? currentIdx : 0];
+              const next = types[(currentIdx + 1) % types.length];
+              return (
+                <button
+                  onClick={() => onUpdateBubble({ style: next.value })}
+                  className="w-full py-2 rounded-lg bg-primary text-background text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+                >
+                  {current.label}{" "}
+                  <span className="opacity-50">→ tap to change</span>
+                </button>
+              );
+            })()}
+
+            {/* Text input */}
+            <textarea
+              value={bubble.text}
+              onChange={(e) => onUpdateBubble({ text: e.target.value })}
+              className="w-full bg-background border border-outline/20 rounded-lg px-2 py-1.5 text-xs text-accent outline-none focus:border-primary resize-none h-14 font-headline"
+              placeholder="Type text..."
+            />
+
+            {/* Font size + delete */}
+            <div className="flex items-center gap-1">
               <button
-                onClick={() => onUpdateBubble({ style: next.value })}
-                className="w-full py-2 rounded-lg bg-primary text-background text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
-              >
-                {current.label}{" "}
-                <span className="opacity-50">→ tap to change</span>
-              </button>
-            );
-          })()}
-
-          {/* Text input */}
-          <textarea
-            value={bubble.text}
-            onChange={(e) => onUpdateBubble({ text: e.target.value })}
-            className="w-full bg-background border border-outline/20 rounded-lg px-2 py-1.5 text-xs text-accent outline-none focus:border-primary resize-none h-14 font-headline"
-            placeholder="Type text..."
-          />
-
-          {/* Font size + delete */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() =>
-                onUpdateBubble({ fontSize: Math.max(8, bubble.fontSize - 2) })
-              }
-              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
-            >
-              A-
-            </button>
-            <span className="text-[9px] text-accent/40 flex-1 text-center">
-              {bubble.fontSize}px
-            </span>
-            <button
-              onClick={() =>
-                onUpdateBubble({
-                  fontSize: Math.min(
-                    bubble.style === "sticker" ? 138 : 69,
-                    bubble.fontSize + 2,
-                  ),
-                })
-              }
-              className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
-            >
-              A+
-            </button>
-            <button
-              onClick={() => {
-                onRemove();
-                setIsEditing(false);
-              }}
-              className="w-7 h-7 flex items-center justify-center bg-background border border-red-500/20 rounded text-red-500/60 hover:bg-red-500 hover:text-white transition-colors ml-1"
-            >
-              <Trash2 size={12} />
-            </button>
-            <button
-              onClick={() => {
-                setIsEditing(false);
-                onDeselect();
-              }}
-              className="w-9 h-7 flex items-center justify-center bg-green-500/15 border border-green-500/30 rounded text-green-400 text-sm font-bold hover:bg-green-500/25 transition-colors"
-            >
-              ✓
-            </button>
-          </div>
-
-          {/* Bake all dialogue on this panel */}
-          {onBakeAll && (
-            <button
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "This will permanently bake ALL text elements on this panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
-                  )
-                ) {
-                  onBakeAll();
-                  setIsEditing(false);
+                onClick={() =>
+                  onUpdateBubble({ fontSize: Math.max(8, bubble.fontSize - 2) })
                 }
-              }}
-              disabled={isRendering}
-              className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
-            >
-              {isRendering ? "Baking..." : "Bake Panel Dialogue"}
-              {!isRendering && <InkCost kind="image" outlined />}
-            </button>
-          )}
-        </div>
-      )}
+                className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
+              >
+                A-
+              </button>
+              <span className="text-[9px] text-accent/40 flex-1 text-center">
+                {bubble.fontSize}px
+              </span>
+              <button
+                onClick={() =>
+                  onUpdateBubble({
+                    fontSize: Math.min(
+                      bubble.style === "sticker" ? 138 : 69,
+                      bubble.fontSize + 2,
+                    ),
+                  })
+                }
+                className="w-7 h-7 flex items-center justify-center bg-background border border-outline/20 rounded text-accent/50 text-xs font-bold"
+              >
+                A+
+              </button>
+              <button
+                onClick={() => {
+                  onRemove();
+                  setIsEditing(false);
+                }}
+                className="w-7 h-7 flex items-center justify-center bg-background border border-red-500/20 rounded text-red-500/60 hover:bg-red-500 hover:text-white transition-colors ml-1"
+              >
+                <Trash2 size={12} />
+              </button>
+              <button
+                onClick={() => {
+                  setIsEditing(false);
+                  onDeselect();
+                }}
+                className="w-9 h-7 flex items-center justify-center bg-green-500/15 border border-green-500/30 rounded text-green-400 text-sm font-bold hover:bg-green-500/25 transition-colors"
+              >
+                ✓
+              </button>
+            </div>
+
+            {/* Bake all dialogue on this panel */}
+            {onBakeAll && (
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "This will permanently bake ALL text elements on this panel into the image. The original clean image will be replaced.\n\nDownload the panel first if you want to keep the clean version.\n\nContinue?",
+                    )
+                  ) {
+                    onBakeAll();
+                    setIsEditing(false);
+                  }
+                }}
+                disabled={isRendering}
+                className="w-full py-2 rounded-lg bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest hover:bg-primary hover:text-background transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isRendering ? "Baking..." : "Bake Panel Dialogue"}
+                {!isRendering && <InkCost kind="image" outlined />}
+              </button>
+            )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 };
