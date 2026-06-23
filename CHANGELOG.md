@@ -1,6 +1,10 @@
 # Changelog
 
-## June 21, 2026 — Editor cleanup, GIF templates, smart scroll, Smudge critique
+## June 23, 2026 — Handoff applies per-brand caption overrides
+
+- **Handed-off meme captions are now brand-correct.** MemeGen's internal Panel Haus build shows neutral meme captions, but handing off used to bring back our **branded** defaults (the captions live in `src/data/memeTextZones.ts`, generated from Comic-Pro2). The handoff payload now optionally carries per-brand caption overrides (`captions: { match, text }[]`), and `MemeEditor` swaps a zone's default text for the override when its text matches (normalized) — **text only, positions/styles untouched**. When MemeGen sends nothing (e.g. the **DeadFellaz** build), the zones keep their branded defaults, so DeadFellaz handoffs are unaffected.
+- **Match by existing text, not slot order.** MemeGen's zone order and ours have drifted, so the override is keyed on the zone's current text (the reliable join); `norm` also strips whitespace-before-punctuation so minor formatting differences still match.
+- Replaces the earlier in-place neutralization (reverted, because that single shared copy also de-branded DeadFellaz). Pairs with MemeGen changelog `081` (the send side) + Comic-Pro2 `1082` (desktop).
 
 - **Export is now one place.** Removed the old EXPORT and HISTORY cards from the comic Editor (PNG/share/GIF-mode buttons + recent-exports list) — all of it already lives on the first-class **Export** tab. The Editor keeps its **Export / Next** button to advance there.
 - **GIF templates moved into the GIF editor.** The broken pre-made "quick render" GIF mode buttons are gone from both the Editor and the Export tab. Animation templates (Story Flow / Cinematic / Dramatic / Slideshow) now live **inside the GIF editor** where they apply live with a WYSIWYG preview; surfaced under a **Template** label. The Export tab keeps the working **Open GIF Editor** entry.

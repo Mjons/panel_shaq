@@ -57,10 +57,21 @@ function initWork(token: string, seed: MemeZone[]): WorkState {
 export function MemeEditor({ payload, token }: MemeEditorProps) {
   const { addToast } = useToast();
 
-  const seed = useMemo(
-    () => MEME_TEXT_ZONES[payload.templateId]?.zones ?? [],
-    [payload.templateId],
-  );
+  // Seed zones from the registry (branded defaults), then apply any per-brand caption
+  // overrides MemeGen sent: swap a zone's text when its DEFAULT matches an override.
+  // Positions/styles untouched — text only. Empty (DeadFellaz) → defaults unchanged.
+  const seed = useMemo(() => {
+    const base = MEME_TEXT_ZONES[payload.templateId]?.zones ?? [];
+    const caps = payload.captions;
+    if (!Array.isArray(caps) || caps.length === 0) return base;
+    const norm = (s: string) =>
+      s.trim().toLowerCase().replace(/\s+/g, " ").replace(/\s+([,.!?:;])/g, "$1");
+    const capMap = new Map(caps.map((c) => [norm(c.match), c.text]));
+    return base.map((z) => {
+      const override = capMap.get(norm(z.text ?? ""));
+      return override != null ? { ...z, text: override } : z;
+    });
+  }, [payload.templateId, payload.captions]);
 
   const [work, setWork] = useState<WorkState>(() => initWork(token, seed));
   const [selectedId, setSelectedId] = useState<string | null>(null);

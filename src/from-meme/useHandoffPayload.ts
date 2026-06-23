@@ -16,6 +16,13 @@ const CONSUME_URL = "/api/handoff-consume";
 
 const CACHE_KEY = "panelshaq_meme_handoff";
 
+// Per-brand caption override sent by MemeGen: replace a zone's default text (`match`)
+// with the brand-resolved text. Absent/empty (e.g. DeadFellaz) → defaults are kept.
+export interface HandoffCaption {
+  match: string;
+  text: string;
+}
+
 export interface HandoffPayload {
   v: number;
   memeImageUrl: string;
@@ -24,6 +31,7 @@ export interface HandoffPayload {
   templateId: string;
   templateLabel: string;
   originUser: string | null;
+  captions?: HandoffCaption[];
   createdAt?: string;
 }
 
