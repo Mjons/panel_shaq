@@ -1,6 +1,10 @@
 # Changelog
 
-## June 21, 2026 — Editor cleanup, GIF templates, smart scroll, Smudge critique
+## June 23, 2026 — Neutralize meme caption defaults
+
+- **Handed-off meme captions are now brand-neutral.** The pre-filled caption text on memes opened via `/c/from-meme` (`floor price`, `the floor is on fire. gm`, `who keeps rugging me`, `just discovered the horde`, …) was DeadFellaz/crypto-flavored — it showed even for users coming from the internal Panel Haus build, which had switched its own previews to neutral. Replaced 89 caption texts in `src/data/memeTextZones.ts` with neutral wording (`the hard way`, `this is fine`, `me` / `my own bad ideas`, …; the change-my-mind take is now "a hot dog is a sandwich").
+- **Text only — positions untouched.** A surgical, text-only edit (`89 ins / 89 del`, every changed line a `text:` line): no `x`/`y`/`width`/`height`/`fontSizeRatio`/`style`/zone-count changed, so the mobile caption calibrations are preserved exactly. Deliberately **not** a regen — regenerating from Comic-Pro2 would reformat the whole file and could wipe the in-app-calibrated positions. (This file's generator is therefore stale vs. the committed file; flag for a future clean regen.)
+- Mirrors Comic-Pro2 changelog `1081` (the desktop source these zones are derived from); the captions match memegen's neutral set.
 
 - **Export is now one place.** Removed the old EXPORT and HISTORY cards from the comic Editor (PNG/share/GIF-mode buttons + recent-exports list) — all of it already lives on the first-class **Export** tab. The Editor keeps its **Export / Next** button to advance there.
 - **GIF templates moved into the GIF editor.** The broken pre-made "quick render" GIF mode buttons are gone from both the Editor and the Export tab. Animation templates (Story Flow / Cinematic / Dramatic / Slideshow) now live **inside the GIF editor** where they apply live with a WYSIWYG preview; surfaced under a **Template** label. The Export tab keeps the working **Open GIF Editor** entry.
