@@ -16,7 +16,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4329,
         height: 0.28,
         fontSizeRatio: 0.0766,
-        text: "the hard way",
+        text: "floor price",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -36,7 +36,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4543,
         height: 0.2329,
         fontSizeRatio: 0.0758,
-        text: "the easy way",
+        text: "utility",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -62,7 +62,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6071,
         height: 0.2099,
         fontSizeRatio: 0.05,
-        text: "the new shiny thing",
+        text: "you eyeing the next mint",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -91,7 +91,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.41,
         height: 0.1758,
         fontSizeRatio: 0.067,
-        text: "my parents are—",
+        text: "My parents are ali..",
         style: {
           color: "#000000",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -111,7 +111,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.377,
         height: 0.175,
         fontSizeRatio: 0.0678,
-        text: "stop",
+        text: "UNDEAD",
         style: {
           color: "#000000",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -138,7 +138,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.219,
         rotation: -6,
         fontSizeRatio: 0.0429,
-        text: "a hot dog is a sandwich",
+        text: "Betty is the blueprint",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -165,7 +165,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.0943,
         rotation: -14.8,
         fontSizeRatio: 0.0581,
-        text: "option a",
+        text: "hold",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -186,7 +186,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.0943,
         rotation: -14.8,
         fontSizeRatio: 0.0498,
-        text: "option b",
+        text: "panic sell",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -287,7 +287,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4714,
         height: 0.1714,
         fontSizeRatio: 0.06,
-        text: "for the better",
+        text: "for the floor",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -310,7 +310,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4571,
         height: 0.1714,
         fontSizeRatio: 0.06,
-        text: "...right?",
+        text: ". . . right?",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -333,7 +333,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4571,
         height: 0.2271,
         fontSizeRatio: 0.1343,
-        text: "...right?",
+        text: "...",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -385,7 +385,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.7143,
         height: 0.1937,
         fontSizeRatio: 0.06,
-        text: "walk in here",
+        text: "exit the deadzone",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -414,7 +414,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5329,
         height: 0.3647,
         fontSizeRatio: 0.06,
-        text: "this is fine",
+        text: "the floor is on fire. gm",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -443,7 +443,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.357,
         height: 0.1,
         fontSizeRatio: 0.07,
-        text: "my problems",
+        text: "Rugger",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -466,7 +466,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6485,
         height: 0.1,
         fontSizeRatio: 0.07,
-        text: "me avoiding them",
+        text: "hiding from the rug",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -518,7 +518,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8329,
         height: 0.1923,
         fontSizeRatio: 0.0643,
-        text: "your support",
+        text: "For the floor",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -547,7 +547,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4408,
         height: 0.1371,
         fontSizeRatio: 0.0641,
-        text: "why did this happen to me",
+        text: "bags finally recovering",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -567,7 +567,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4408,
         height: 0.1914,
         fontSizeRatio: 0.0641,
-        text: "my own bad ideas",
+        text: "me revenge trading at 3am",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -587,7 +587,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4408,
         height: 0.1371,
         fontSizeRatio: 0.0641,
-        text: "me",
+        text: "who keeps rugging me",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -613,7 +613,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.648,
         height: 0.108,
         fontSizeRatio: 0.0643,
-        text: "not sure if real",
+        text: "not sure if dip",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -636,7 +636,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.476,
         height: 0.134,
         fontSizeRatio: 0.0643,
-        text: "or just tired",
+        text: "or rug",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -665,7 +665,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9214,
         height: 0.1524,
         fontSizeRatio: 0.0786,
-        text: "just discovered the internet",
+        text: "just discovered the horde",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -694,7 +694,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.1857,
         height: 0.1782,
         fontSizeRatio: 0.0456,
-        text: "step 1: have a plan",
+        text: "step 1: buy",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -714,7 +714,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.1857,
         height: 0.1782,
         fontSizeRatio: 0.0456,
-        text: "step 2: do the work",
+        text: "step 2: hold",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -734,7 +734,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.1857,
         height: 0.1782,
         fontSizeRatio: 0.0456,
-        text: "step 3: it falls apart",
+        text: "step 3: hold",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -754,7 +754,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.1857,
         height: 0.265,
         fontSizeRatio: 0.0456,
-        text: "step 3: it falls apart",
+        text: "step 4: still holding",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -780,7 +780,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8945,
         height: 0.1143,
         fontSizeRatio: 0.0751,
-        text: "everything is fine",
+        text: "holding strong",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -803,7 +803,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8945,
         height: 0.1143,
         fontSizeRatio: 0.0751,
-        text: "(it is not)",
+        text: "in agony",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -953,7 +953,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9143,
         height: 0.1777,
         fontSizeRatio: 0.06,
-        text: "can't fail if you never try",
+        text: "can't get rugged if you never sell",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -982,7 +982,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.637,
         height: 0.111,
         fontSizeRatio: 0.0581,
-        text: "who started it?",
+        text: "which of us aped first?",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1011,7 +1011,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9143,
         height: 0.1143,
         fontSizeRatio: 0.0807,
-        text: "did the thing, shocked at the result",
+        text: "sold the floor, it pumped",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -1132,7 +1132,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.2371,
         height: 0.1829,
         fontSizeRatio: 0.0452,
-        text: "it's official",
+        text: "stay dead",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -1158,7 +1158,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5114,
         height: 0.2947,
         fontSizeRatio: 0.0635,
-        text: "doing it",
+        text: "holding ",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -1204,7 +1204,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9871,
         height: 0.1,
         fontSizeRatio: 0.0675,
-        text: "why would you do this?",
+        text: "why would the horde do this?",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1233,7 +1233,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.787,
         height: 0.157,
         fontSizeRatio: 0.0714,
-        text: "memes",
+        text: "fellaz",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1256,7 +1256,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.774,
         height: 0.134,
         fontSizeRatio: 0.0714,
-        text: "memes everywhere",
+        text: "fellaz everywhere",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1337,7 +1337,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6814,
         height: 0.1208,
         fontSizeRatio: 0.06,
-        text: "is this success?",
+        text: "is this the flippening?",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1367,7 +1367,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.484,
         rotation: -15,
         fontSizeRatio: 0.0529,
-        text: "step 1: do nothing",
+        text: "step 1: stay dead",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -1393,7 +1393,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3429,
         height: 0.1643,
         fontSizeRatio: 0.0766,
-        text: "the easy way",
+        text: "or ape?",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1416,7 +1416,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3429,
         height: 0.17,
         fontSizeRatio: 0.0678,
-        text: "the right way",
+        text: "Hold",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1445,7 +1445,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8143,
         height: 0.1236,
         fontSizeRatio: 0.0678,
-        text: "absolute cinema",
+        text: "the horde in 4k",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1474,7 +1474,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5771,
         height: 0.1497,
         fontSizeRatio: 0.06,
-        text: "wait, it's all memes?",
+        text: "wait, it's all betty",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1526,7 +1526,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.7817,
         height: 0.0986,
         fontSizeRatio: 0.0778,
-        text: "tried his best",
+        text: "bought the top",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1549,7 +1549,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8003,
         height: 0.0957,
         fontSizeRatio: 0.0778,
-        text: "it backfired",
+        text: "sold the bottom",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1578,7 +1578,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4129,
         height: 0.2062,
         fontSizeRatio: 0.0766,
-        text: "me then",
+        text: "me 2021",
         style: {
           color: "#000000",
           fontFamily: '"Inter", Arial, sans-serif',
@@ -1624,7 +1624,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8,
         height: 0.12,
         fontSizeRatio: 0.06,
-        text: "it's all connected",
+        text: "it's all connected to the rug",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1653,7 +1653,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.7714,
         height: 0.1751,
         fontSizeRatio: 0.06,
-        text: "looking up, full of hope",
+        text: "staring up the green candle",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1682,7 +1682,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.691,
         height: 0.125,
         fontSizeRatio: 0.0639,
-        text: "it went down",
+        text: "number go down",
         style: {
           color: "#000000",
           fontFamily: '"Inter", Arial, sans-serif',
@@ -1702,7 +1702,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.484,
         height: 0.121,
         fontSizeRatio: 0.0528,
-        text: "up only, i promise",
+        text: "up only i swear",
         style: {
           color: "#000000",
           fontFamily: '"Inter", Arial, sans-serif',
@@ -1728,7 +1728,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.2729,
         height: 0.1914,
         fontSizeRatio: 0.06,
-        text: "the easy answer",
+        text: "green pills",
         style: {
           color: "#000000",
           fontFamily: '"Inter", Arial, sans-serif',
@@ -1748,7 +1748,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4457,
         height: 0.2098,
         fontSizeRatio: 0.06,
-        text: "just take the easy answer",
+        text: "just take the green pills",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1829,7 +1829,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9186,
         height: 0.118,
         fontSizeRatio: 0.06,
-        text: "it's okay, we've all been there",
+        text: "it's okay fella, we all aped the top",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1858,7 +1858,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8008,
         height: 0.1,
         fontSizeRatio: 0.0805,
-        text: "holding it together",
+        text: "holding the bag",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1910,7 +1910,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.953,
         height: 0.151,
         fontSizeRatio: 0.081,
-        text: "i don't always do this",
+        text: "i don't always sell",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1933,7 +1933,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.855,
         height: 0.118,
         fontSizeRatio: 0.0729,
-        text: "but when i do, i commit",
+        text: "but when i do i hold",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1962,7 +1962,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4629,
         height: 0.1244,
         fontSizeRatio: 0.06,
-        text: "congratulations",
+        text: "congratulation",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -1985,7 +1985,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5614,
         height: 0.1034,
         fontSizeRatio: 0.06,
-        text: "you made it",
+        text: "you survived the dip",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2014,7 +2014,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.432,
         height: 0.133,
         fontSizeRatio: 0.06,
-        text: "everyone else",
+        text: "paper hands",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2037,7 +2037,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5229,
         height: 0.0982,
         fontSizeRatio: 0.06,
-        text: "me",
+        text: "the horde",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2066,7 +2066,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8286,
         height: 0.1802,
         fontSizeRatio: 0.06,
-        text: "shut up and take my money",
+        text: "shut up and take my eth",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2095,7 +2095,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.7514,
         height: 0.1296,
         fontSizeRatio: 0.06,
-        text: "my big take",
+        text: "nfts are dead",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2118,7 +2118,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5457,
         height: 0.2672,
         fontSizeRatio: 0.0514,
-        text: "sure grandma, let's get you to bed",
+        text: "sure grandma , off to discord we go",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2222,7 +2222,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3404,
         height: 0.16,
         fontSizeRatio: 0.0808,
-        text: "me",
+        text: "you",
         style: {
           color: "#0a0a0b",
           fontFamily: "Arial, Helvetica, sans-serif",
@@ -2242,7 +2242,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4538,
         height: 0.1543,
         fontSizeRatio: 0.0615,
-        text: "what i want",
+        text: "reaching for the pump",
         style: {
           color: "#0a0a0b",
           fontFamily: "Arial, Helvetica, sans-serif",
@@ -2262,7 +2262,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3962,
         height: 0.2014,
         fontSizeRatio: 0.0615,
-        text: "what holds me back",
+        text: "held back by paperhands",
         style: {
           color: "#0a0a0b",
           fontFamily: "Arial, Helvetica, sans-serif",
@@ -2288,7 +2288,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.896,
         height: 0.1349,
         fontSizeRatio: 0.07,
-        text: "we're so back",
+        text: "fella's pumping,\nwe're so back",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2311,7 +2311,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.866,
         height: 0.0908,
         fontSizeRatio: 0.07,
-        text: "it's so over",
+        text: "dead cat bounce",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2340,7 +2340,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8393,
         height: 0.152,
         fontSizeRatio: 0.0519,
-        text: "me, congratulating myself",
+        text: "promoting myself to horde general",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2369,7 +2369,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3375,
         height: 0.2425,
         fontSizeRatio: 0.0587,
-        text: "remember when things were good",
+        text: "remember when the floor was alive",
         style: {
           color: "#0a0a0b",
           fontFamily: "Arial, Helvetica, sans-serif",
@@ -2395,7 +2395,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6694,
         height: 0.2,
         fontSizeRatio: 0.0677,
-        text: "imagination",
+        text: "utility",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2424,7 +2424,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9,
         height: 0.1594,
         fontSizeRatio: 0.0633,
-        text: "trying to concentrate",
+        text: "doing my own research",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2453,7 +2453,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8515,
         height: 0.171,
         fontSizeRatio: 0.0698,
-        text: "waiting for it to blow over",
+        text: "lurking till my bag recovers",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2482,7 +2482,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.283,
         height: 0.231,
         fontSizeRatio: 0.044,
-        text: "rip to my plans",
+        text: "rip to everyone who sold the bottom",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2511,7 +2511,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.2647,
         height: 0.2357,
         fontSizeRatio: 0.0727,
-        text: "the bad news",
+        text: "the rug report",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -2537,7 +2537,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9,
         height: 0.129,
         fontSizeRatio: 0.06,
-        text: "something minor happened",
+        text: "the floor dipped 2%",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2560,7 +2560,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.9,
         height: 0.1505,
         fontSizeRatio: 0.06,
-        text: "never recovering from this",
+        text: "never financially recovering",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2589,7 +2589,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8486,
         height: 0.1462,
         fontSizeRatio: 0.06,
-        text: "look at me",
+        text: "look at me, jeets",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2612,7 +2612,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8443,
         height: 0.1462,
         fontSizeRatio: 0.06,
-        text: "i'm the captain now",
+        text: "im the holder now",
         style: {
           color: "#ffffff",
           fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2641,7 +2641,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.3057,
         height: 0.172,
         fontSizeRatio: 0.06,
-        text: "say you're sorry",
+        text: "sell your fella",
         style: {
           color: "#000000",
           fontFamily: "Arial, sans-serif",
@@ -2688,7 +2688,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.12,
         fontSizeRatio: 0.0907,
         rotation: -16.3,
-        text: "do it",
+        text: "ape in",
         style: {
         color: "#000000",
         fontFamily: "Arial, sans-serif",
@@ -2709,7 +2709,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         height: 0.204,
         fontSizeRatio: 0.0907,
         rotation: -16.5,
-        text: "do it again",
+        text: "ape more",
         style: {
         color: "#000000",
         fontFamily: "Arial, sans-serif",
@@ -2735,7 +2735,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6865,
         height: 0.1914,
         fontSizeRatio: 0.0716,
-        text: "they handed me a win",
+        text: "they handed me a gem mint fella",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2781,7 +2781,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5743,
         height: 0.1734,
         fontSizeRatio: 0.06,
-        text: "something good to happen",
+        text: "my bags to pump",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2827,7 +2827,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.7557,
         height: 0.1306,
         fontSizeRatio: 0.06,
-        text: "everyone still here",
+        text: "everyone still holding",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2853,7 +2853,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.4129,
         height: 0.1971,
         fontSizeRatio: 0.06,
-        text: "you know..",
+        text: "You know..",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2873,7 +2873,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.8971,
         height: 0.1657,
         fontSizeRatio: 0.06,
-        text: "i am something of a scientist myself",
+        text: "i am something of a degen myself",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2919,7 +2919,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.546,
         height: 0.11,
         fontSizeRatio: 0.0613,
-        text: "the thing i like",
+        text: "the project i aped",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2965,7 +2965,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.5896,
         height: 0.1029,
         fontSizeRatio: 0.0672,
-        text: "it'll be quick",
+        text: "it's not a rug",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
@@ -2991,7 +2991,7 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
         width: 0.6286,
         height: 0.1585,
         fontSizeRatio: 0.06,
-        text: "it happened again",
+        text: "it's above 0.1e again",
         style: {
         color: "#ffffff",
         fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
