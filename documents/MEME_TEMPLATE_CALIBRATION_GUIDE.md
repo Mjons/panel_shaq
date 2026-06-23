@@ -64,6 +64,11 @@ regenerate.
 - `fontSizeRatio` = font size as a fraction of the image **width**.
 - The template **images** in `/public/templates/` are only for the admin gallery
   and the local stub — real users always get the handoff image.
+- A zone's `text` here is the **branded / default** caption (derived from Comic-Pro2).
+  You do **not** author internal/neutral captions here — on handoff, MemeGen sends
+  per-brand overrides (`payload.captions: { match, text }[]`) and `MemeEditor` swaps a
+  zone's text when its default matches (by normalized text). DeadFellaz sends none →
+  defaults are kept. So calibration here is about **positions**, not brand wording.
 
 ---
 
