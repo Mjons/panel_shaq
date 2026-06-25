@@ -3026,4 +3026,30 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
       },
     ],
   },
+  "monster-house-disappointed": {
+    aspect: 1.5909,
+    image: "monster-house-disappointed.png",
+    zones: [
+      {
+        id: "zone-1",
+        x: 0.49,
+        y: 0.1659,
+        width: 0.88,
+        height: 0.15,
+        fontSizeRatio: 0.06,
+        text: "you said it wouldn't rug",
+        style: {
+        color: "#ffffff",
+        fontFamily: "Anton, 'Arial Black', Impact, sans-serif",
+        fontWeight: 700,
+        italic: false,
+        allCaps: true,
+        textAlign: "center",
+        lineHeight: 1.1,
+        outline: { color: "#000000", widthEm: 0.0357 },
+        box: null,
+        },
+      },
+    ],
+  },
 };
