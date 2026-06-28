@@ -3058,8 +3058,8 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
     zones: [
       {
         id: "zone-1",
-        x: 0.4968,
-        y: 0.1171,
+        x: 0.073,
+        y: 0.075,
         width: 0.8608,
         height: 0.1,
         fontSizeRatio: 0.0899,
@@ -3078,8 +3078,8 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
       },
       {
         id: "zone-2",
-        x: 0.4861,
-        y: 0.8486,
+        x: 0.071,
+        y: 0.818,
         width: 0.8608,
         height: 0.1,
         fontSizeRatio: 0.0899,
@@ -3104,11 +3104,11 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
     zones: [
       {
         id: "zone-1",
-        x: 0.4971,
-        y: 0.1276,
-        width: 0.5,
-        height: 0.1295,
-        fontSizeRatio: 0.0643,
+        x: 0.238,
+        y: 0.058,
+        width: 0.508,
+        height: 0.173,
+        fontSizeRatio: 0.072659,
         text: "us vs the rug",
         style: {
         color: "#ffffff",
@@ -3130,11 +3130,11 @@ export const MEME_TEXT_ZONES: MemeZoneRegistry = {
     zones: [
       {
         id: "zone-1",
-        x: 0.4871,
-        y: 0.1802,
+        x: 0.162,
+        y: 0.067,
         width: 0.6471,
         height: 0.1802,
-        fontSizeRatio: 0.06,
+        fontSizeRatio: 0.06742,
         text: "me after the mint",
         style: {
         color: "#ffffff",
