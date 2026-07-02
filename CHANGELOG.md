@@ -1,5 +1,10 @@
 # Changelog
 
+## July 2, 2026 — Patrick to-do-list steps 2 & 3 + new meme templates
+
+- **`patrick-to-do-list` now renders all three steps.** Added `zone-2` and `zone-3` to the template in `src/data/memeTextZones.ts` with default text matching the cross-repo handoff **match keys** exactly (`step 2: stay dead` / `step 3: stay dead`), then hand-calibrated all three zones onto the paper's lines. CyberKongz handoffs swap in `step 2: ???` / `step 3: profit`; every other brand sends a blank swap so those two bubbles **hide** (only step 1 shows). This is the mobile half of MemeGen changelog `126` — the desktop half already lives in Comic-Pro2 `memeTemplates.js`. `zone-1`'s existing calibration was preserved (not regenerated).
+- **New meme templates.** Added and calibrated `monster-house-disappointed`, `kongz-trashbin-held`, `kongz-trashbin-crew`, `kongz-dumpster`, plus an earlier batch (`press-buttons`, `trump-ufc-gift`, `pablo-escobar-waiting`, `leonardo-dicaprio-cheers`, `a-scientist-myself`, `leonardo-dicaprio-pointing`, `black-girl-wat`, `look-at-this`) — ported from MemeGen via the generator, images in `public/templates/`. Caption **positions** are calibrated locally; the branded **text** arrives per-brand on handoff.
+
 ## June 23, 2026 — Handoff applies per-brand caption overrides
 
 - **Handed-off meme captions are now brand-correct.** MemeGen's internal Panel Haus build shows neutral meme captions, but handing off used to bring back our **branded** defaults (the captions live in `src/data/memeTextZones.ts`, generated from Comic-Pro2). The handoff payload now optionally carries per-brand caption overrides (`captions: { match, text }[]`), and `MemeEditor` swaps a zone's default text for the override when its text matches (normalized) — **text only, positions/styles untouched**. When MemeGen sends nothing (e.g. the **DeadFellaz** build), the zones keep their branded defaults, so DeadFellaz handoffs are unaffected.
