@@ -1,5 +1,11 @@
 # Changelog
 
+## July 3, 2026 — CyberKongz-only meme templates (handoff)
+
+- **`hangover-casino` ("Casino Win").** Added the CyberKongz-exclusive casino-table meme (700×625, top/bottom full-width zones) with match keys `they said it was gambling` / `it's a strategy engine`. Mobile half of MemeGen changelog `131`.
+- **`empire-state-building` ("Plant the Flag").** Added the CyberKongz-exclusive black-flag rooftop meme (673×700), captions rotated ~20.5° onto the flag with match keys `sold at the bottom` / `planted the flag at the top`, hand-calibrated onto the flag. Mobile half of MemeGen changelog `132`.
+- Both are `brands:["cyberkongz"]` scoped in MemeGen, so no `BRAND_EXCLUSIVE_ZONES` wiring is needed (the whole template only appears in the CyberKongz build); ported from Comic-Pro2 via the generator with match-key text kept byte-exact so the handoff swap lands. Images in `public/templates/`.
+
 ## July 2, 2026 — Patrick to-do-list steps 2 & 3 + new meme templates
 
 - **`patrick-to-do-list` now renders all three steps.** Added `zone-2` and `zone-3` to the template in `src/data/memeTextZones.ts` with default text matching the cross-repo handoff **match keys** exactly (`step 2: stay dead` / `step 3: stay dead`), then hand-calibrated all three zones onto the paper's lines. CyberKongz handoffs swap in `step 2: ???` / `step 3: profit`; every other brand sends a blank swap so those two bubbles **hide** (only step 1 shows). This is the mobile half of MemeGen changelog `126` — the desktop half already lives in Comic-Pro2 `memeTemplates.js`. `zone-1`'s existing calibration was preserved (not regenerated).
