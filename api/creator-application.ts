@@ -194,23 +194,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ts: Date.now(),
   });
 
-  // No Redis configured: never 500 — intent capture must not block the done view.
+  // FAIL CLOSED on the write path (desktop changelog 1240). This route used to
+  // return {ok:true} when Upstash was unconfigured or the write threw, which made
+  // a missing env var invisible: prod accepted claims, showed "You're on the list",
+  // and stored nothing for two hours. A claim we cannot store is a lead we lose, so
+  // the client must learn about it and keep the user on the form.
+  // The GET gate above still fails OPEN on purpose: re-showing the sheet to someone
+  // who already applied is a smaller harm than locking a real creator out.
   if (!redis) {
-    console.warn("[creator-application] Upstash not configured; application dropped");
-    return res.status(200).json({ ok: true, alreadyApplied: false });
+    console.error("[creator-application] Upstash not configured — refusing the claim");
+    return res
+      .status(503)
+      .json({ error: "Storage unavailable", code: "STORAGE_UNAVAILABLE" });
   }
 
   try {
     if (identity) {
       const already = await redis.exists(keyFor(identity));
-      if (already) return res.status(200).json({ ok: true, alreadyApplied: true });
+      if (already)
+        return res.status(200).json({ ok: true, stored: true, alreadyApplied: true });
       await redis.set(keyFor(identity), record, { ex: KEY_TTL });
     }
     await redis.rpush(LIST_KEY, record);
     await redis.ltrim(LIST_KEY, -LIST_MAX, -1);
   } catch (e) {
-    console.warn("[creator-application] redis write failed:", (e as Error)?.message);
+    console.error("[creator-application] redis write failed:", (e as Error)?.message);
+    return res
+      .status(503)
+      .json({ error: "Could not save the application", code: "STORAGE_FAILED" });
   }
 
-  return res.status(200).json({ ok: true, alreadyApplied: false });
+  // stored:true is the client's proof — only then may it burn the one-shot flag.
+  return res.status(200).json({ ok: true, stored: true, alreadyApplied: false });
 }

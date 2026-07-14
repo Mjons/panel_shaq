@@ -81,6 +81,7 @@ export function ShipClaimSheet({
   const [view, setView] = useState<View>("invite");
   const [answers, setAnswers] = useState<Answers>({});
   const [submitting, setSubmitting] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   // Fresh form each time the sheet opens; prefill the wallet when Clerk knows it.
   useEffect(() => {
@@ -89,6 +90,7 @@ export function ShipClaimSheet({
     const wallet = getShipIdentity()?.wallet;
     setAnswers(wallet ? { wallet } : {});
     setSubmitting(false);
+    setFailed(false);
   }, [isOpen]);
 
   const setAnswer = (key: AnswerKey, value: string) =>
@@ -113,9 +115,15 @@ export function ShipClaimSheet({
       has_wallet: !!wallet,
       signed_in: !!getShipIdentity(),
     });
-    // Never throws, ignores the response — the done view is unconditional.
-    await submitShipClaim(answers as ClaimApplication, source);
+    // The done view is EARNED, not unconditional: only a confirmed server write
+    // gets it. On failure we keep the user here with their answers intact, and
+    // shipClaim has already cleared the shown-flag so a later ship re-prompts.
+    const stored = await submitShipClaim(answers as ClaimApplication, source);
     setSubmitting(false);
+    if (!stored) {
+      setFailed(true);
+      return;
+    }
     setView("done");
   };
 
@@ -267,13 +275,23 @@ export function ShipClaimSheet({
           </div>
 
           <div className="space-y-2 pb-2">
+            {failed && (
+              <p className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-center text-xs text-red-300">
+                We couldn't save your application. Your answers are still here, so
+                give it another go.
+              </p>
+            )}
             <button
               onClick={submit}
               disabled={!canSubmit}
               className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3.5 px-6 font-headline font-bold text-background transition-all active:scale-[0.98] disabled:opacity-40"
             >
               {submitting && <Loader2 size={16} className="animate-spin" />}
-              {submitting ? "Submitting…" : "Submit application"}
+              {submitting
+                ? "Submitting…"
+                : failed
+                  ? "Try again"
+                  : "Submit application"}
             </button>
             {!choicesDone && (
               <p className="text-center text-[11px] text-accent/40">

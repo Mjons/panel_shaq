@@ -38,8 +38,19 @@ export type ClaimApplication = {
 // panelshaq_* per this repo's convention. Deliberately NOT desktop's key names:
 // localStorage is per-origin so the apps never share it — cross-app suppression
 // is the server GET's job (both apps share one Upstash namespace).
-const SHOWN_KEY = "panelshaq_ship_claim_shown";
-const APPLIED_KEY = "panelshaq_ship_claim_applied";
+//
+// _v2: the v1 keys are ABANDONED, not migrated. While UPSTASH_* was missing from
+// prod (2026-07-14, ~2h), the route fail-opened and the client burned both flags on
+// a write that never happened — so those users were told "You're on the list" AND
+// can never be re-prompted. Bumping the key names hands everyone one fresh shot;
+// anyone who genuinely applied is re-suppressed by the server GET below, at the
+// cost of one extra request. Do not reuse the v1 names.
+const SHOWN_KEY = "panelshaq_ship_claim_shown_v2";
+const APPLIED_KEY = "panelshaq_ship_claim_applied_v2";
+const LEGACY_KEYS = [
+  "panelshaq_ship_claim_shown",
+  "panelshaq_ship_claim_applied",
+];
 const ENDPOINT = "/api/creator-application";
 
 // Let the native share sheet finish dismissing before ours slides up.
@@ -90,6 +101,16 @@ function identitySource(): string {
 function markShownLocally(val: string): void {
   try {
     localStorage.setItem(SHOWN_KEY, val);
+  } catch {
+    /* storage blocked */
+  }
+}
+
+// A failed submit must NOT consume the one shot: clear the shown-flag so the
+// user's next ship re-opens the sheet.
+function clearShownLocally(): void {
+  try {
+    localStorage.removeItem(SHOWN_KEY);
   } catch {
     /* storage blocked */
   }
@@ -190,8 +211,13 @@ export function markShipped(surface: string, props?: Props): void {
 // ---------- submit ----------
 
 /**
- * Desktop parity: write localStorage FIRST, then POST, never throw, ignore the
- * response. The done view must never be blocked by storage/network failure.
+ * Returns TRUE only when the server confirms the claim was stored.
+ *
+ * The flag is written AFTER that confirmation, never before (desktop changelog
+ * 1240). The old order — flag first, response ignored — meant a failed write lost
+ * the lead twice: nothing stored, and the sheet was suppressed forever on that
+ * browser, so the creator could never be re-prompted. On failure we also clear the
+ * shown-flag, so their next ship re-opens the sheet.
  *
  * Plain fetch on purpose — apiPost() would open Clerk sign-in and THROW for a
  * signed-out non-BYOK user, fire generation_started, and run an ink pre-check.
@@ -199,13 +225,7 @@ export function markShipped(surface: string, props?: Props): void {
 export async function submitShipClaim(
   app: ClaimApplication,
   source: string,
-): Promise<void> {
-  try {
-    localStorage.setItem(APPLIED_KEY, JSON.stringify({ ...app, ts: Date.now() }));
-  } catch {
-    /* storage blocked */
-  }
-
+): Promise<boolean> {
   const application: Record<string, string> = {
     ...Object.fromEntries(
       Object.entries(app).filter(([, v]) => typeof v === "string" && v),
@@ -220,17 +240,39 @@ export async function submitShipClaim(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
-    await fetch(ENDPOINT, {
+    const res = await fetch(ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ identity: applicationIdentity(app), application }),
       signal: controller.signal,
     });
+    const body = await res.json().catch(() => ({}));
+    // stored:true is the only proof. A 503 (STORAGE_UNAVAILABLE / STORAGE_FAILED),
+    // a network error, or an 8s timeout all land here as a failure.
+    if (!res.ok || !body?.stored) {
+      track("ship_claim_failed", {
+        source,
+        status: res.status,
+        code: String(body?.code || "UNKNOWN"),
+      });
+      clearShownLocally();
+      return false;
+    }
   } catch {
-    /* non-blocking by design */
+    track("ship_claim_failed", { source, status: 0, code: "NETWORK" });
+    clearShownLocally();
+    return false;
   } finally {
     clearTimeout(timer);
   }
+
+  // Confirmed stored — now, and only now, burn the one shot.
+  try {
+    localStorage.setItem(APPLIED_KEY, JSON.stringify({ ...app, ts: Date.now() }));
+  } catch {
+    /* storage blocked */
+  }
+  return true;
 }
 
 // ---------- dev / QA helpers ----------
@@ -244,6 +286,7 @@ export function resetShipClaim(): void {
   try {
     localStorage.removeItem(SHOWN_KEY);
     localStorage.removeItem(APPLIED_KEY);
+    for (const k of LEGACY_KEYS) localStorage.removeItem(k);
   } catch {
     /* ignore */
   }
