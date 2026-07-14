@@ -16,6 +16,9 @@ export function FromMemeRoot() {
   return (
     <ToastProvider>
       <FromMemeInner />
+      {/* No ShipClaimHost here: the GTD claim is signed-in only, and this root
+          is Clerk-free (identity always null → the invite can never fire).
+          memeShare's markShipped calls still record share analytics. */}
     </ToastProvider>
   );
 }

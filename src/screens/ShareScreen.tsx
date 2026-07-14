@@ -19,7 +19,7 @@ import {
   exportAsComic,
   downloadComicFile,
 } from "../services/exportComicService";
-import { track } from "../services/analytics";
+import { markShipped } from "../services/shipClaim";
 import { ComicPageCanvas } from "../components/ComicPageCanvas";
 import {
   exportPagesPNG,
@@ -152,10 +152,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
     runExport(async () => {
       const arts = await exportPagesPNG(makeDriver(), true);
       arts.forEach((a) => addExportHistory(a.fileName, a.dataUri, a.type));
-      track("share_completed", {
-        surface: "export_tab_pages_download",
-        count: arts.length,
-      });
+      markShipped("export_tab_pages_download", { count: arts.length });
     });
 
   const handleSharePages = () =>
@@ -164,7 +161,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
         title: projectName || "My Comic",
         text: "Made with Panelhaus",
       });
-      track("share_completed", { surface: "export_tab_pages_share" });
+      markShipped("export_tab_pages_share");
     });
 
   const handleDelete = (id: string) => {
@@ -195,7 +192,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
             title: "Panel Haus Comic",
             files: [file],
           });
-          track("share_completed", { surface: "export_item", kind: item.type });
+          markShipped("export_item", { kind: item.type });
           return;
         } catch (e) {
           if ((e as Error).name === "AbortError") return;
@@ -209,10 +206,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
       a.download = item.name;
       a.click();
       URL.revokeObjectURL(url);
-      track("share_completed", {
-        surface: "export_item_download",
-        kind: item.type,
-      });
+      markShipped("export_item_download", { kind: item.type });
     } catch (err) {
       console.error("Share failed:", err);
     }
@@ -263,6 +257,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                 vaultEntries,
               );
               await downloadComicFile(json, projectName);
+              markShipped("comic_file_export");
             }}
             disabled={!hasComicContent}
             className="w-full flex items-center justify-center gap-2 py-4 bg-primary text-background font-headline font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-primary/20"
@@ -349,10 +344,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                         text: "Made with Panelhaus",
                         files,
                       });
-                      track("share_completed", {
-                        surface: "all_panels",
-                        count: files.length,
-                      });
+                      markShipped("all_panels", { count: files.length });
                       shared = true;
                     } catch (e) {
                       if ((e as Error).name === "AbortError") {
@@ -369,10 +361,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                       link.href = p.image!;
                       link.click();
                     });
-                    track("share_completed", {
-                      surface: "all_panels_download",
-                      count: files.length,
-                    });
+                    markShipped("all_panels_download", { count: files.length });
                   }
                 } catch (e) {
                   console.error("Batch share failed:", e);
@@ -410,9 +399,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                               title: `Panel ${i + 1}`,
                               files: [file],
                             });
-                            track("share_completed", {
-                              surface: "single_panel",
-                            });
+                            markShipped("single_panel");
                             shared = true;
                           } catch (e) {
                             if ((e as Error).name === "AbortError") {
@@ -426,9 +413,7 @@ export const ShareScreen: React.FC<ShareProps> = ({
                           link.download = file.name;
                           link.href = p.image!;
                           link.click();
-                          track("share_completed", {
-                            surface: "single_panel_download",
-                          });
+                          markShipped("single_panel_download");
                         }
                       } catch (e) {
                         console.error("Panel share failed:", e);

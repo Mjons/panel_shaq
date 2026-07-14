@@ -7,6 +7,7 @@ import { GifPanelEditor } from "../components/GifPanelEditor";
 import { GifPreview } from "../components/GifPreview";
 import { generateFrames } from "../services/gifAnimationService";
 import { encode as encodeGif } from "modern-gif";
+import { markShipped } from "../services/shipClaim";
 
 interface GifEditorProps {
   /** Panel images as base64 strings (with bubbles baked in) */
@@ -118,6 +119,7 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);
+    markShipped("gif_download");
   };
 
   const handleShare = async () => {
@@ -126,11 +128,18 @@ export const GifEditorScreen: React.FC<GifEditorProps> = ({
       type: "image/gif",
     });
     if (navigator.canShare?.({ files: [file] })) {
-      await navigator.share({
-        title: "My Comic GIF",
-        text: "Made with Panelhaus",
-        files: [file],
-      });
+      try {
+        await navigator.share({
+          title: "My Comic GIF",
+          text: "Made with Panelhaus",
+          files: [file],
+        });
+        markShipped("gif_share");
+      } catch (e) {
+        // User cancelled the share sheet — not a ship, not an error.
+        if ((e as Error).name === "AbortError") return;
+        handleDownload(); // fires gif_download itself
+      }
     } else {
       handleDownload();
     }

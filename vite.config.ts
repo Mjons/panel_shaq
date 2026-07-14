@@ -17,6 +17,12 @@ function vercelApiDev(): Plugin {
         const mockReq = {
           method: req.method,
           headers: req.headers,
+          url: req.url,
+          // Vercel populates req.query from the search string; mirror it so
+          // GET routes (e.g. creator-application ?identity=) work in dev.
+          query: Object.fromEntries(
+            new URL(req.url, "http://localhost").searchParams,
+          ),
           body: body ? JSON.parse(body) : {},
         };
         const mockRes = {

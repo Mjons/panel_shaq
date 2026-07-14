@@ -15,6 +15,7 @@ import { ToastProvider, useToast } from "./components/Toast";
 import { ConfirmProvider, useConfirm } from "./components/ConfirmDialog";
 import { ProjectManager } from "./components/ProjectManager";
 import { BuyCreditsSheet } from "./components/BuyCreditsSheet";
+import { ShipClaimHost } from "./components/ShipClaimHost";
 import {
   PanelPrompt,
   onApiError,
@@ -769,6 +770,10 @@ function AppInner() {
           }}
         />
       )}
+
+      {/* GTD ship-claim (signed-in only — gated on the Clerk identity holder
+          inside fireShipClaimOnce, not here). */}
+      <ShipClaimHost />
     </div>
   );
 }

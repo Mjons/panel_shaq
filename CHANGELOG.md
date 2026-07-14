@@ -1,5 +1,11 @@
 # Changelog
 
+## July 14, 2026 — GTD ship-claim (export/share → whitelist)
+
+- **Ship something, claim a GTD spot.** After a **signed-in** user's first export or share (comic pages, single panels, GIF, or `.comic` file), a one-shot bottom sheet invites them to claim a **guaranteed spot on the Smudgies drop whitelist** — the mobile port of Panel Haus desktop's creator-invite (Comic-Pro2 changelogs `1139`/`1140`/`1141`). Same 4-question application + optional goal / X handle / ETH address, same copy, and it registers into the **same shared Upstash store** as desktop (one dedupe namespace, one admin list). Claiming grants nothing immediately (auto-approved whitelist spot; the drop mints at 0.03 ETH) and costs zero ink. The invite is **signed-in only**: a signed-out ship is a silent no-op that doesn't burn the one shot, and the Clerk-free `/c/from-meme` receiver never shows it. The endpoint (`api/creator-application`) mirrors desktop's shared contract, with per-IP rate limiting and server-side validation (fixing desktop CR `1140` finding #5 in our copy).
+- **One "ship" concept.** All export/share surfaces now call `markShipped()` (`src/services/shipClaim.ts`), which emits the existing `share_completed` analytics event and arms the claim. Three previously-untracked surfaces (`.comic` export, GIF download, GIF share) now get analytics; the GIF share also gained a missing cancel/error catch (a cancelled share sheet was an unhandled rejection).
+- Signed-in identity (email/wallet) flows in via `<ShipIdentityBridge/>` for the cross-app dedupe key (`email:`/`web3:`, matching PH's user_id convention) and wallet prefill. New env: `UPSTASH_REDIS_REST_URL`/`_TOKEN` (same values as Panel Haus). Build doc: `documents/GTD_SHIP_CLAIM_BUILD_PLAN.md`.
+
 ## July 4, 2026 — Two new meme templates (internal build)
 
 - **`vince-mcmahon` ("Escalating Reaction").** Added the 3-caption escalating-reaction meme (700×700) with match keys `i made a meme` / `i made a comic` / `i made a whole series`, hand-calibrated onto the three panels.

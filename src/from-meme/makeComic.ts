@@ -45,6 +45,8 @@ export async function makeNewComic(
     /* ignore */
   }
 
+  // Deliberately track(), NOT markShipped(): the navigation below would destroy
+  // the ship-claim sheet mid-mount and burn its one shot with nothing shown.
   track("share_completed", { surface: "meme_make_comic" });
   window.location.assign("/");
 }

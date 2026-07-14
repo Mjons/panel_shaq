@@ -1,4 +1,4 @@
-import { track } from "../services/analytics";
+import { markShipped } from "../services/shipClaim";
 
 // Share / Copy / Download for the flattened meme PNG.
 //  - Share: Web Share API with files (the mobile-correct path; mirrors
@@ -38,7 +38,7 @@ export async function shareImage(
   if (typeof navigator.share === "function" && filesShareable) {
     try {
       await navigator.share({ title: "My meme", files: [file] });
-      track("share_completed", { surface: "meme_share" });
+      markShipped("meme_share");
       return "shared";
     } catch (e) {
       if ((e as Error).name === "AbortError") return "cancelled";
@@ -46,7 +46,7 @@ export async function shareImage(
     }
   }
   downloadBlob(blob, filename);
-  track("share_completed", { surface: "meme_share_download" });
+  markShipped("meme_share_download");
   return "downloaded";
 }
 
@@ -58,18 +58,18 @@ export async function copyImage(
   if (clipboard?.write && typeof ClipboardItem !== "undefined") {
     try {
       await clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      track("share_completed", { surface: "meme_copy" });
+      markShipped("meme_copy");
       return "copied";
     } catch {
       /* unsupported / denied — fall through */
     }
   }
   downloadBlob(blob, filename);
-  track("share_completed", { surface: "meme_copy_download" });
+  markShipped("meme_copy_download");
   return "downloaded";
 }
 
 export function downloadImage(blob: Blob, filename: string): void {
   downloadBlob(blob, filename);
-  track("share_completed", { surface: "meme_download" });
+  markShipped("meme_download");
 }

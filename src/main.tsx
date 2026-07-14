@@ -7,6 +7,7 @@ import { FromMemeRoot } from "./from-meme/FromMemeRoot";
 import { ClerkTokenBridge } from "./services/ClerkTokenBridge";
 import { ReferralLinker } from "./components/ReferralLinker";
 import { PosthogIdentifyBridge } from "./components/PosthogIdentifyBridge";
+import { ShipIdentityBridge } from "./components/ShipIdentityBridge";
 import { clerkAppearance } from "./clerkAppearance";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { initAnalytics, trackColdLanding } from "./services/analytics";
@@ -40,6 +41,7 @@ function mount() {
         <ClerkTokenBridge />
         <ReferralLinker />
         <PosthogIdentifyBridge />
+        <ShipIdentityBridge />
         <App />
       </ClerkProvider>
     ) : isMemeReceiver ? (
