@@ -1,5 +1,11 @@
 # Changelog
 
+## July 4, 2026 — Two new meme templates (internal build)
+
+- **`vince-mcmahon` ("Escalating Reaction").** Added the 3-caption escalating-reaction meme (700×700) with match keys `i made a meme` / `i made a comic` / `i made a whole series`, hand-calibrated onto the three panels.
+- **`smudge-stage` ("Standing Ovation").** Added the 2-caption meme (700×700) with match keys `shipped it` / `on the first try`, hand-calibrated top and bottom.
+- Both are `brands:["panelhaus"]` in MemeGen (the internal build, not CyberKongz-scoped like the July 3 pair). Ported from Comic-Pro2 via the generator with match-key text kept byte-exact so the handoff swap lands; images in `public/templates/`. Registry is now at parity with Comic-Pro2 (76 templates).
+
 ## July 3, 2026 — CyberKongz-only meme templates (handoff)
 
 - **`hangover-casino` ("Casino Win").** Added the CyberKongz-exclusive casino-table meme (700×625, top/bottom full-width zones) with match keys `they said it was gambling` / `it's a strategy engine`. Mobile half of MemeGen changelog `131`.
