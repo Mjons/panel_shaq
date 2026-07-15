@@ -9,10 +9,10 @@ import {
   type ClaimApplication,
 } from "../services/shipClaim";
 
-// GTD ship-claim sheet (mobile port of Comic-Pro2's CreatorInviteModal).
-// Copy is VERBATIM from desktop — the two apps must not contradict each other
-// publicly. The claim grants nothing now: it locks a whitelist spot only, and
-// everyone who ships is auto-approved ("reviewed within 24 hours" is framing).
+// FCFS ship-claim sheet (mobile port of Comic-Pro2's CreatorInviteModal).
+// Copy MIRRORS desktop — the two apps must not contradict each other publicly.
+// The claim grants nothing now: it locks a first-come-first-served whitelist
+// spot only, and everyone who ships gets one ("confirmed in claim order" framing).
 //
 // The invite only fires for SIGNED-IN users (gated in fireShipClaimOnce), so
 // by the time this renders an identity exists. Still imports zero Clerk —
@@ -131,7 +131,7 @@ export function ShipClaimSheet({
     <BottomSheet
       isOpen={isOpen}
       onClose={() => onClose(view)}
-      title={view === "apply" ? "Apply for your GTD spot" : undefined}
+      title={view === "apply" ? "Claim your FCFS spot" : undefined}
     >
       {view === "invite" && (
         <div className="space-y-5">
@@ -144,8 +144,8 @@ export function ShipClaimSheet({
             </h2>
             <p className="text-sm text-accent/70 leading-relaxed">
               You just shipped your first piece. That makes you a real UGC
-              creator — and it earns you a{" "}
-              <span className="font-semibold text-primary">guaranteed spot</span>{" "}
+              creator — and it earns you an early,{" "}
+              <span className="font-semibold text-primary">first-come-first-served spot</span>{" "}
               on the Smudgies drop whitelist.
             </p>
           </div>
@@ -156,7 +156,7 @@ export function ShipClaimSheet({
 
           <div>
             <p className="text-center text-[10px] uppercase tracking-widest text-accent/40 mb-3">
-              Your GTD whitelist unlocks
+              Your FCFS whitelist unlocks
             </p>
             <ul className="space-y-3">
               <Reward
@@ -185,10 +185,10 @@ export function ShipClaimSheet({
               }}
               className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-primary py-3.5 px-6 font-headline font-bold text-background transition-all active:scale-[0.98]"
             >
-              Claim my GTD spot <ChevronRight size={16} />
+              Claim my FCFS spot <ChevronRight size={16} />
             </button>
             <p className="text-center text-[11px] text-accent/40">
-              Spots are limited and reviewed. Takes about a minute.
+              Spots are limited and first-come, first-served. Takes about a minute.
             </p>
           </div>
         </div>
@@ -312,7 +312,7 @@ export function ShipClaimSheet({
               You're on the list.
             </h2>
             <p className="text-sm text-accent/70 leading-relaxed">
-              Application in. GTD spots are reviewed within 24 hours — we'll
+              You're in. FCFS spots are confirmed in claim order — we'll
               email you before the{" "}
               <span className="font-semibold text-primary">Smudgies drop</span>,
               where you'll unlock Pro tools, 500 AI credits, and your Smudgie.
