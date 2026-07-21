@@ -28,7 +28,11 @@ import {
   getClerkToken,
   openClerkSignIn,
 } from "./services/clerkToken";
-import { fetchAccount, emitBalance } from "./services/credits";
+import {
+  fetchAccount,
+  emitBalance,
+  getCachedBalance,
+} from "./services/credits";
 import { saveProject, type SavedProject } from "./services/projectStorage";
 import { usePersistedState } from "./hooks/usePersistedState";
 import { useIndexedDBState } from "./hooks/useIndexedDBState";
@@ -122,6 +126,11 @@ const GifEditorScreen = lazyWithReload(() =>
     default: m.GifEditorScreen,
   })),
 );
+
+// Crypto (OxaPay) purchases settle ON-CHAIN — minutes, not the seconds a Stripe
+// webhook takes — so the crypto return polls on this escalating schedule (~3 min
+// total, mirroring Panel Haus) instead of the card path's 3s/7s. Do not shorten it.
+const CRYPTO_POLL_DELAYS_MS = [3000, 7000, 15000, 30000, 60000, 65000];
 
 // Character is now a VaultEntry with type "Character" — single source of truth
 export type Character = VaultEntry;
@@ -283,10 +292,14 @@ function AppInner() {
     }
   }, []);
 
-  // Stripe checkout return handler. PH sends the user back to OUR origin at
-  // /success?session_id=…&type=booster (paid) or /app?checkout_canceled=… (back).
-  // The webhook credits the shared balance, which can lag a few seconds, so poll
-  // a couple of times, then clean the URL. Runs once on mount; Clerk-only.
+  // Checkout return handler. PH sends the user back to OUR origin at
+  // /success?session_id=…&type=booster (card), /success?crypto=1&type=booster
+  // (crypto), or /app?checkout_canceled=… (back). Runs once on mount; Clerk-only.
+  //
+  // The two rails settle on very different clocks: a Stripe webhook lands in
+  // seconds, while crypto confirms ON-CHAIN and routinely takes 1-3 minutes, so
+  // the card path's 3s/7s poll would essentially always miss it and leave the user
+  // staring at an unchanged balance right after paying.
   useEffect(() => {
     if (!isClerkEnabled()) return;
     const params = new URLSearchParams(window.location.search);
@@ -296,9 +309,71 @@ function AppInner() {
     if (!isSuccess && !isCanceled) return;
 
     if (isSuccess) {
-      addToast("Purchase complete. Credits added.", "success");
-      track("purchase_completed", { type: params.get("type") || "booster" });
+      const isCrypto = params.get("crypto") === "1";
+      const ptype = params.get("type") || "booster";
       let cancelled = false;
+
+      if (isCrypto) {
+        // Never claim "credits added" here — nothing is credited until OxaPay's
+        // callback reaches PH. Poll on an escalating schedule (~3 min, mirroring
+        // PH's SubscriptionBadge), stop the moment the balance actually rises, and
+        // end on an honest message rather than an endless spinner.
+        addToast("Confirming your crypto payment…", "info", 8000);
+        let baseline = getCachedBalance();
+        let timer: ReturnType<typeof setTimeout> | undefined;
+
+        const poll = (attempt: number) => {
+          if (cancelled) return;
+          if (attempt >= CRYPTO_POLL_DELAYS_MS.length) {
+            // Budget spent. PH still credits whenever the callback arrives, with
+            // or without the app open, so this is true rather than a failure.
+            addToast(
+              "Payment received. Still confirming on-chain, your ink will land automatically.",
+              "info",
+              8000,
+            );
+            track("purchase_pending", { type: ptype, method: "crypto" });
+            return;
+          }
+          timer = setTimeout(
+            async () => {
+              if (cancelled) return;
+              const t = await getClerkToken();
+              if (cancelled) return;
+              if (t) {
+                const { credits } = await fetchAccount(t);
+                if (cancelled) return;
+                if (credits !== null) {
+                  emitBalance(credits);
+                  // No baseline yet (cold load): the first read becomes it and we
+                  // keep polling for a CHANGE.
+                  if (baseline === null) baseline = credits;
+                  else if (credits > baseline) {
+                    addToast("Ink added. You're topped up.", "success");
+                    track("purchase_completed", {
+                      type: ptype,
+                      method: "crypto",
+                    });
+                    return;
+                  }
+                }
+              }
+              poll(attempt + 1);
+            },
+            CRYPTO_POLL_DELAYS_MS[attempt],
+          );
+        };
+        poll(0);
+        window.history.replaceState(null, "", "/");
+        return () => {
+          cancelled = true;
+          if (timer) clearTimeout(timer);
+        };
+      }
+
+      // Card: unchanged 0/3s/7s, tuned for the Stripe webhook.
+      addToast("Purchase complete. Credits added.", "success");
+      track("purchase_completed", { type: ptype, method: "card" });
       const refresh = async () => {
         const t = await getClerkToken();
         if (!t || cancelled) return;

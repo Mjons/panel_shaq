@@ -1,5 +1,12 @@
 # Changelog
 
+## July 20, 2026 — Pay for ink with crypto
+
+- **Boosters can now be bought with crypto**, not just card. When Panel Haus reports crypto is available, the Buy Ink sheet shows a **Card / Crypto** toggle; picking Crypto sends you to an OxaPay hosted page instead of Stripe. Same packs, same prices (Panel Haus reads the amount live from Stripe for both rails, so they can never disagree), same shared ink balance. This is the mobile half of Panel Haus changelog `1275`.
+- **The toggle is server-driven.** It appears only when PH's balance payload says `cryptoEnabled` — the flag already arrived through our passthrough proxy and was simply being discarded. A crypto-off or half-configured deploy shows no button at all rather than a dead one.
+- **The return now waits for the chain.** Card payments confirm via a Stripe webhook in seconds; crypto settles on-chain and routinely takes 1-3 minutes, so the old 3s/7s refresh would have left buyers staring at an unchanged balance. The crypto return polls on an escalating ~3 minute schedule, updates the moment the ink actually lands, and otherwise ends on an honest "still confirming on-chain, your ink will land automatically" rather than an endless spinner. Card timing is untouched.
+- This repo holds **no payment logic**: no OxaPay keys, no prices, no webhook. `api/crypto-create-invoice` is a byte-identical twin of the existing card proxy with one different upstream path. The OxaPay callback is pinned to Panel Haus by design (a webhook here would take money and never credit it). Spec: `documents/PANEL_SHAQ_CRYPTO_CHECKOUT_HANDOFF.md`.
+
 ## July 14, 2026 — GTD claims fail loudly instead of vanishing
 
 - **A claim we can't store is no longer reported as success.** The claim endpoint used to return `{ok:true}` when Upstash was unconfigured or a write threw, so the sheet said "You're on the list." and nothing was saved. Production shipped without the `UPSTASH_*` vars and silently dropped every claim for about two hours before anyone could tell. The write path now **fails closed** (`503 STORAGE_UNAVAILABLE` / `STORAGE_FAILED`) and returns `stored: true` only on a confirmed write. The **GET** "already applied?" gate still fails open on purpose: re-showing the sheet to someone who already applied is a smaller harm than locking a real creator out during an outage.
