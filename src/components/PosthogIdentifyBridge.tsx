@@ -22,7 +22,16 @@ export function PosthogIdentifyBridge() {
     if (isSignedIn && user) {
       const email = user.primaryEmailAddress?.emailAddress;
       const wallet = user.web3Wallets?.[0]?.web3Wallet;
-      identifyUser(user.id, {
+      // The `clerk:` prefix is REQUIRED, not cosmetic: we share one PostHog
+      // project with MemeGen, which identifies as `clerk:${useAuth().userId}`
+      // (MemeGen src/lib/AuthContext.jsx). Same Clerk instance → same user id, so
+      // matching the format makes one human ONE person across both apps. It also
+      // avoids a real conflict: PostHog's cookie is cross-subdomain on
+      // .panelhaus.app, so a MemeGen-identified visitor arrives here already
+      // carrying `clerk:<id>` as their distinct_id, and PostHog refuses to merge
+      // two *identified* ids — calling identify() with a bare id would be
+      // rejected. Do not drop the prefix.
+      identifyUser(`clerk:${user.id}`, {
         ...(email ? { email } : {}),
         ...(wallet ? { wallet } : {}),
         auth_method: authMethod(user),

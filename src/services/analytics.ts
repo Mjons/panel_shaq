@@ -21,11 +21,24 @@ export function initAnalytics(): void {
         "https://us.i.posthog.com",
       capture_pageview: "history_change", // SPA pageviews (no router)
       capture_pageleave: true,
-      autocapture: true,
+      // Both OFF deliberately: we share ONE PostHog project — and therefore one
+      // event/recording allowance — with MemeGen, which sets the same two. The 19
+      // explicit events below carry the signal; autocapture's click/input firehose
+      // would dominate the volume, and session recordings are billed separately.
+      autocapture: false,
+      disable_session_recording: true,
       // Only create person profiles for identified (signed-in) users; anonymous
       // events still flow and merge on identify. Cheaper + privacy-friendlier.
       person_profiles: "identified_only",
       persistence: "localStorage+cookie",
+    });
+    // Super properties stamped on EVERY event, so the shared project can tell the
+    // apps apart (MemeGen registers app:"memegen" + whitelabel:<brand>). These
+    // live in per-origin localStorage — the cross-subdomain cookie only carries
+    // distinct_id/$device_id/session keys — so they can't leak between apps.
+    posthog.register({
+      app: "panel_shaq",
+      env: import.meta.env.PROD ? "production" : "dev",
     });
     phReady = true;
   } catch {

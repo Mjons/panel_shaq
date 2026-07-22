@@ -1,5 +1,13 @@
 # Changelog
 
+## July 21, 2026 — Product analytics joins MemeGen's PostHog project
+
+- **One shared PostHog project instead of a second one.** Panel Haus desktop isn't on PostHog at all (it uses Google Analytics), so the only app we overlap with is MemeGen — and specifically its internal build at `memes.panelhaus.app`, which shares our Clerk account and our ink balance. Sharing the project keeps that one genuinely-linked journey intact (a meme handed off to mobile, ink bought on one surface and spent on the other) and costs nothing, since PostHog's free plan allows only one project per organization anyway. The branded MemeGen builds (`dfz`, `dumpstr`, `coolcats`) don't use Clerk, so their users were never going to overlap with ours; they stay separated by the `whitelabel` property they already carry.
+- **Signed-in users are now identified as `clerk:<user id>`**, matching MemeGen's format exactly. Without this the same human counted as two different people. It also removes a real conflict: PostHog's cookie is shared across `*.panelhaus.app`, so someone identified in MemeGen already arrives here carrying that id, and PostHog refuses to merge two identified ids.
+- **Every event now carries `app: "panel_shaq"` plus an `env` tag**, mirroring MemeGen's `app: "memegen"`, so either app's data can be isolated with one filter. Super properties live in per-origin storage, so the two apps' tags can't bleed into each other.
+- **Autocapture and session recording are off.** One project means one shared event and recording allowance, and recordings are billed separately; our explicit events carry the signal without the click-by-click firehose. MemeGen disables both for the same reason.
+- Nothing was captured before this: the key was never configured, so PostHog was a no-op in production. Setting `VITE_POSTHOG_KEY` to MemeGen's project key (and redeploying) turns on the existing 19 events, including the new `checkout_started {method: card|crypto}` split.
+
 ## July 20, 2026 — Pay for ink with crypto
 
 - **Boosters can now be bought with crypto**, not just card. When Panel Haus reports crypto is available, the Buy Ink sheet shows a **Card / Crypto** toggle; picking Crypto sends you to an OxaPay hosted page instead of Stripe. Same packs, same prices (Panel Haus reads the amount live from Stripe for both rails, so they can never disagree), same shared ink balance. This is the mobile half of Panel Haus changelog `1275`.
