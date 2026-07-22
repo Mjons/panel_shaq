@@ -6,7 +6,8 @@
 - **Signed-in users are now identified as `clerk:<user id>`**, matching MemeGen's format exactly. Without this the same human counted as two different people. It also removes a real conflict: PostHog's cookie is shared across `*.panelhaus.app`, so someone identified in MemeGen already arrives here carrying that id, and PostHog refuses to merge two identified ids.
 - **Every event now carries `app: "panel_shaq"` plus an `env` tag**, mirroring MemeGen's `app: "memegen"`, so either app's data can be isolated with one filter. Super properties live in per-origin storage, so the two apps' tags can't bleed into each other.
 - **Autocapture and session recording are off.** One project means one shared event and recording allowance, and recordings are billed separately; our explicit events carry the signal without the click-by-click firehose. MemeGen disables both for the same reason.
-- Nothing was captured before this: the key was never configured, so PostHog was a no-op in production. Setting `VITE_POSTHOG_KEY` to MemeGen's project key (and redeploying) turns on the existing 19 events, including the new `checkout_started {method: card|crypto}` split.
+- **New `checkout_failed` event** closes a blind spot on both rails: a checkout that never starts (signed out, network down, crypto disabled, rate limited, or a bad upstream response) used to look identical to nobody trying to buy, since `checkout_started` simply dropped to zero. It carries the pack, the method, the HTTP status and a stable reason code, never the upstream's raw error text. All nine failure paths across the card and crypto flows now report one.
+- Nothing was captured before this: the key was never configured, so PostHog was a no-op in production. Setting `VITE_POSTHOG_KEY` to MemeGen's project key (and redeploying) turns on the existing events, including the new `checkout_started {method: card|crypto}` split.
 
 ## July 20, 2026 — Pay for ink with crypto
 

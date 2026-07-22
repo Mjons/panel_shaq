@@ -6,27 +6,69 @@ import { getClerkToken } from "./clerkToken";
 // balance via its webhook; the return URL brings the user back to our origin.
 
 export type BoosterSize = "small" | "medium" | "large";
+type PayMethod = "card" | "crypto";
+
+/**
+ * A checkout that never started. Without this, a broken rail looks identical to
+ * nobody trying to buy — checkout_started simply drops to zero.
+ *
+ * `reason` is a STABLE code, deliberately never the upstream's raw error text:
+ * that copy is arbitrary, can change without notice, and would fragment the
+ * funnel into unqueryable variants.
+ */
+function trackCheckoutFailed(
+  method: PayMethod,
+  pack: BoosterSize,
+  status: number,
+  reason: string,
+): void {
+  import("./analytics")
+    .then(({ track }) =>
+      track("checkout_failed", { pack, method, status, reason }),
+    )
+    .catch(() => {
+      /* analytics must never break checkout */
+    });
+}
 
 export async function startBoosterCheckout(
   boosterSize: BoosterSize,
 ): Promise<void> {
   const token = await getClerkToken();
-  if (!token) throw new Error("Please sign in first.");
+  if (!token) {
+    trackCheckoutFailed("card", boosterSize, 0, "not_signed_in");
+    throw new Error("Please sign in first.");
+  }
 
-  const r = await fetch("/api/credits-checkout", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ type: "booster", boosterSize }),
-  });
+  let r: Response;
+  try {
+    r = await fetch("/api/credits-checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ type: "booster", boosterSize }),
+    });
+  } catch {
+    trackCheckoutFailed("card", boosterSize, 0, "network");
+    throw new Error("Network error. Please try again.");
+  }
 
   const d = await r.json().catch(() => ({}) as { url?: string; error?: string });
-  if (r.status === 503)
+  if (r.status === 503) {
+    trackCheckoutFailed("card", boosterSize, r.status, "unavailable");
     throw new Error("Payments are temporarily unavailable.");
-  if (!r.ok || !d?.url)
+  }
+  if (!r.ok || !d?.url) {
+    trackCheckoutFailed(
+      "card",
+      boosterSize,
+      r.status,
+      r.ok ? "no_url" : "http_error",
+    );
     throw new Error(d?.error || "Couldn't start checkout.");
+  }
 
   try {
     const { track } = await import("./analytics");
@@ -49,26 +91,46 @@ export async function startCryptoBoosterCheckout(
   boosterSize: BoosterSize,
 ): Promise<void> {
   const token = await getClerkToken();
-  if (!token) throw new Error("Please sign in first.");
+  if (!token) {
+    trackCheckoutFailed("crypto", boosterSize, 0, "not_signed_in");
+    throw new Error("Please sign in first.");
+  }
 
-  const r = await fetch("/api/crypto-create-invoice", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ type: "booster", boosterSize }),
-  });
+  let r: Response;
+  try {
+    r = await fetch("/api/crypto-create-invoice", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ type: "booster", boosterSize }),
+    });
+  } catch {
+    trackCheckoutFailed("crypto", boosterSize, 0, "network");
+    throw new Error("Network error. Please try again.");
+  }
 
   const d = await r.json().catch(() => ({}) as { url?: string; error?: string });
   // 503 covers both OXAPAY_DISABLED and PRICE_UNAVAILABLE (PH can't reach Stripe
   // for the live price); 429 is PH's 5-invoices-per-minute-per-user limit.
-  if (r.status === 503)
+  if (r.status === 503) {
+    trackCheckoutFailed("crypto", boosterSize, r.status, "unavailable");
     throw new Error("Crypto payments are temporarily unavailable.");
-  if (r.status === 429)
+  }
+  if (r.status === 429) {
+    trackCheckoutFailed("crypto", boosterSize, r.status, "rate_limited");
     throw new Error("Too many attempts. Please wait a minute.");
-  if (!r.ok || !d?.url)
+  }
+  if (!r.ok || !d?.url) {
+    trackCheckoutFailed(
+      "crypto",
+      boosterSize,
+      r.status,
+      r.ok ? "no_url" : "http_error",
+    );
     throw new Error(d?.error || "Couldn't start crypto checkout.");
+  }
 
   try {
     const { track } = await import("./analytics");
