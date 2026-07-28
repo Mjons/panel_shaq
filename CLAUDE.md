@@ -131,6 +131,28 @@ Current routes: `generate-panels`, `generate-image`, `final-render`, `insert-pan
 
 ### GTD ship-claim (export/share → whitelist)
 
+> 🛑 **RETIRED 2026-07-28 — the sheet no longer fires.** `SHIP_CLAIM_ENABLED = false` in
+> `src/services/shipClaim.ts`. Everything below still describes the machinery accurately;
+> it is simply dormant.
+>
+> **Why:** it promised an FCFS whitelist spot "confirmed in claim order" off a Redis list
+> that decides nothing. The mint lists are built from Panel Haus's Postgres
+> `point_transactions` — Creator Card asks completed, ranked by when — so two live systems
+> were promising the SAME whitelist under two different orderings. Panel Haus retired its
+> half first (Comic-Pro2 changelog `1342`); this is the other half.
+>
+> **Not changed:** `api/creator-application` stays live, and every stored claim is intact.
+> The endpoint and its Redis keys are shared byte-for-byte with Panel Haus, whose
+> list/export/backup scripts still read them.
+>
+> **Context:** that shared list held 581 rows of which only **22 were real** — 557 were
+> injected by the 2026-07-19/21 referral farm, which hit PH web and never touched mobile
+> (Comic-Pro2 changelog `1343`). All 6 mobile-sourced rows are genuine.
+>
+> **To re-enable:** flip the one constant. But change the copy first — `ShipClaimSheet.tsx`
+> still says "first-come-first-served spot" / "Claim my FCFS spot", which is the promise
+> that conflicts.
+
 When a **signed-in** user **ships** (any export/share in the main app), a one-shot bottom sheet invites them to claim a GTD whitelist spot — the mobile port of Comic-Pro2's creator-invite (its changelogs `1139`/`1140`/`1141`; build doc: `documents/GTD_SHIP_CLAIM_BUILD_PLAN.md`). Every ship surface calls **`markShipped(surface, props?)`** (`src/services/shipClaim.ts`), which fires the existing `share_completed` analytics event AND arms the claim — the invariant is that `"share_completed"` appears only in `shipClaim.ts` (plus the deliberate `makeComic.ts` exclusion, which navigates away immediately). **The invite is signed-in only:** `fireShipClaimOnce` returns early (before any flag write, so the one shot isn't burned) when no Clerk identity is registered via the `registerShipIdentity` holder set by `<ShipIdentityBridge/>` in `main.tsx`. The sheet (`ShipClaimSheet` via `ShipClaimHost`) is mounted in `App.tsx` only — the Clerk-free `/c/from-meme` root has no host (its `markShipped` calls are analytics-only) — and the sheet/service stay **Clerk-free** (holder pattern, like `clerkToken.ts`). Four invariants: the claim **grants nothing** (whitelist spot only, auto-approved, drop mints at 0.03 ETH — copy stays verbatim with desktop), it costs/grants **zero ink**, the endpoint (`api/creator-application`) has **no auth/credit guard** (it's shared byte-for-byte with desktop's anonymous-capable endpoint — do NOT use `apiPost`, and don't add `requireSignInWhenClerk` server-side), and it is NOT `creator-program` (PH's separate Clerk-authed Postgres system). The route shares Panel Haus's Upstash DB (`UPSTASH_REDIS_REST_URL/TOKEN`, keys byte-identical: `creator:application:<identity>` / `creator:applications`), rate-limits 10 POST/hour/IP (rightmost-XFF), and validates enums server-side. **The write path fails CLOSED** (`503` when Upstash is unconfigured or the write throws) and returns `stored: true` on success; the client burns its one-shot flag **only** on that confirmation, and clears the shown-flag on failure so the next ship re-prompts (desktop changelog `1240` — the old flag-first/ignore-response order lost the lead twice: nothing stored AND never re-invited). The **GET** gate still fails open on purpose: re-showing the sheet to someone who already applied beats locking a real creator out. Client one-shot keys: `panelshaq_ship_claim_shown_v2`/`_applied_v2` (reset BOTH to re-test; dismissal consumes the shot by design). The `_v2` suffix is deliberate — the v1 keys are abandoned, not migrated, to hand a fresh shot to everyone burned during the outage.
 
 ### Export / desktop bridge

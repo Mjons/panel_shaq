@@ -53,6 +53,31 @@ const LEGACY_KEYS = [
 ];
 const ENDPOINT = "/api/creator-application";
 
+// RETIRED 2026-07-28 — flip to true to bring the sheet back.
+//
+// This sheet offered "a first-come-first-served spot on the Smudgies drop whitelist",
+// confirmed "in claim order", from a list that decides nothing: claims land in Upstash
+// Redis (`creator:applications`). The mint lists are built from Panel Haus's Postgres
+// `point_transactions` — who completed which Creator Card asks, and when — so two live
+// systems were promising the SAME whitelist under two different orderings, and only one
+// of them gets minted. Panel Haus retired its copy first (Comic-Pro2 changelog 1342);
+// this is the other half, so the promise is not still being made on mobile.
+//
+// Context worth knowing: that shared Redis list held 581 rows of which only 22 were
+// real — 557 were injected by the 2026-07-19/21 referral farm, which hit Panel Haus web
+// and never touched mobile. See Comic-Pro2 changelog 1343.
+//
+// ⚠️ CLIENT-SIDE ONLY, ON PURPOSE. api/creator-application.ts stays live: the endpoint
+// and its Redis keys are SHARED with Panel Haus, and the stored claims are still read by
+// PH's list/export/backup scripts. Nothing already submitted is affected.
+//
+// Annotated `: boolean` deliberately. Without it TS infers the literal type `false`,
+// narrows `if (!SHIP_CLAIM_ENABLED) return;` to always-taken, and treats the entire
+// rest of fireShipClaimOnce as unreachable — which greys it out in editors and errors
+// outright under allowUnreachableCode: false. The widened type keeps the body live code
+// so re-enabling is genuinely one word.
+const SHIP_CLAIM_ENABLED: boolean = false;
+
 // Let the native share sheet finish dismissing before ours slides up.
 const SHOW_DELAY_MS = 700;
 
@@ -152,6 +177,12 @@ let dispatchInFlight = false;
 
 export async function fireShipClaimOnce(source: string): Promise<void> {
   if (typeof window === "undefined") return;
+  // Retired — see SHIP_CLAIM_ENABLED. The guard is HERE and not in markShipped()
+  // because markShipped also emits the share_completed analytics event; guarding the
+  // caller would silently kill ship tracking across every surface. It also sits above
+  // the flag writes, so a retired sheet burns nobody's one shot and costs no fetch.
+  // forceShipClaim() still works: it is dev-only and dispatches to listeners directly.
+  if (!SHIP_CLAIM_ENABLED) return;
   // Signed-in only. Return BEFORE any flag write: a signed-out ship must not
   // burn the one shot — the invite should still fire on their first
   // signed-in ship.

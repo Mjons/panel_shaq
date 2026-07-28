@@ -1,6 +1,18 @@
 # GTD Ship-Claim Build Plan (Panel Haus Mobile)
 
-**Status:** implemented (July 14, 2026) — pending the Upstash env vars in Vercel + manual QA
+**Status:** implemented (July 14, 2026) — **RETIRED July 28, 2026.**
+
+> 🛑 **The client trigger is off:** `SHIP_CLAIM_ENABLED = false` in `src/services/shipClaim.ts`.
+> The sheet no longer fires for anyone. This plan remains accurate as a description of the
+> machinery, which is dormant rather than deleted.
+>
+> It promised an FCFS whitelist spot "in claim order" off a Redis list that decides nothing —
+> the mint lists come from Panel Haus's Postgres `point_transactions`. Two systems, same
+> whitelist, different orderings. PH retired its half in Comic-Pro2 changelog `1342`; see also
+> `1343` (only 22 of the 581 stored claims are real) and `CHANGELOG.md` here.
+>
+> The endpoint and all stored claims are untouched. Re-enabling is one constant — but rewrite
+> the FCFS copy in `ShipClaimSheet.tsx` first.
 
 > **AMENDMENT (July 14, owner decision): the invite is SIGNED-IN ONLY.** This
 > supersedes every "anonymous claim" statement below about the CLIENT trigger.
