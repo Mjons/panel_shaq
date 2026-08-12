@@ -99,6 +99,9 @@ const WorkshopScreen = lazyWithReload(() =>
     default: m.WorkshopScreen,
   })),
 );
+const SmudgeScreen = lazyWithReload(() =>
+  import("./screens/SmudgeScreen").then((m) => ({ default: m.SmudgeScreen })),
+);
 const DirectorScreen = lazyWithReload(() =>
   import("./screens/DirectorScreen").then((m) => ({
     default: m.DirectorScreen,
@@ -675,6 +678,20 @@ function AppInner() {
 
   const renderScreen = () => {
     switch (activeTab) {
+      case "smudge":
+        return (
+          <SmudgeScreen
+            story={story}
+            vaultEntries={vaultEntries}
+            panels={panels}
+            pages={pages}
+            pageFormat={pageFormat}
+            projectName={projectName}
+            setRawPanels={setRawPanels}
+            setPages={setPages}
+            setVaultEntries={setVaultEntries}
+          />
+        );
       case "workshop":
         return (
           <WorkshopScreen

@@ -1,5 +1,12 @@
 # Changelog
 
+## August 12, 2026 — Smudge: build a comic by chatting (v1)
+
+- **A new first tab, Smudge, builds comics through conversation.** Tell Smudge what you want in a sentence; it plans the page in plain words, you tap **Keep it**, and the panels draw themselves into the thread one at a time. Ask "make panel 2 at night" and only that panel redraws. The four manual tabs (Workshop → Director → Layout → Editor) are unchanged and stay the manual path; Smudge writes into the same panels, pages, and vault, so anything it makes is still editable by hand.
+- **Draft-first, and nothing is permanent.** A built page arrives as a draft with **Keep it / Try again**; only Keep it commits it. Every agent action gets a one-tap **Undo that** (the app had no undo before this at all). Characters you mention can be saved to your vault so they stay consistent.
+- **It charges ink honestly.** A Smudge turn costs ink once, no matter how many internal steps it takes (idempotent reserve keyed on the turn), and drawing bills image ink separately per panel, exactly like manual generation. Signed-out users get the sign-in prompt; BYOK bypasses ink; out-of-ink opens the Buy sheet. New env: `INK_COST_AGENT_TURN` (default 1, finalized with the desktop repricing) and `MOBILE_AGENT_GEMINI_MODEL`.
+- **Hold-to-talk** input where the browser supports it. Built as the mobile port of Panel Haus desktop's Smudge; full plan + reasoning in `documents/MOBILE_AGENT_HANDOFF.md`.
+
 ## July 28, 2026 — The FCFS ship-claim sheet is retired
 
 - **The sheet no longer fires.** `SHIP_CLAIM_ENABLED = false` in `src/services/shipClaim.ts` is the whole change. It offered "a first-come-first-served spot on the Smudgies drop whitelist", confirmed "in claim order" — but those claims land in a Redis list that decides nothing. The mint lists are built from Panel Haus's Postgres `point_transactions`: who completed which Creator Card asks, and when, ranked by qualification time. So two live systems were promising the SAME whitelist under two different orderings, and only one of them gets minted. Panel Haus retired its half first (Comic-Pro2 changelog `1342`); this is the other half, so the promise isn't still being made on mobile after being withdrawn on desktop.

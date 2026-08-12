@@ -10,6 +10,7 @@ import {
   PenTool,
   Share2,
   Globe,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "../lib/utils";
@@ -31,6 +32,7 @@ export const TopNav = ({
   const [showHelp, setShowHelp] = useState(false);
 
   const menuItems = [
+    { id: "smudge", icon: Sparkles, label: "Smudge" },
     { id: "workshop", icon: Home, label: "Workshop" },
     { id: "director", icon: BookOpen, label: "Director" },
     { id: "layout", icon: Layout, label: "Layout" },
@@ -227,6 +229,7 @@ export const BottomNav = ({
   onTabChange: (tab: string) => void;
 }) => {
   const tabs = [
+    { id: "smudge", icon: "auto_awesome", label: "Smudge" },
     { id: "workshop", icon: "home", label: "Workshop" },
     { id: "director", icon: "auto_stories", label: "Director" },
     { id: "layout", icon: "auto_awesome_motion", label: "Layout" },
