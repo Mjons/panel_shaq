@@ -8,6 +8,7 @@ import {
   Sparkles,
   Loader2,
   Mic,
+  ArrowRight,
 } from "lucide-react";
 import { Smudge } from "../components/Smudge";
 import { useSmudgeChat, type PendingDraft } from "../hooks/useSmudgeChat";
@@ -37,6 +38,7 @@ interface SmudgeScreenProps {
   setRawPanels: TurnSetters["setRawPanels"];
   setPages: TurnSetters["setPages"];
   setVaultEntries: TurnSetters["setVaultEntries"];
+  onNavigate?: (tab: string) => void;
 }
 
 const STARTERS = [
@@ -69,6 +71,7 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
   setRawPanels,
   setPages,
   setVaultEntries,
+  onNavigate,
 }) => {
   const doc: MobileDoc = useMemo(
     () => ({ story, vaultEntries, panels, pages, pageFormat, projectName }),
@@ -92,6 +95,7 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
     discardDraft,
     undo,
     drawAllPending,
+    smudgePageId,
   } = useSmudgeChat({ doc, tools: SMUDGE_TOOLS, setters });
 
   const [input, setInput] = useState("");
@@ -106,15 +110,20 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
     return (id?: string | null) => (id ? (m.get(id) ?? null) : null);
   }, [vaultEntries]);
 
-  // The most recently built page + which of its panels still need art.
-  const lastPage = pages.length ? pages[pages.length - 1] : null;
-  const lastPagePanels = useMemo(() => {
-    if (!lastPage) return [];
-    return lastPage.panelIds
+  // Smudge's ONE page (the same one keepDraft/drawAllPending operate on) and which
+  // of its panels still need art. The preview, the button count, and the draw all
+  // read this — so they can never disagree.
+  const smudgePage = smudgePageId
+    ? (pages.find((p) => p.id === smudgePageId) ?? null)
+    : null;
+  const smudgePagePanels = useMemo(() => {
+    if (!smudgePage) return [];
+    return smudgePage.panelIds
       .map((id) => panels.find((p) => p.id === id))
       .filter((p): p is PanelPrompt => !!p);
-  }, [lastPage, panels]);
-  const pendingArt = lastPagePanels.filter((p) => !p.image).length;
+  }, [smudgePage, panels]);
+  const pendingArt = smudgePagePanels.filter((p) => !p.image).length;
+  const hasComic = smudgePagePanels.length > 0;
 
   const send = (text: string) => {
     if (busy || drawing) return;
@@ -123,11 +132,14 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
   };
 
   const suggestions = latestSuggestions(messages);
-  const isEmpty = messages.length === 0 && !draft;
+  // Greeting only when there's genuinely nothing yet: no chat, no draft, and no
+  // committed Smudge page. A returning user (chat state reset on tab switch) still
+  // sees their page instead of a blank slate.
+  const showGreeting = messages.length === 0 && !draft && !hasComic;
 
   return (
     <div className="pt-24 pb-48 px-4 max-w-2xl mx-auto min-h-screen">
-      {isEmpty ? (
+      {showGreeting ? (
         <div className="flex flex-col items-center text-center gap-4 mt-8">
           <Smudge pose="waving" size={96} />
           <h1 className="font-headline text-2xl font-bold text-accent">
@@ -151,6 +163,12 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
+          {messages.length === 0 && hasComic && !draft && (
+            <p className="text-center text-sm text-accent/60 mt-2">
+              Here's your page. Tell me what to change, or draw it below.
+            </p>
+          )}
+
           {messages.map((m, i) => (
             <MessageRow key={i} message={m} />
           ))}
@@ -171,8 +189,8 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
             />
           )}
 
-          {!draft && lastPage && lastPagePanels.length > 0 && (
-            <PagePreview panels={lastPagePanels} drawing={drawing} />
+          {!draft && hasComic && (
+            <PagePreview panels={smudgePagePanels} drawing={drawing} />
           )}
 
           {!busy && !draft && suggestions.length > 0 && (
@@ -225,6 +243,15 @@ export const SmudgeScreen: React.FC<SmudgeScreenProps> = ({
                 {pendingArt === 1 ? "panel" : "panels"}
               </>
             )}
+          </button>
+        )}
+
+        {!draft && hasComic && onNavigate && (
+          <button
+            onClick={() => onNavigate("editor")}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-outline/25 bg-surface py-2.5 text-sm font-semibold text-accent/80 transition-all active:scale-[0.98]"
+          >
+            Open in the editor <ArrowRight size={15} />
           </button>
         )}
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## August 13, 2026 — Smudge polish (single page, reliable turns, visible panel delete)
+
+- **Smudge is now the default landing screen.** New users open straight into the chat; the manual tabs stay one tap away. Returning users keep whatever tab they were last on (the choice is remembered per device).
+- **Smudge owns one page, and rebuilding replaces it.** Each build used to append a brand-new page, so retrying stacked duplicates and the "Draw N panels" count could disagree with the preview. Smudge now tracks its page (persisted, so it survives a tab switch) and a rebuild replaces that page's panels only — it never touches your manually-made pages. The page preview, the Draw button, and the actual draw all read that one page, so the number is always honest.
+- **Your comic no longer vanishes when you leave the tab.** The conversation state lives in the screen and resets on a tab switch; now the committed page (with a "here's your page, tell me what to change") shows on return instead of a blank greeting, so the work is never lost from view.
+- **Turns finish reliably.** A build sometimes reported "I couldn't finish" even though the page was fine: the model built on round one and then stumbled on a fragile second round. Smudge now does a single tool round (the draft or edit is the deliverable) and only says "couldn't finish" when genuinely nothing happened.
+- **Open in the editor.** Once you have a page, a button jumps straight to the full editor to finish it (bubbles, layout, export).
+- **Director: the delete-panel button is visible again, and always warns.** On a drawn panel the trash icon was pinned to the same corner as the Upload/Copy/Download toolbar and was painted over by it; it is now the fourth icon in that toolbar (with a standalone trash for undrawn panels). Deleting any panel now asks for confirmation first ("its generated image will be gone for good"), where before it only warned on drawn panels.
+
 ## August 12, 2026 — Smudge: build a comic by chatting (v1)
 
 - **A new first tab, Smudge, builds comics through conversation.** Tell Smudge what you want in a sentence; it plans the page in plain words, you tap **Keep it**, and the panels draw themselves into the thread one at a time. Ask "make panel 2 at night" and only that panel redraws. The four manual tabs (Workshop → Director → Layout → Editor) are unchanged and stay the manual path; Smudge writes into the same panels, pages, and vault, so anything it makes is still editable by hand.

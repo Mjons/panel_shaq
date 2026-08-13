@@ -92,6 +92,7 @@ export async function runAgentTurn(
     return;
   }
 
+  let didSomething = false;
   for (let round = 0; round < MAX_ROUNDS; round++) {
     ctx.setStatus("Smudge is thinking…");
     const digest = buildMobileDigest(ctx.readDoc());
@@ -130,10 +131,20 @@ export async function runAgentTurn(
       results.push({ name: call.name, result });
     }
     ctx.pushMessage({ role: "tool", results });
+    didSomething = true;
+
+    // Stop after ONE tool round. Lite models are unreliable across tool rounds:
+    // the round-2 call often fails and the turn reports "couldn't finish" even
+    // though the round-1 build/edit already landed. Our tools are single-shot (a
+    // build becomes a draft the user confirms; an edit applies immediately), so a
+    // second round has nothing to do.
+    break;
   }
 
   ctx.setStatus(null);
-  if (!lastAssistantHasText(ctx.transcript()))
+  // Only say "couldn't finish" when NOTHING happened — no tool ran AND no prose.
+  // A successful build with empty model text must NOT read as a failure.
+  if (!didSomething && !lastAssistantHasText(ctx.transcript()))
     ctx.pushMessage({
       role: "assistant",
       text: "I could not finish that one. Tell me what to try instead and I'll have another go.",

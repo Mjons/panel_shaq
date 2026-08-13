@@ -728,18 +728,6 @@ const PanelCard = React.memo(
                 </div>
               </div>
 
-              {/* Delete button */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(index);
-                }}
-                className="absolute top-2 right-2 md:top-3 md:right-3 bg-background/60 backdrop-blur-sm text-accent/40 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors z-10"
-                title="Delete panel"
-              >
-                <Trash2 size={14} />
-              </button>
-
               {/* Queue status badges */}
               {isQueued && !isQueueGenerating && (
                 <div className="absolute top-4 right-4 bg-secondary/90 backdrop-blur-md text-background px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest z-10">
@@ -795,6 +783,16 @@ const PanelCard = React.memo(
                   >
                     <Download size={14} />
                   </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(index);
+                    }}
+                    className="bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-red-400 hover:bg-red-500/20 transition-all"
+                    title="Delete panel"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                   {copiedImage && (
                     <button
                       onClick={(e) => {
@@ -808,6 +806,21 @@ const PanelCard = React.memo(
                     </button>
                   )}
                 </div>
+              )}
+
+              {/* Undrawn idle panels have no image toolbar, so give them their own
+                  delete in the same top-right spot (no badge is there to collide). */}
+              {!image && !isQueued && !isQueueGenerating && !isFailed && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(index);
+                  }}
+                  className="absolute top-2 right-2 md:top-4 md:right-4 bg-background/70 backdrop-blur-md text-accent/70 p-1.5 rounded-lg hover:text-red-400 hover:bg-red-500/20 transition-all z-10"
+                  title="Delete panel"
+                >
+                  <Trash2 size={14} />
+                </button>
               )}
 
               <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 opacity-60 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -1410,15 +1423,16 @@ export const DirectorScreen: React.FC<DirectorProps> = ({
   const handleDeletePanel = useCallback(
     async (index: number) => {
       const panel = panels[index];
-      if (panel?.image) {
-        const ok = await confirm({
-          title: "Delete Panel",
-          message: `Delete Panel ${index + 1}? This panel has a generated image that will be lost.`,
-          confirmText: "Delete",
-          danger: true,
-        });
-        if (!ok) return;
-      }
+      // Always warn — deleting is permanent whether or not the panel is drawn.
+      const ok = await confirm({
+        title: "Delete panel",
+        message: panel?.image
+          ? `Delete Panel ${index + 1}? Its generated image will be gone for good.`
+          : `Delete Panel ${index + 1}? This can't be undone.`,
+        confirmText: "Delete",
+        danger: true,
+      });
+      if (!ok) return;
       setPanels((prev) => prev.filter((_, i) => i !== index));
     },
     [panels, confirm],

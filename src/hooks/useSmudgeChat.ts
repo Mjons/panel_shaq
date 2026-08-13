@@ -60,6 +60,27 @@ export function useSmudgeChat({
   const [drawing, setDrawing] = useState(false);
   const [drawStatus, setDrawStatus] = useState<string | null>(null);
 
+  // The ONE page Smudge owns. Persisted (survives tab-switch unmount + reload) so a
+  // rebuild replaces this exact page and never touches the user's manual pages.
+  const [smudgePageId, setSmudgePageIdState] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("panelshaq_smudge_page_id");
+    } catch {
+      return null;
+    }
+  });
+  const smudgePageIdRef = useRef<string | null>(smudgePageId);
+  const setSmudgePageId = useCallback((id: string | null) => {
+    smudgePageIdRef.current = id;
+    setSmudgePageIdState(id);
+    try {
+      if (id) localStorage.setItem("panelshaq_smudge_page_id", id);
+      else localStorage.removeItem("panelshaq_smudge_page_id");
+    } catch {
+      /* storage blocked */
+    }
+  }, []);
+
   const messagesRef = useRef<ChatMessage[]>([]);
   const docRef = useRef<MobileDoc>(doc);
   useEffect(() => {
@@ -235,12 +256,34 @@ export function useSmudgeChat({
       { panels: cur.panels, pages: cur.pages, vaultEntries: cur.vaultEntries },
       d.title || "built page",
     );
-    setters.setRawPanels([...cur.panels, ...d.newPanels]);
-    setters.setPages([...cur.pages, d.page]);
+
+    const existingId = smudgePageIdRef.current;
+    const existingPage = existingId
+      ? cur.pages.find((p) => p.id === existingId)
+      : null;
+
+    if (existingPage) {
+      // REPLACE Smudge's own page in place: drop only its old panels (keep every
+      // other panel, including the user's manual pages), add the new ones, and
+      // reuse the page's id + slot so nothing else shifts.
+      const oldIds = new Set(existingPage.panelIds);
+      const keptPanels = cur.panels.filter((p) => !oldIds.has(p.id));
+      setters.setRawPanels([...keptPanels, ...d.newPanels]);
+      setters.setPages(
+        cur.pages.map((pg) =>
+          pg.id === existingId ? { ...d.page, id: existingId } : pg,
+        ),
+      );
+    } else {
+      // First Smudge page: append and remember it.
+      setters.setRawPanels([...cur.panels, ...d.newPanels]);
+      setters.setPages([...cur.pages, d.page]);
+      setSmudgePageId(d.page.id);
+    }
     setDraftBoth(null);
     setCanUndo(true);
     track("smudge_page_kept", { panels: d.newPanels.length });
-  }, [setters, setDraftBoth]);
+  }, [setters, setDraftBoth, setSmudgePageId]);
 
   const discardDraft = useCallback(() => {
     setDraftBoth(null);
@@ -264,9 +307,14 @@ export function useSmudgeChat({
    */
   const drawAllPending = useCallback(async () => {
     if (drawing) return;
-    const placed = new Set(docRef.current.pages.flatMap((pg) => pg.panelIds));
+    // Only Smudge's own page — matches the preview + the button count exactly.
+    const page = smudgePageIdRef.current
+      ? docRef.current.pages.find((p) => p.id === smudgePageIdRef.current)
+      : null;
+    if (!page) return;
+    const ids = new Set(page.panelIds);
     const todo = docRef.current.panels.filter(
-      (p) => placed.has(p.id) && !p.image,
+      (p) => ids.has(p.id) && !p.image,
     );
     if (!todo.length) return;
     setDrawing(true);
@@ -300,6 +348,7 @@ export function useSmudgeChat({
     canUndo,
     drawing,
     drawStatus,
+    smudgePageId,
     sendMessage,
     keepDraft,
     discardDraft,

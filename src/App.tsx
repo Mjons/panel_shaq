@@ -414,7 +414,7 @@ function AppInner() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
-    "workshop",
+    "smudge",
   );
 
   // Per-tab scroll memory. Lateral navigation (bottom nav / menu / swipe)
@@ -690,6 +690,7 @@ function AppInner() {
             setRawPanels={setRawPanels}
             setPages={setPages}
             setVaultEntries={setVaultEntries}
+            onNavigate={guardedSetActiveTab}
           />
         );
       case "workshop":
