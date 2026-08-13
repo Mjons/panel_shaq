@@ -1,0 +1,466 @@
+/**
+ * Creator Card visual treatment — mobile port of
+ * Comic-Pro2/src/components/CreatorCard/creatorCard.css.
+ *
+ * Kept as real CSS, not Tailwind, for the same reason the original is: masked
+ * gradient borders (mask-composite), mix-blend-mode layers, gradient-clipped
+ * text and keyframes don't express as utilities.
+ *
+ * THREE DELIBERATE DIFFERENCES FROM DESKTOP:
+ *
+ *  1. NO @import of Google Fonts. The original pulls Space Grotesk + JetBrains
+ *     Mono here; we load both from the <link> already in index.html. A
+ *     cross-origin @import is a second render-blocking fetch AND a hazard for
+ *     html-to-image, which has to inline stylesheets to rasterise this card for
+ *     the "Post your card" share — a font it cannot reach can fail the export.
+ *  2. --ph-ink and --radius-panel are defined HERE. Upstream they come from the
+ *     app-wide token sheet; this app has no equivalent, and leaving them
+ *     undefined silently renders transparent text on a rounded card.
+ *     --radius-panel: 0 is not a simplification — Panel Haus's design system
+ *     sets it to 0, so the card is square-edged on purpose and must stay that
+ *     way to match the desktop card.
+ *  3. The holo reveal is `:hover, :active`, where desktop needs only `:hover`.
+ *     :active is the touch half; without it a phone tracks the highlight to the
+ *     finger and never shows it.
+ *
+ * The .phcc-ask-row hover block from upstream is dropped: it existed to work
+ * around desktop's hand-written theme classes, and our rows are plain Tailwind.
+ *
+ * ⚠️ THE TILT IS PORTED AND WORKS ON TOUCH — it is Pointer Events, not hover.
+ * `transform-style: preserve-3d` and the `transform` transition below are load
+ * bearing for it; an earlier revision of this file stripped both on the
+ * incorrect assumption that touch could not drive the effect.
+ *
+ * The foil ring, holo sweep, light sweep and scrim ramp are the original's
+ * exact values, so the two cards read as the same object.
+ */
+
+.ph-card {
+  /* Upstream these live in the app token sheet; see note 2 above. */
+  --ph-ink: #ffffff;
+  --radius-panel: 0;
+
+  --ring1: rgba(120, 130, 160, 0.5);
+  --ring2: #cfd6e6;
+  /* Tier placeholder-scene palette (steel). Used when no art is supplied. */
+  --p1: #3a4668;
+  --p2: #6d5a8f;
+  --p3: #232a44;
+  --p4: #141726;
+
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 7;
+  border-radius: var(--radius-panel);
+  isolation: isolate;
+  user-select: none;
+  background: #0b0b12;
+  /* preserve-3d + the transform transition are what make the pointer tilt read
+     as a physical card rather than a skewed image. Both are REQUIRED by the
+     tilt handler in CreatorCard.tsx — without the transition the card snaps
+     back on release instead of settling, and without preserve-3d the rotation
+     flattens. */
+  transform-style: preserve-3d;
+  cursor: grab;
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.3s;
+  box-shadow:
+    0 30px 60px -24px rgba(0, 0, 0, 0.75),
+    0 4px 14px -6px rgba(0, 0, 0, 0.6);
+}
+
+.ph-card:active {
+  cursor: grabbing;
+}
+
+.ph-card--plus {
+  --ring1: rgba(52, 208, 224, 0.55);
+  --ring2: #7ff0ff;
+  --p1: #1e6b8f;
+  --p2: #7a3fb0;
+  --p3: #122a3a;
+  --p4: #0e1626;
+}
+
+.ph-card--og {
+  --ring1: rgba(255, 207, 77, 0.75);
+  --ring2: #ffe08a;
+  --p1: #8f5a1e;
+  --p2: #b03f6a;
+  --p3: #3a2410;
+  --p4: #1a1206;
+}
+
+/* Full-bleed art. `--art` is the prototype's own hook. The wrapper clips; the
+   ::before carries the image at the default zoom, which crops generation
+   artifacts at the edges. */
+.ph-card__art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius-panel);
+  overflow: hidden;
+}
+
+.ph-card__art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--art);
+  background-size: cover;
+  /* VERTICAL FRAMING — unrelated to the zoom below despite the similar number.
+     Keeps the character in the upper two-thirds, clear of the bottom scrim. */
+  background-position: center 18%;
+  /* THE ZOOM. Driven by --ph-card-zoom (set by CreatorCard from CARD_ZOOM)
+     rather than hard-coded, so the crop retunes in ONE place and card, preview
+     and PNG export move together. The crop is load-bearing: it hides wordmark
+     text baked into the source art. */
+  transform: scale(var(--ph-card-zoom, 1.2));
+}
+
+/* No art yet: a tier-coloured placeholder scene, not a flat gradient — two soft
+   radial glows over a diagonal ramp, plus a faint sheen. */
+.ph-card__art--empty::before {
+  background-image:
+    radial-gradient(120% 90% at 50% 8%, var(--p1), transparent 60%),
+    radial-gradient(90% 70% at 78% 88%, var(--p2), transparent 65%),
+    linear-gradient(160deg, var(--p3), var(--p4));
+  transform: none;
+}
+
+.ph-card__art--empty::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.14), transparent 40%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.04) 0 2px, transparent 2px 22px);
+  mix-blend-mode: overlay;
+}
+
+/* Darkens top (brand row) and bottom third (points + handle) so the face stays
+   legible over any artwork. */
+.ph-card__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 6, 12, 0.55) 0%,
+    transparent 26%,
+    transparent 52%,
+    rgba(6, 6, 12, 0.72) 84%,
+    rgba(6, 6, 12, 0.92) 100%
+  );
+}
+
+/* Holographic sweep. --hx/--hy are set from the pointer (touch included) by the
+   tilt handler, so the shimmer tracks the finger. */
+.ph-card__holo {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  mix-blend-mode: color-dodge;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 120, 180, 0.55),
+    rgba(120, 200, 255, 0.55),
+    rgba(140, 255, 190, 0.55),
+    transparent 80%
+  );
+  background-size: 250% 250%;
+  background-position: var(--hx, 50%) var(--hy, 50%);
+}
+
+/* :active is the TOUCH half of this and is not in the desktop original, which
+   only needs :hover. Without it a phone tracks the highlight to the finger and
+   then never reveals it — the foil effect would be invisible on the platform
+   this app is built for. :hover stays for tablets/laptops with a pointer. */
+.ph-card:hover .ph-card__holo,
+.ph-card:active .ph-card__holo {
+  opacity: 0.5;
+}
+
+.ph-card--og .ph-card__holo {
+  mix-blend-mode: soft-light;
+}
+
+/* The card art is dark full-bleed photography, where soft-light nearly
+   vanishes; lift OG's opacity so the flex card stays the flashiest. */
+.ph-card--og:hover .ph-card__holo,
+.ph-card--og:active .ph-card__holo {
+  opacity: 0.85;
+}
+
+/* Always-on light sweep — "motion in a screenshot preview is what makes a thumb
+   stop", so the card feels alive without needing interaction. This is the whole
+   of the card's motion on mobile, since the tilt is gone. */
+.ph-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 64%
+  );
+  background-size: 260% 100%;
+  animation: ph-card-sweep 5s ease-in-out infinite;
+}
+
+.ph-card--og::after {
+  animation-duration: 3.6s;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 225, 150, 0.45) 50%,
+    transparent 66%
+  );
+}
+
+@keyframes ph-card-sweep {
+  0% {
+    background-position: 150% 0;
+  }
+  58%,
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+/* Foil border ring — a gradient border via mask-composite. */
+.ph-card__ring {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: var(--radius-panel);
+  pointer-events: none;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--ring1), var(--ring2), var(--ring1));
+  background-size: 200% 200%;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* OG earns the animated rainbow foil — the flex card. */
+.ph-card--og .ph-card__ring {
+  background: linear-gradient(135deg, #ffcf4d, #ff7bd8, #8be0ff, #ffcf4d);
+  background-size: 250% 250%;
+  animation: ph-card-foil 6s linear infinite;
+}
+
+@keyframes ph-card-foil {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+/* ── UNCLAIMED ─────────────────────────────────────────────────────────────
+   A sealed card, not a disabled one. Frame, foil ring and light sweep stay
+   live so it still reads as an object worth opening; only the CONTENTS are
+   withheld. Callers pass artUrl={null} too, so the scene is never fetched
+   before the claim and cannot be read out of the network tab. */
+.ph-card--locked {
+  /* Neutral steel foil regardless of tier — the tier is itself a spoiler. */
+  --ring1: rgba(120, 130, 160, 0.4);
+  --ring2: #aab3c6;
+}
+
+/* Flatten the tier-coloured placeholder scene to near-monochrome so no tier can
+   be inferred from the card's hue. */
+.ph-card--locked .ph-card__art::before,
+.ph-card--locked .ph-card__art::after {
+  filter: grayscale(1) brightness(0.62);
+}
+
+.ph-card__locked {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.ph-card__locked-mark {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 92px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(255, 255, 255, 0.16);
+  /* Cut rather than drawn — the glyph reads as an absence, which is the point.
+     A solid white "?" looked like a broken-image icon. */
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+
+.ph-card__locked-text {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+}
+
+.ph-card__face {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 16px 16px;
+  pointer-events: none;
+}
+
+.ph-card__brand {
+  font-family: "Space Grotesk", sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ph-ink);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* The Panel Haus mark. object-fit: contain guards against the source ever being
+   non-square. */
+.ph-card__brand-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: var(--radius-panel);
+  flex: none;
+  object-fit: contain;
+  display: block;
+  backface-visibility: hidden;
+  box-shadow: 0 0 10px rgba(255, 140, 60, 0.35);
+}
+
+/* MEMBER row + the action pips share one line, pushed apart. */
+.ph-card__idrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+}
+
+/* THE DOTS. One pip per ask; a lit pip is a completed ask, and the lit count is
+   what the tier reads from (1 = Starter, 2-3 = Plus, 4 = OG). Lit pips glow in
+   the tier colour so status is legible at a glance in a screenshot. */
+.ph-card__pips {
+  display: flex;
+  gap: 5px;
+}
+
+.ph-card__pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ph-card__pip--on {
+  background: var(--ring2);
+  border-color: transparent;
+  box-shadow: 0 0 8px var(--ring2);
+}
+
+.ph-card__tier {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 3px 9px;
+  border-radius: var(--radius-panel);
+  background: rgba(10, 10, 15, 0.44);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--ring1);
+  color: var(--ring2);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* "The number is the hero" — gradient-clipped so it reads as a score. */
+.ph-card__points {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  background: linear-gradient(180deg, #fff, var(--ring2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-card__points-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+.ph-card__handle {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ph-ink);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.ph-card__member {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Three moving layers (sweep, foil, tilt) is well over budget for one view;
+   kill them all when the user asks for reduced motion. The tilt HANDLER also
+   bails out on this query, so the transform never changes — this covers the
+   transition it would have animated. */
+@media (prefers-reduced-motion: reduce) {
+  .ph-card::after,
+  .ph-card--og .ph-card__ring {
+    animation: none;
+  }
+  .ph-card,
+  .ph-card__holo {
+    transition: none;
+  }
+}

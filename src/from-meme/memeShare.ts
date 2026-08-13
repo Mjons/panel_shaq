@@ -24,6 +24,12 @@ function downloadBlob(blob: Blob, filename: string): void {
 export async function shareImage(
   blob: Blob,
   filename: string,
+  // Which surface shipped, for the markShipped analytics label. Defaults to
+  // "meme" so every existing caller keeps reporting exactly what it did before;
+  // the Creator Card passes "creator_card". Kept as a parameter rather than
+  // forked into a second copy of this function because the canShare guard below
+  // is subtle and must not drift between two versions of it.
+  surface: string = "meme",
 ): Promise<ShareResult> {
   const file = new File([blob], filename, { type: "image/png" });
   // Attempt the native share sheet whenever navigator.share exists. Don't gate
@@ -38,7 +44,7 @@ export async function shareImage(
   if (typeof navigator.share === "function" && filesShareable) {
     try {
       await navigator.share({ title: "My meme", files: [file] });
-      markShipped("meme_share");
+      markShipped(`${surface}_share`);
       return "shared";
     } catch (e) {
       if ((e as Error).name === "AbortError") return "cancelled";
@@ -46,7 +52,7 @@ export async function shareImage(
     }
   }
   downloadBlob(blob, filename);
-  markShipped("meme_share_download");
+  markShipped(`${surface}_share_download`);
   return "downloaded";
 }
 

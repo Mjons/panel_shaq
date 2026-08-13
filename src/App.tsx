@@ -22,6 +22,7 @@ import {
   hydratePanel,
 } from "./services/geminiService";
 import { onOpenBuyCredits, type BuyReason } from "./services/buyCredits";
+import { onOpenCreatorCard } from "./services/creatorCardUi";
 import { track } from "./services/analytics";
 import {
   isClerkEnabled,
@@ -127,6 +128,11 @@ const ShareScreen = lazyWithReload(() =>
 const GifEditorScreen = lazyWithReload(() =>
   import("./screens/GifEditorScreen").then((m) => ({
     default: m.GifEditorScreen,
+  })),
+);
+const CreatorCardScreen = lazyWithReload(() =>
+  import("./screens/CreatorCardScreen").then((m) => ({
+    default: m.CreatorCardScreen,
   })),
 );
 
@@ -276,6 +282,38 @@ function AppInner() {
     [],
   );
 
+  // Creator Card overlay: opened from Settings → Account via the same bus shape.
+  useEffect(() => onOpenCreatorCard(() => setCreatorCardOpen(true)), []);
+
+  // Return from the Discord claim. Panel Haus's OAuth callback sends a mobile
+  // claimer back to `/?creatorCard=1&discord=<result>`, so reopen the card and
+  // report what happened. The claim itself is recorded SERVER-side on the next
+  // card-state load — there is nothing to POST here.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("creatorCard") !== "1") return;
+    const result = params.get("discord");
+    if (result === "taken") {
+      addToast(
+        "That Discord account is already linked to another Panel Haus account",
+        "error",
+      );
+    } else if (result === "error") {
+      addToast("Discord connect failed: try again", "error");
+    }
+    setCreatorCardOpen(true);
+    // Strip ONLY our own params so a refresh doesn't replay the toast, leaving
+    // anything else on the URL (e.g. a referral code) for its own handler.
+    params.delete("creatorCard");
+    params.delete("discord");
+    const qs = params.toString();
+    window.history.replaceState(
+      {},
+      "",
+      window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash,
+    );
+  }, [addToast]);
+
   // Wallet deep-link return: a plain-mobile user who tapped "Open in MetaMask"
   // lands back here inside MetaMask's in-app browser (where window.ethereum now
   // exists, so Clerk's native MetaMask button works). Auto-open the sign-in modal
@@ -411,6 +449,7 @@ function AppInner() {
   const [gifEditorImages, setGifEditorImages] = useState<
     { id: string; imageData: string }[] | null
   >(null);
+  const [creatorCardOpen, setCreatorCardOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
@@ -810,7 +849,18 @@ function AppInner() {
         <div className="w-full h-full bg-[radial-gradient(#FF9100_1px,transparent_1px)] [background-size:24px_24px]"></div>
       </div>
 
-      {gifEditorImages ? (
+      {creatorCardOpen ? (
+        // A full-screen overlay, NOT a tab: it stays out of TAB_ORDER so a
+        // swipe can't land on it mid-flow, and off the 6-slot bottom nav.
+        // Same shape as the GIF editor above.
+        <main className="relative z-10">
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSkeleton />}>
+              <CreatorCardScreen onBack={() => setCreatorCardOpen(false)} />
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+      ) : gifEditorImages ? (
         <main className="relative z-10">
           <ErrorBoundary>
             <Suspense fallback={<LoadingSkeleton />}>

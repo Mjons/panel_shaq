@@ -16,17 +16,24 @@ import { useInkCosts } from "../services/inkCosts";
 import { openBuyCredits } from "../services/buyCredits";
 import { WalletDeepLinkButton } from "./WalletDeepLinkButton";
 import { ReferralCard } from "./ReferralCard";
+import { CreatorCardRow } from "./CreatorCardRow";
 
 // Settings "Account" panel. Only rendered when Clerk is enabled (so it's always
 // inside <ClerkProvider>). Shows the shared Panel Haus account + ink balance and a
 // link to buy more. Replaces the legacy anonymous "Today's Usage" meter.
 
-// Friendly plan names. creator_plus is branded "Founder Pass" (the one-time
-// lifetime purchase grants that tier); free → "Free Tier".
+// Friendly plan names for the tier keys Panel Haus stores. These are BRANDING
+// ONLY — the keys themselves are never renamed, because they are what Postgres
+// and Stripe key off.
+//
+// creator_plus is "Creator Pass" as of Panel Haus changelog 1428 (2026-08-07),
+// which renamed the plan away from leading with the company name. Mobile
+// previously showed "Founder Pass" here, so the same account read as two
+// different plans depending on which app you opened.
 const TIER_LABELS: Record<string, string> = {
   free: "Free Tier",
   creator_lite: "Creator Lite",
-  creator_plus: "Founder Pass",
+  creator_plus: "Creator Pass",
   brand_starter: "Brand Starter",
   brand_pro: "Brand Pro",
   brand_managed: "Brand Managed",
@@ -150,6 +157,8 @@ export function AccountSection() {
         </button>
 
         <ReferralCard />
+
+        <CreatorCardRow />
       </SignedIn>
     </section>
   );
