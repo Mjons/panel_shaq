@@ -1,5 +1,11 @@
 # Changelog
 
+## August 14, 2026 — Creator Card polish (first-run fixes)
+
+- **Joining reveals your card immediately.** It used to sit on "Join the Creator Program" for about ten seconds after you'd already joined, so the button read as having done nothing. Two expensive calls were running back to back: the join itself, and then the first card load — which is the single slowest request in the feature, because Panel Haus verifies and *records* every step you'd already earned, one at a time. The card now appears the moment the join returns, which is accurate rather than optimistic (you are a member server-side at that point), and the backfilled points arrive a beat later and announce themselves. Your ink balance in the nav also updates straight away instead of waiting for something else to refresh it.
+- **Your shared card keeps its typefaces.** Exporting the card walks the page's stylesheets to find the fonts and embed them into the image. A stylesheet fetched without CORS is unreadable to that process — and the error is swallowed, so the only symptom was a card quietly exported in a fallback system font. The Creator Card's font request now asks for it in CORS mode. Console warnings for the app's *other* font sheets (Material Symbols, the comic display faces) are expected and deliberate: the card doesn't use them, and embedding them would bloat every exported PNG for nothing.
+- **Setup note for local development:** the Discord claim's return address is a **Panel Haus** setting, not a mobile one — `PUBLIC_MOBILE_ORIGIN` in the Panel Haus repo. Left unset it defaults to the production mobile app, so a local claim completes and then lands you on production mid-flow. Production needs nothing; local needs `http://localhost:3002`.
+
 ## August 13, 2026 — The Creator Program comes to mobile
 
 - **You can now join the Creator Program, claim your Creator Card and earn points from your phone.** Settings → Account → **Creator Card** opens the whole thing: the card itself (steel → cyan → animated gold as it levels), the seven asks, your points, and the mint wallet. It is the same program as panelhaus.app, not a copy — same account, same points, same card. Claim on your laptop and it is already claimed here; earn a point here and it is on the web.

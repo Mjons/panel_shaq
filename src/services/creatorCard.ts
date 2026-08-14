@@ -73,6 +73,10 @@ export interface ActionResult {
 export interface JoinResult {
   ok: boolean;
   bonusGranted?: number;
+  /** Shared ink balance after the join bonus, so the nav chip can update
+   *  immediately instead of waiting for the next refetch. Absent on the
+   *  already-joined path, where no credits moved. */
+  newBalance?: number;
   /** True when PH said ALREADY_JOINED — a success, not a failure. */
   alreadyJoined?: boolean;
   error?: string;
@@ -236,7 +240,13 @@ export async function joinProgram(): Promise<JoinResult> {
       headers,
     });
     const d = await r.json().catch(() => ({}) as Record<string, unknown>);
-    if (r.ok) return { ok: true, bonusGranted: (d.bonusGranted as number) || 0 };
+    if (r.ok)
+      return {
+        ok: true,
+        bonusGranted: (d.bonusGranted as number) || 0,
+        newBalance:
+          typeof d.newBalance === "number" ? (d.newBalance as number) : undefined,
+      };
     if (r.status === 409 && d.code === "ALREADY_JOINED")
       return { ok: true, alreadyJoined: true };
     return { ok: false, error: (d.error as string) || "Could not join" };

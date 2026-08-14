@@ -62,8 +62,17 @@ export function isBundledArt(src: string | null): boolean {
  *
  * `skipFonts` is deliberately NOT set: the card's numerals and mono labels are
  * the whole look, and dropping the webfonts would rasterise it in a fallback
- * face. Both families are loaded same-origin-ish via the index.html <link>
- * rather than a cross-origin CSS @import precisely so this call can inline them.
+ * face.
+ *
+ * ⚠️ THIS DEPENDS ON crossorigin="anonymous" ON THE FONT <link> IN index.html.
+ * html-to-image finds @font-face rules by walking document.styleSheets and
+ * reading .cssRules, which throws SecurityError on a sheet fetched in no-cors
+ * mode — and it swallows that error, so the only symptom is an exported card in
+ * the wrong typeface. Removing that attribute breaks this function silently.
+ *
+ * Expect SecurityError warnings in the console for the app's OTHER Google Fonts
+ * sheets (Material Symbols, the comic display faces). Those are intentional:
+ * the card does not use them, and embedding them would bloat every PNG.
  */
 export async function renderCardToBlob(node: HTMLElement): Promise<Blob> {
   await nextPaint();

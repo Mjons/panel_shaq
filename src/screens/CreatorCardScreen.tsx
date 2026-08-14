@@ -47,6 +47,7 @@ import {
 } from "../services/creatorCard";
 import { useToast } from "../components/Toast";
 import { track } from "../services/analytics";
+import { emitBalance } from "../services/credits";
 
 /**
  * The Creator Card — mobile port of Comic-Pro2's CreatorCardModal.
@@ -231,6 +232,26 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
       "success",
     );
     track("creator_program_joined", { bonus: r.bonusGranted ?? 0 });
+
+    // The join bonus landed in the SHARED ink balance, so tell the nav chip now
+    // rather than leaving it stale until something else refetches.
+    if (typeof r.newBalance === "number") emitBalance(r.newBalance);
+
+    // ⚠️ REVEAL THE CARD NOW; let the refresh land behind it. Do NOT gate this
+    // on load().
+    //
+    // Awaiting the refresh made joining look broken for ~10 seconds. Two
+    // expensive calls run back to back: /join is already several round trips
+    // (balance, status, addCredits, markJoined, cache bust), and the state load
+    // that follows triggers Panel Haus's sweep, which on a FIRST join records up
+    // to four actions SEQUENTIALLY because awardPoints row-locks user_points.
+    // Meanwhile the screen still said "Join the Creator Program", so the button
+    // read as having done nothing.
+    //
+    // Membership is already true server-side by this point, so flipping it here
+    // is accurate rather than hopeful. The sweep's awards arrive a moment later
+    // and toast themselves. Same pattern the honour asks use.
+    patch({ member: true });
     void load();
   };
 
