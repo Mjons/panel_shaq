@@ -122,6 +122,13 @@ export default defineConfig(({ mode }) => {
           skipWaiting: true,
           clientsClaim: true,
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+          // The Creator Card art pool is 16 scenes / ~5MB, and a member is DEALT
+          // exactly one of them (cardArt.ts hashes their id). Precaching the set
+          // makes every install pay 5MB to ship 15 images nobody will see — on a
+          // mobile app. Excluded here and served by the runtime rule below, so
+          // the one scene a member actually gets is cached the first time it
+          // renders and is offline-available from then on.
+          globIgnores: ["**/cards/*.png"],
           navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
             {
@@ -132,6 +139,21 @@ export default defineConfig(({ mode }) => {
                 expiration: {
                   maxEntries: 20,
                   maxAgeSeconds: 365 * 24 * 60 * 60,
+                },
+              },
+            },
+            {
+              // Creator Card scenes. CacheFirst because they are immutable
+              // content-addressed art: a given path never changes. maxEntries is
+              // deliberately small — a member sees their own scene, plus any they
+              // uploaded over it, never the whole pool.
+              urlPattern: /\/cards\/[^/]+\.png$/,
+              handler: "CacheFirst",
+              options: {
+                cacheName: "creator-card-art",
+                expiration: {
+                  maxEntries: 4,
+                  maxAgeSeconds: 180 * 24 * 60 * 60,
                 },
               },
             },
