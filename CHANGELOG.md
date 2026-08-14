@@ -1,5 +1,11 @@
 # Changelog
 
+## August 14, 2026 — Smudge is switched off for now
+
+- **Smudge is temporarily unavailable.** The tab is still there and tapping it says "Coming soon". Nothing about making comics by hand changes: Smudge was always a front door onto the same panels, pages and vault, so everything it could do is still buildable the manual way.
+- **The app now opens on the Workshop.** Smudge had been the default landing screen since yesterday, so this moves the front door back one step. If your last session ended on the Smudge tab, you'll land on the Workshop instead the next time you open the app, rather than being greeted by a "coming soon" page every launch. The tab itself stays tappable if you want to read it.
+- **Nothing was deleted.** The agent, the chat, the turn logic and the server relay are all still in place and untouched; the feature is behind a single switch, so turning it back on is one line and not a rebuild.
+
 ## August 14, 2026 — Creator Card polish (first-run fixes)
 
 - **Joining reveals your card immediately.** It used to sit on "Join the Creator Program" for about ten seconds after you'd already joined, so the button read as having done nothing. Two expensive calls were running back to back: the join itself, and then the first card load — which is the single slowest request in the feature, because Panel Haus verifies and *records* every step you'd already earned, one at a time. The card now appears the moment the join returns, which is accurate rather than optimistic (you are a member server-side at that point), and the backfilled points arrive a beat later and announce themselves. Your ink balance in the nav also updates straight away instead of waiting for something else to refresh it.

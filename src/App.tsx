@@ -23,6 +23,7 @@ import {
 } from "./services/geminiService";
 import { onOpenBuyCredits, type BuyReason } from "./services/buyCredits";
 import { onOpenCreatorCard } from "./services/creatorCardUi";
+import { SMUDGE_ENABLED, FALLBACK_TAB } from "./services/smudgeGate";
 import { track } from "./services/analytics";
 import {
   isClerkEnabled,
@@ -128,6 +129,11 @@ const ShareScreen = lazyWithReload(() =>
 const GifEditorScreen = lazyWithReload(() =>
   import("./screens/GifEditorScreen").then((m) => ({
     default: m.GifEditorScreen,
+  })),
+);
+const SmudgeComingSoon = lazyWithReload(() =>
+  import("./screens/SmudgeComingSoon").then((m) => ({
+    default: m.SmudgeComingSoon,
   })),
 );
 const CreatorCardScreen = lazyWithReload(() =>
@@ -453,8 +459,27 @@ function AppInner() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = usePersistedState(
     "panelshaq_active_tab",
-    "smudge",
+    // Smudge is normally the default landing screen. While it is gated, opening
+    // onto its coming-soon page would make the app look like it does nothing.
+    SMUDGE_ENABLED ? "smudge" : FALLBACK_TAB,
   );
+
+  // Smudge shipped as the DEFAULT landing screen, so most existing installs have
+  // "smudge" persisted in panelshaq_active_tab. The default above only applies to
+  // a fresh install, so without this those users would open onto the coming-soon
+  // page on every launch.
+  //
+  // ⚠️ MOUNT ONLY, and that is the whole trick. Running this on every activeTab
+  // change would bounce the user straight back out the instant they TAP the
+  // Smudge tab, so they could never read the coming-soon screen at all. This
+  // moves them off it once, at launch, and leaves the tab tappable.
+  const smudgeParkFixed = useRef(false);
+  useEffect(() => {
+    if (smudgeParkFixed.current) return;
+    smudgeParkFixed.current = true;
+    if (!SMUDGE_ENABLED && activeTab === "smudge") setActiveTab(FALLBACK_TAB);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Per-tab scroll memory. Lateral navigation (bottom nav / menu / swipe)
   // restores where you last were on that tab; advancing a step snaps to the top.
@@ -718,6 +743,10 @@ function AppInner() {
   const renderScreen = () => {
     switch (activeTab) {
       case "smudge":
+        // Gated: the tab stays where people expect it and explains itself,
+        // rather than the feature silently disappearing. Everything below is
+        // untouched and comes back by flipping SMUDGE_ENABLED.
+        if (!SMUDGE_ENABLED) return <SmudgeComingSoon />;
         return (
           <SmudgeScreen
             story={story}
