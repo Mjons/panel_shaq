@@ -166,6 +166,10 @@ export interface Earner {
   label: string;
   points: number;
   suffix?: string;
+  /** Cannot be earned in this app — the server verifies it against data only
+   *  panelhaus.app produces. Marked in the UI so the row is not read as a
+   *  promise mobile can keep. See the analysis above for the per-row reason. */
+  desktopOnly?: boolean;
 }
 
 export const EARNERS: Earner[] = [
@@ -175,12 +179,42 @@ export const EARNERS: Earner[] = [
     points: 1,
     suffix: "per credit",
   },
-  { id: "card_action_comic_finished", label: "Finish a comic", points: 50 },
-  { id: "card_action_comic_3_pages", label: "Complete a 3 page comic", points: 75 },
-  { id: "card_action_comic_10_pages", label: "Complete a 10 page comic", points: 150 },
-  { id: "card_action_blueprint_saved", label: "Save a blueprint", points: 50 },
-  { id: "card_action_meme_shipped", label: "Ship a meme", points: 25 },
-  { id: "card_action_print_order", label: "Order a printed comic", points: 200 },
+  {
+    id: "card_action_comic_finished",
+    label: "Finish a comic",
+    points: 50,
+    desktopOnly: true,
+  },
+  {
+    id: "card_action_comic_3_pages",
+    label: "Complete a 3 page comic",
+    points: 75,
+    desktopOnly: true,
+  },
+  {
+    id: "card_action_comic_10_pages",
+    label: "Complete a 10 page comic",
+    points: 150,
+    desktopOnly: true,
+  },
+  {
+    id: "card_action_blueprint_saved",
+    label: "Save a blueprint",
+    points: 50,
+    desktopOnly: true,
+  },
+  {
+    id: "card_action_meme_shipped",
+    label: "Ship a meme",
+    points: 25,
+    desktopOnly: true,
+  },
+  {
+    id: "card_action_print_order",
+    label: "Order a printed comic",
+    points: 200,
+    desktopOnly: true,
+  },
 ];
 
 /** The four rows that drive the pips and the tier. The two `go` rows award

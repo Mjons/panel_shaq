@@ -11,6 +11,7 @@ import {
   Share2,
   Wallet,
   Bell,
+  HelpCircle,
   ImagePlus,
   Trash2,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
   type Step,
 } from "../components/creatorCard/steps";
 import { MintWalletSheet } from "../components/creatorCard/MintWalletSheet";
+import { EarnMoreSheet } from "../components/creatorCard/EarnMoreSheet";
 import {
   GtdUnlockCelebration,
   useGtdCelebration,
@@ -75,6 +77,7 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(!getCachedCardState());
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [showMintWallet, setShowMintWallet] = useState(false);
+  const [showEarnHelp, setShowEarnHelp] = useState(false);
   const [copiedFlash, setCopiedFlash] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [downloadedShare, setDownloadedShare] = useState(false);
@@ -599,9 +602,20 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                     holds, so showing them to a non-member dangles a reward
                     behind an ask they have not made. */}
                 <div className="border-t border-outline/10 pt-4">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-accent/50">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-accent/50">
                       More ways to earn
+                      {/* Real button, not a title= tooltip: this explains which
+                          rows below are unreachable on a phone, and a tooltip is
+                          unreachable on touch. 44px target per the row rules. */}
+                      <button
+                        type="button"
+                        onClick={() => setShowEarnHelp(true)}
+                        aria-label="How to earn more points"
+                        className="-m-2 p-2 text-accent/40 active:text-primary"
+                      >
+                        <HelpCircle size={14} />
+                      </button>
                     </span>
                     <span className="shrink-0 text-[11px] text-accent/40">
                       added automatically
@@ -614,8 +628,8 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                       belong on the card; without this line "Finish a comic +50"
                       reads as a promise mobile cannot keep. */}
                   <p className="mt-1 text-[11px] leading-snug text-accent/40">
-                    Your points are shared with panelhaus.app — these pay wherever
-                    you earn them.
+                    Your points are shared with panelhaus.app, so these pay
+                    wherever you earn them.
                   </p>
                   <ul className="mt-2.5 space-y-2">
                     {EARNERS.map((earner) => {
@@ -634,6 +648,14 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                               />
                             )}
                             {earner.label}
+                            {/* Marked per row, not just explained in the sheet:
+                                most people never open the sheet, and an unmarked
+                                row is read as something you can do here. */}
+                            {earner.desktopOnly && !earned && (
+                              <span className="ml-1.5 whitespace-nowrap rounded border border-outline/30 px-1 py-px text-[10px] uppercase tracking-wide text-accent/35">
+                                desktop
+                              </span>
+                            )}
                           </span>
                           <span
                             className={`shrink-0 font-semibold tabular-nums ${
@@ -732,6 +754,11 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
           </>
         )}
       </div>
+
+      <EarnMoreSheet
+        isOpen={showEarnHelp}
+        onClose={() => setShowEarnHelp(false)}
+      />
 
       <MintWalletSheet
         isOpen={showMintWallet}
