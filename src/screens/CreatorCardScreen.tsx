@@ -388,6 +388,14 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
     if (data?.mintReminder.email) setReminderEmail(data.mintReminder.email);
   }, [data?.mintReminder.email]);
 
+  const reminderOptedIn = !!data?.mintReminder.optedIn;
+  // Compared case-insensitively and trimmed, because the server normalises the
+  // address before storing it — without that, re-typing the same email in a
+  // different case would offer a pointless "Update".
+  const reminderEmailChanged =
+    reminderEmail.trim().toLowerCase() !==
+    (data?.mintReminder.email || "").trim().toLowerCase();
+
   const saveReminder = async (optIn: boolean) => {
     setSavingReminder(true);
     const r = await setMintReminder(optIn, optIn ? reminderEmail : undefined);
@@ -650,8 +658,17 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                             {earner.label}
                             {/* Marked per row, not just explained in the sheet:
                                 most people never open the sheet, and an unmarked
-                                row is read as something you can do here. */}
-                            {earner.desktopOnly && !earned && (
+                                row is read as something you can do here.
+
+                                ⚠️ SHOWN EVEN WHEN EARNED. An earlier version hid
+                                it on earned rows, which made the list read as
+                                arbitrary — "Finish a comic" (earned, untagged)
+                                next to "Complete a 3 page comic" (tagged) says
+                                the first one works on mobile. Where an action can
+                                be performed does not stop being true because you
+                                performed it; on an earned row the tag simply
+                                reads as "you did this on desktop". */}
+                            {earner.desktopOnly && (
                               <span className="ml-1.5 whitespace-nowrap rounded border border-outline/30 px-1 py-px text-[10px] uppercase tracking-wide text-accent/35">
                                 desktop
                               </span>
@@ -703,49 +720,62 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                           Remind me before the mint
                         </span>
                       </div>
-                      {data.mintReminder.optedIn ? (
-                        <div className="mt-2 flex items-center justify-between gap-3">
-                          <p className="text-sm text-accent/60">
-                            You&apos;re on the list, we&apos;ll email you before the
-                            mint.
-                          </p>
-                          <button
-                            onClick={() => saveReminder(false)}
-                            disabled={savingReminder}
-                            className="shrink-0 text-xs text-accent/40 underline underline-offset-2"
-                          >
-                            Turn off
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="mt-2 space-y-2">
-                          <p className="text-sm text-accent/60">
-                            Email me when the Smudge mint goes live
-                          </p>
-                          <div className="flex gap-2">
-                            <input
-                              type="email"
-                              inputMode="email"
-                              autoComplete="email"
-                              value={reminderEmail}
-                              onChange={(e) => setReminderEmail(e.target.value)}
-                              placeholder="you@example.com"
-                              aria-label="Email address for the mint reminder"
-                              className="min-w-0 flex-1 rounded-lg border border-outline/30 bg-background
-                                         px-3 py-2 text-sm text-accent placeholder:text-accent/30
-                                         focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
+                      {/* ⚠️ THE FIELD STAYS EDITABLE AFTER OPTING IN. This is the
+                          ONE address the mint notification goes to, and an
+                          opted-in state with no way to change it means a typo is
+                          permanent for the person it matters most to. Mirrors
+                          desktop, which shows Update once the value differs. */}
+                      <div className="mt-2 space-y-2">
+                        <p className="text-sm text-accent/60">
+                          {reminderOptedIn
+                            ? "We'll email this address when the Smudge mint goes live"
+                            : "Email me when the Smudge mint goes live"}
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            inputMode="email"
+                            autoComplete="email"
+                            value={reminderEmail}
+                            onChange={(e) => setReminderEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            aria-label="Email address for the mint reminder"
+                            className="min-w-0 flex-1 rounded-lg border border-outline/30 bg-background
+                                       px-3 py-2 text-sm text-accent placeholder:text-accent/30
+                                       focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                          {(!reminderOptedIn || reminderEmailChanged) && (
                             <button
                               onClick={() => saveReminder(true)}
-                              disabled={savingReminder || !reminderEmail}
+                              disabled={savingReminder || !reminderEmail.trim()}
                               className="shrink-0 rounded-lg bg-primary px-4 text-sm font-bold text-background
                                          disabled:opacity-40"
                             >
-                              {savingReminder ? "…" : "Save"}
+                              {savingReminder
+                                ? "…"
+                                : reminderOptedIn
+                                  ? "Update"
+                                  : "Save"}
+                            </button>
+                          )}
+                        </div>
+                        {reminderOptedIn && !reminderEmailChanged && (
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="flex items-center gap-1.5 text-sm text-accent/60">
+                              <Check size={14} className="shrink-0 text-emerald-500" />
+                              You&apos;re on the list, we&apos;ll email you before
+                              the mint.
+                            </p>
+                            <button
+                              onClick={() => saveReminder(false)}
+                              disabled={savingReminder}
+                              className="shrink-0 text-xs text-accent/40 underline underline-offset-2"
+                            >
+                              Turn off
                             </button>
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
