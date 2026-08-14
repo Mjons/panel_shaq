@@ -117,6 +117,72 @@ export const STEPS: Step[] = [
   },
 ];
 
+/**
+ * MORE WAYS TO EARN — read-only, and deliberately NOT steps.
+ *
+ * Every one of these is awarded server-side from evidence Panel Haus already
+ * holds (a credit ledger row, a project, a blueprint, a print order), so there
+ * is nothing to press: the next card load pays them. They are listed because an
+ * incentive nobody can see is not an incentive — without this section your
+ * points climb with no visible explanation of where from.
+ *
+ * ⚠️ KEPT OUT OF `STEPS` ON PURPOSE. STEPS drives the numbering, the four pips
+ * and `tierFor`, and the tier is what the mint allowlist is built from. Adding
+ * rows there would change the ranking input for the actual drop; adding them
+ * here cannot.
+ *
+ * ⚠️ VALUES MIRROR THE SERVER (Comic-Pro2 api/_lib/creatorCard.js), which is
+ * what actually awards. These are display only, so a mismatch is not a bug that
+ * self-corrects — it is a number we told someone that was never true.
+ *
+ * ⚠️ ONLY `creation` IS EARNABLE FROM THIS APP. Verified against the server's
+ * verify queries — most of these read Panel Haus's OWN tables, which mobile
+ * activity never writes:
+ *
+ *   creation        credit_transactions (amount < 0, non-grant/refund)
+ *                   → ✅ mobile generations spend through PH's credit reserve
+ *   comic_finished  projects.page_count + assets  → ❌ mobile comics live in
+ *   comic_3_pages   (same)                        ❌  browser IndexedDB, and
+ *   comic_10_pages  (same)                        ❌  never create a PH project
+ *   blueprint_saved user_documents doc_type=blueprint → ❌ our vault is local
+ *   meme_shipped    assets.source='memegen_handoff'   → ❌ our /c/from-meme
+ *                   receiver is Clerk-free and never runs PH's asset ingest
+ *   print_order     print_orders                      → ❌ no print flow here
+ *
+ * They are still listed, because the BALANCE is shared: doing any of them on
+ * panelhaus.app pays into the same ledger this card renders, and hiding them
+ * would leave a member's points climbing with no explanation. That is why the
+ * section carries a line saying where they are earned — without it, "Finish a
+ * comic +50" reads as a promise this app cannot keep.
+ *
+ * If mobile ever gains one of these paths, delete the corresponding ❌ here
+ * rather than assuming it started working.
+ *
+ * `id` is the ledger type, not a step id, so it can be looked up directly in the
+ * `breakdown` map to show what has already been earned.
+ */
+export interface Earner {
+  id: string;
+  label: string;
+  points: number;
+  suffix?: string;
+}
+
+export const EARNERS: Earner[] = [
+  {
+    id: "creation",
+    label: "Every credit you spend",
+    points: 1,
+    suffix: "per credit",
+  },
+  { id: "card_action_comic_finished", label: "Finish a comic", points: 50 },
+  { id: "card_action_comic_3_pages", label: "Complete a 3 page comic", points: 75 },
+  { id: "card_action_comic_10_pages", label: "Complete a 10 page comic", points: 150 },
+  { id: "card_action_blueprint_saved", label: "Save a blueprint", points: 50 },
+  { id: "card_action_meme_shipped", label: "Ship a meme", points: 25 },
+  { id: "card_action_print_order", label: "Order a printed comic", points: 200 },
+];
+
 /** The four rows that drive the pips and the tier. The two `go` rows award
  *  points but move nothing. */
 export const ASK_STEPS = STEPS.filter((s) => s.kind === "ask");

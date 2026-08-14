@@ -18,6 +18,7 @@ import { CreatorCard, tierFor, CARD_ZOOM, CARD_ZOOM_MAX } from "../components/cr
 import {
   STEPS,
   ASK_STEPS,
+  EARNERS,
   DISCORD_INVITE_URL,
   GTD_POINTS_REQUIRED_FALLBACK,
   type Step,
@@ -587,6 +588,71 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                     />
                   ))}
                 </ol>
+
+                {/* ── More ways to earn ───────────────────────────────────
+                    Read-only, and rendered OUTSIDE the step list so it can
+                    never affect the pips or the tier — the tier is what the
+                    mint allowlist is ranked on.
+
+                    Members only, for the same reason the mint band is: these
+                    award on the next load from history Panel Haus already
+                    holds, so showing them to a non-member dangles a reward
+                    behind an ask they have not made. */}
+                <div className="border-t border-outline/10 pt-4">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-accent/50">
+                      More ways to earn
+                    </span>
+                    <span className="shrink-0 text-[11px] text-accent/40">
+                      added automatically
+                    </span>
+                  </div>
+                  {/* Says WHERE, and that is not decoration. Only the credit
+                      engine is reachable from this app — the rest verify against
+                      Panel Haus's own projects, vault and orders (see EARNERS in
+                      steps.ts). They pay into the same shared balance, so they
+                      belong on the card; without this line "Finish a comic +50"
+                      reads as a promise mobile cannot keep. */}
+                  <p className="mt-1 text-[11px] leading-snug text-accent/40">
+                    Your points are shared with panelhaus.app — these pay wherever
+                    you earn them.
+                  </p>
+                  <ul className="mt-2.5 space-y-2">
+                    {EARNERS.map((earner) => {
+                      const earned = (breakdown[earner.id] ?? 0) > 0;
+                      return (
+                        <li
+                          key={earner.id}
+                          className="flex items-baseline justify-between gap-3 text-[13px] leading-snug"
+                        >
+                          <span className={earned ? "text-accent/70" : "text-accent/45"}>
+                            {earned && (
+                              <Check
+                                size={12}
+                                strokeWidth={3}
+                                className="mr-1 inline-block align-baseline text-emerald-500"
+                              />
+                            )}
+                            {earner.label}
+                          </span>
+                          <span
+                            className={`shrink-0 font-semibold tabular-nums ${
+                              earned ? "text-emerald-500" : "text-accent/45"
+                            }`}
+                          >
+                            +{earner.points}
+                            {earner.suffix && (
+                              <span className="font-normal text-accent/40">
+                                {" "}
+                                {earner.suffix}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
 
                 {/* Mint wallet + reminder band */}
                 {joinReady && (
