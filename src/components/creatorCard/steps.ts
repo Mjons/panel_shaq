@@ -39,6 +39,10 @@ export interface Step {
   /** What to advertise when it differs from what the server awards. */
   displayPoints?: number;
   href?: string;
+  /** Cannot be completed in this app. Same meaning as Earner.desktopOnly, and
+   *  the same reason for existing: a row that looks pressable but can never tick
+   *  from mobile activity is worse than one that says so. */
+  desktopOnly?: boolean;
 }
 
 export const STEPS: Step[] = [
@@ -97,8 +101,15 @@ export const STEPS: Step[] = [
     // load-bearing rather than boilerplate: this row sends people to Discord
     // precisely SO they read the brief before entering, and entries are judged
     // against per-contest rules.
-    hint: "Opens Discord. Read the contest rules there before entering. Ticks once you actually enter one",
+    // ⚠️ REWORDED FOR MOBILE, and not casually. Desktop says "Ticks once you
+    // actually enter one", which is true there — its entry flow writes the
+    // share_events row this verifies against. Mobile has no entry flow, so on a
+    // phone that sentence promises something the app cannot do. Discord is still
+    // where the rules live, so the row keeps its purpose; it just says where the
+    // entry itself happens.
+    hint: "Opens Discord for the rules. Entries are made on panelhaus.app",
     points: 20,
+    desktopOnly: true,
   },
   {
     n: 6,

@@ -946,8 +946,18 @@ function StepRow({
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold text-accent">
+          {/* Not `truncate`: the tag is a sibling inline element, and truncating
+              the line would clip it before the label. */}
+          <span className="block font-semibold text-accent">
             {step.label}
+            {/* Same marker as the earners list. This row opens Discord, so it
+                LOOKS actionable — without the tag it reads as something you can
+                finish here, when it can only ever tick from a desktop entry. */}
+            {step.desktopOnly && (
+              <span className="ml-1.5 whitespace-nowrap rounded border border-outline/30 px-1 py-px align-middle text-[10px] uppercase tracking-wide text-accent/35">
+                desktop
+              </span>
+            )}
           </span>
           <span className="mt-0.5 block text-xs leading-snug text-accent/50">
             {hint}
