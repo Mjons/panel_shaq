@@ -1,5 +1,15 @@
 # Changelog
 
+## August 20, 2026 — Mint wallet collection is switched off for now
+
+- **The card no longer asks for your mint wallet.** The Mint wallet row is gone from the Creator Card and the paste sheet no longer opens. Everything else about the card is untouched: you still join, still complete the four asks, still earn points, and your tier still levels the same way. Only the place where you hand over an address is hidden.
+- **Nothing was deleted and no address was lost.** Every wallet already collected is still on the server, still unique per account, and still readable by the team's own tools. `MINT_WALLET_COLLECTION_ENABLED = false` in `src/utils/mintWalletCollection.ts` is the whole change on this side, and turning it back on is one word rather than a rebuild.
+- **The 100-point celebration is switched off with it, deliberately.** That scene exists to teach the wallet step, and its only button is "add wallet". Left running it would have congratulated you on unlocking something and then opened a sheet that is no longer there.
+- **The mint reminder email still works.** It shares the same band on the card, but it is a separate feature that collects an email and no wallet, so it stays exactly as it was. Only the divider above it went, since with the wallet row gone it would have drawn a line under nothing.
+- **The endpoint stays live on purpose.** `api/creator-attach-wallet.ts` is untouched, matching how `api/creator-application.ts` was left up when the FCFS ship-claim sheet was retired in July. Disabling a shared endpoint to hide a screen breaks the other product rather than this one.
+- **Panel Haus is switched off in the same breath.** The two Creator Cards are deliberate mirrors, so the flag exists twice and both were flipped together — a wallet field hidden here and still live on the web would just move the question to the other product. Desktop changelog `1504`.
+- **The flag is typed `: boolean`, not left to infer.** Same reason `SHIP_CLAIM_ENABLED` is (July 28 below): as the literal `false`, TypeScript narrows every guard to permanently false and treats the screens behind them as unreachable code. The widened type keeps them live so re-enabling really is one word.
+
 ## August 14, 2026 — Smudge is switched off for now
 
 - **Smudge is temporarily unavailable.** The tab is still there and tapping it says "Coming soon". Nothing about making comics by hand changes: Smudge was always a front door onto the same panels, pages and vault, so everything it could do is still buildable the manual way.

@@ -25,6 +25,7 @@ import {
   type Step,
 } from "../components/creatorCard/steps";
 import { MintWalletSheet } from "../components/creatorCard/MintWalletSheet";
+import { MINT_WALLET_COLLECTION_ENABLED } from "../utils/mintWalletCollection";
 import { EarnMoreSheet } from "../components/creatorCard/EarnMoreSheet";
 import {
   GtdUnlockCelebration,
@@ -696,6 +697,10 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                 {/* Mint wallet + reminder band */}
                 {joinReady && (
                   <div className="space-y-5 rounded-lg border border-outline/20 bg-surface-container/60 p-4">
+                    {/* The ROW only. The band also holds the mint-reminder
+                        email opt-in below, which is a separate feature and keeps
+                        working. See utils/mintWalletCollection.ts. */}
+                    {MINT_WALLET_COLLECTION_ENABLED && (
                     <MintWalletRow
                       walletAddress={walletAddress}
                       gtdUnlocked={gtdUnlocked}
@@ -712,8 +717,10 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
                         }
                       }}
                     />
+                    )}
 
-                    <div className="border-t border-outline/10 pt-4">
+                    {/* Divider only when the wallet row sits above it. */}
+                    <div className={MINT_WALLET_COLLECTION_ENABLED ? "border-t border-outline/10 pt-4" : ""}>
                       <div className="flex items-center gap-2">
                         <Bell size={14} className="text-primary shrink-0" />
                         <span className="text-xs font-semibold uppercase tracking-wide text-accent/70">
@@ -790,21 +797,27 @@ export function CreatorCardScreen({ onBack }: { onBack: () => void }) {
         onClose={() => setShowEarnHelp(false)}
       />
 
-      <MintWalletSheet
-        isOpen={showMintWallet}
-        onClose={() => setShowMintWallet(false)}
-        onAttached={(addr) => patch({ walletAddress: addr })}
-      />
+      {MINT_WALLET_COLLECTION_ENABLED && (
+        <MintWalletSheet
+          isOpen={showMintWallet}
+          onClose={() => setShowMintWallet(false)}
+          onAttached={(addr) => patch({ walletAddress: addr })}
+        />
+      )}
 
-      <GtdUnlockCelebration
-        open={showGtd}
-        points={points}
-        onAddWallet={() => {
-          dismissGtd();
-          setShowMintWallet(true);
-        }}
-        onDismiss={dismissGtd}
-      />
+      {/* Gated with the row: its only call to action is "add wallet", so with
+          collection off it would open a sheet that is no longer rendered. */}
+      {MINT_WALLET_COLLECTION_ENABLED && (
+        <GtdUnlockCelebration
+          open={showGtd}
+          points={points}
+          onAddWallet={() => {
+            dismissGtd();
+            setShowMintWallet(true);
+          }}
+          onDismiss={dismissGtd}
+        />
+      )}
     </div>
   );
 }
